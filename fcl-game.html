@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>FCL</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Segoe UI',sans-serif;color:#fff;background:#080a10}
+
+.app{display:flex;flex-direction:column;height:100%}
+
+/* ─── Top Bar ─── */
+.top-bar{
+  position:absolute;top:0;left:0;right:0;z-index:50;
+  padding:12px 16px;display:flex;justify-content:space-between;align-items:center;
+  background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,transparent 100%);
+}
+.top-left{display:flex;gap:6px}
+.cur-box{
+  padding:5px 12px;border-radius:8px;font-size:11px;font-weight:800;letter-spacing:1px;
+  backdrop-filter:blur(8px);
+}
+.cur-cp{background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.3);color:#d4af37}
+.cur-mp{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#60a5fa}
+.store-btn{
+  padding:8px 18px;border-radius:10px;font-size:12px;font-weight:800;
+  background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.05));
+  border:1px solid rgba(255,255,255,.15);color:#fff;cursor:pointer;
+  backdrop-filter:blur(8px);transition:all .2s;letter-spacing:1px;
+}
+.store-btn:hover{background:rgba(255,255,255,.18)}
+
+/* ─── Main Content Area ─── */
+.content{flex:1;overflow-y:auto;overflow-x:hidden;position:relative}
+.screen{display:none;height:100%;position:relative;overflow-y:auto}
+#screen-home{overflow:hidden}
+.screen.active{display:block}
+
+/* ─── HOME / LOBBY ─── */
+.lobby{
+  width:100%;height:100%;position:relative;overflow:hidden;
+  background:#080a10;
+}
+.lobby-bg{
+  position:absolute;inset:0;z-index:1;
+  background:linear-gradient(90deg,#3a0a0a 0%,#0a0a18 50%,#0a0a3a 100%);
+}
+.lobby-img{
+  position:absolute;top:45%;left:50%;transform:translate(-50%,-45%);
+  width:130%;max-width:750px;height:95%;
+  object-fit:contain;object-position:center bottom;
+  z-index:2;
+}
+.lobby-overlay{
+  position:absolute;inset:0;z-index:3;
+  background:linear-gradient(180deg,rgba(0,0,0,.3) 0%,transparent 30%,transparent 60%,rgba(0,0,0,.7) 100%);
+}
+.lobby-title{
+  position:absolute;top:10%;left:50%;transform:translateX(-50%);z-index:10;
+  text-align:center;
+}
+.lobby-title .fcl{
+  font-size:64px;font-weight:900;letter-spacing:12px;
+  color:#fff;
+  text-shadow:0 0 40px rgba(255,255,255,.3),0 4px 20px rgba(0,0,0,.5);
+}
+.lobby-title .sub{
+  font-size:10px;font-weight:700;letter-spacing:6px;color:rgba(255,255,255,.4);margin-top:4px;
+}
+
+/* Transfer market button */
+.transfer-btn{
+  position:absolute;bottom:100px;right:16px;z-index:10;
+  padding:10px 16px;border-radius:12px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  backdrop-filter:blur(8px);cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;gap:6px;
+}
+.transfer-btn:hover{background:rgba(255,255,255,.14)}
+.transfer-btn .tb-icon{font-size:16px}
+.transfer-btn .tb-text{font-size:11px;font-weight:700;letter-spacing:.5px}
+
+/* ─── Bottom Nav ─── */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  display:flex;
+  background:rgba(8,10,16,.95);backdrop-filter:blur(16px);
+  border-top:1px solid rgba(255,255,255,.06);
+}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;padding:16px 0 env(safe-area-inset-bottom,16px);
+  cursor:pointer;transition:all .2s;opacity:.4;position:relative;
+}
+.nav-item.active{opacity:1}
+.nav-item.active::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:30px;height:2px;background:#d4af37;border-radius:1px;
+}
+
+.nav-label{font-size:15px;font-weight:800;letter-spacing:1.5px}
+
+/* ─── Store Screen ─── */
+#screen-store{background:#080a10;overflow-y:auto;padding:60px 16px 80px}
+
+.daily-reward{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;border-radius:12px;margin-bottom:16px;
+  background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(59,130,246,.05));
+  border:1px solid rgba(59,130,246,.2);
+}
+.dr-timer{font-size:11px;color:#60a5fa;font-weight:700;flex:1}
+.dr-timer .dr-label{font-size:9px;color:#888;font-weight:600;letter-spacing:.5px}
+.dr-timer .dr-time{font-size:16px;font-weight:900;margin-top:2px}
+.dr-claim{
+  padding:8px 16px;border-radius:8px;border:none;
+  background:linear-gradient(135deg,#3b82f6,#2563eb);
+  color:#fff;font-size:12px;font-weight:800;cursor:pointer;
+  transition:all .2s;letter-spacing:.5px;
+}
+.dr-claim:hover{transform:scale(1.05)}
+.dr-claim:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.dr-amount{font-size:13px;font-weight:900;color:#60a5fa}
+.store-header{padding:20px 16px 12px;font-size:18px;font-weight:900;letter-spacing:2px}
+.store-packs{display:flex;gap:16px;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.store-packs::-webkit-scrollbar{display:none}
+.pack-card{
+  width:110px;height:160px;position:relative;flex-shrink:0;
+  filter:drop-shadow(0 4px 16px rgba(0,0,0,.4)) drop-shadow(0 0 10px rgba(212,175,55,.12));
+  cursor:pointer;transition:all .3s;
+}
+.pack-card:hover{transform:scale(1.04)}
+.pc-svg{width:100%;height:100%;position:absolute;top:0;left:0;z-index:2;pointer-events:none}
+.pc-inner{width:100%;height:100%;position:absolute;top:0;left:0;overflow:hidden;clip-path:polygon(50% 0%,97% 8%,100% 15%,100% 78%,50% 100%,0% 78%,0% 15%,3% 8%)}
+.pc-bg{position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse at 40% 30%,rgba(212,175,55,.12) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,#0f0f18 0%,#08080d 100%)}
+.pc-pattern{position:absolute;inset:0;z-index:2;opacity:.04;background:linear-gradient(60deg,transparent 45%,rgba(255,255,255,.5) 45.5%,transparent 46%),linear-gradient(-60deg,transparent 45%,rgba(255,255,255,.5) 45.5%,transparent 46%)}
+.pc-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;text-align:center}
+.pc-season{font-size:18px;font-weight:900;letter-spacing:5px;color:#d4af37}
+.pc-sub{font-size:6px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.25);margin-top:4px}
+.pc-tap{font-size:8px;color:rgba(212,175,55,.35);margin-top:14px;animation:pulse 2s ease-in-out infinite}
+
+/* ─── My Players ─── */
+#screen-players{background:#080a10;overflow-y:auto;padding:60px 16px 80px}
+.coll-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.coll-count{font-size:12px;color:#888}
+.collection-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:8px}
+.coll-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:8px;text-align:center;cursor:pointer;transition:all .2s}
+.coll-card:hover{border-color:rgba(212,175,55,.3)}
+.coll-card img{width:55px;height:55px;object-fit:contain}
+.coll-card .cname{font-size:9px;font-weight:700;color:#ccc;margin-top:3px}
+.coll-card .covr{font-size:12px;font-weight:900;color:#d4af37}
+.coll-card.icon-card{border-color:rgba(212,175,55,.15);background:rgba(212,175,55,.03)}
+.coll-card .cextra{font-size:8px;color:#888}
+
+/* ─── Items / Squad placeholder ─── */
+.back-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:8px;margin-bottom:12px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+  color:#999;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;
+}
+.back-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+
+
+.pack-buy-btn{
+  padding:6px 14px;border-radius:6px;border:none;
+  background:linear-gradient(135deg,#3b82f6,#2563eb);
+  color:#fff;font-size:10px;font-weight:800;cursor:pointer;
+  transition:all .2s;letter-spacing:.5px;margin-top:6px;
+}
+.pack-buy-btn:hover{transform:scale(1.05)}
+.item-open-btn{
+  padding:8px 20px;border-radius:8px;border:none;
+  background:linear-gradient(135deg,#d4af37,#c5981a);
+  color:#1a1a1a;font-size:12px;font-weight:800;cursor:pointer;
+  transition:all .2s;letter-spacing:.5px;margin-top:8px;
+}
+.item-open-btn:hover{transform:scale(1.05)}
+.items-grid{display:flex;flex-wrap:wrap;gap:12px;padding:8px 0}
+.item-pack{
+  width:120px;height:180px;position:relative;cursor:pointer;transition:all .3s;
+  filter:drop-shadow(0 3px 10px rgba(0,0,0,.3)) drop-shadow(0 0 6px rgba(212,175,55,.1));
+}
+.item-pack:hover{transform:scale(1.05)}
+.item-pack .ip-svg{width:100%;height:100%;position:absolute;top:0;left:0;z-index:2;pointer-events:none}
+.item-pack .ip-inner{width:100%;height:100%;position:absolute;top:0;left:0;overflow:hidden;
+  clip-path:polygon(50% 0%,97% 8%,100% 15%,100% 78%,50% 100%,0% 78%,0% 15%,3% 8%)}
+.item-pack .ip-bg{position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse at 40% 30%,rgba(212,175,55,.12) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,#0f0f18 0%,#08080d 100%)}
+.item-pack .ip-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;text-align:center}
+.item-pack .ip-season{font-size:18px;font-weight:900;letter-spacing:3px;color:#d4af37}
+.item-pack .ip-sub{font-size:6px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.2);margin-top:2px}
+.item-badge{position:absolute;top:-4px;right:-4px;z-index:10;background:#ef4444;color:#fff;font-size:10px;font-weight:900;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.items-empty{text-align:center;padding:40px;color:#555;font-size:13px}
+.placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:calc(100% - 60px);text-align:center;padding-bottom:80px}
+.placeholder .ph-icon{font-size:48px;opacity:.15;margin-bottom:12px}
+.placeholder .ph-title{font-size:16px;font-weight:800;color:#444}
+.placeholder .ph-desc{font-size:12px;color:#333;margin-top:6px}
+
+/* ─── Pack Opening Overlay ─── */
+.reveal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(8,8,13,.98);flex-direction:column;align-items:center;justify-content:center;gap:16px;overflow-y:auto;padding:20px}
+.reveal-overlay.active{display:flex}
+.hint-box{opacity:0;transform:scale(.5);transition:all .5s ease;font-size:20px;font-weight:900;color:#fff;text-align:center}
+.hint-box.show{opacity:1;transform:scale(1)}
+.hint-box .label{font-size:10px;color:#888;letter-spacing:2px;margin-bottom:6px;text-transform:uppercase}
+.hint-box .value{font-size:28px}
+.hint-box .flag-reveal{width:50px;height:34px;border-radius:4px;object-fit:cover;border:1px solid rgba(255,255,255,.2)}
+.card-reveal{opacity:0;transform:scale(.3) rotateY(180deg);transition:all .8s cubic-bezier(.17,.67,.35,1.2)}
+.card-reveal.show{opacity:1;transform:scale(1) rotateY(0)}
+.tier-bg{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 1s;z-index:201}
+.tier-bg.show{opacity:1}
+.tier-bg.t114{background:radial-gradient(circle,rgba(156,163,175,.15) 0%,transparent 60%)}
+.tier-bg.t115{background:radial-gradient(circle,rgba(59,130,246,.15) 0%,transparent 60%)}
+.tier-bg.t116{background:radial-gradient(circle,rgba(168,85,247,.18) 0%,transparent 60%)}
+.tier-bg.t117{background:radial-gradient(circle,rgba(245,158,11,.2) 0%,transparent 60%)}
+.tier-bg.t118{background:radial-gradient(circle,rgba(239,68,68,.2) 0%,transparent 60%)}
+.tier-bg.ticon{background:radial-gradient(circle,rgba(212,175,55,.3) 0%,transparent 50%)}
+.price-tag{margin-top:12px;padding:6px 16px;border-radius:8px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);font-size:14px;font-weight:800;color:#d4af37;text-align:center;opacity:0;transition:opacity .5s}
+.price-tag.show{opacity:1}
+.action-btns{display:flex;gap:12px;margin-top:16px;opacity:0;transition:opacity .5s}
+.action-btns.show{opacity:1}
+.action-btn{padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .2s}
+.action-btn.again{background:linear-gradient(135deg,#d4af37,#c5981a);color:#1a1a1a}
+.action-btn.close{background:rgba(255,255,255,.08);color:#999;border:1px solid rgba(255,255,255,.1)}
+
+/* ─── Effects ─── */
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes fireRise{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-120px) scale(.3)}}
+@keyframes particle{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)}}
+.fire-container{position:fixed;bottom:0;left:0;right:0;height:60%;pointer-events:none;z-index:210;overflow:hidden}
+.fire-particle{position:absolute;bottom:-10px;border-radius:50%;animation:fireRise 1.5s ease-out forwards;filter:blur(2px)}
+.fire-glow{position:fixed;bottom:0;left:0;right:0;height:40%;pointer-events:none;z-index:209;opacity:0;transition:opacity .5s;background:linear-gradient(0deg,rgba(239,68,68,.25) 0%,rgba(245,158,11,.15) 30%,transparent 100%)}
+.fire-glow.icon{background:linear-gradient(0deg,rgba(212,175,55,.3) 0%,rgba(245,214,123,.2) 30%,transparent 100%)}
+.fire-glow.show{opacity:1}
+.screen-flash{position:fixed;inset:0;pointer-events:none;z-index:220;opacity:0;transition:opacity .15s}
+.screen-flash.show{opacity:1}
+.particle{position:fixed;width:6px;height:6px;border-radius:50%;pointer-events:none;animation:particle 1.5s ease-out forwards;z-index:215}
+
+.modal-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center}
+.modal-overlay.active{display:flex}
+.modal-box{background:#1a1a24;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;max-width:280px;width:90%;text-align:center}
+.modal-text{font-size:14px;font-weight:700;color:#eee;margin-bottom:16px;line-height:1.5}
+.modal-btns{display:flex;gap:8px;justify-content:center}
+.modal-btn{padding:8px 20px;border-radius:8px;border:none;font-size:12px;font-weight:800;cursor:pointer;transition:all .2s}
+.modal-btn.confirm{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff}
+.modal-btn.cancel{background:rgba(255,255,255,.08);color:#999;border:1px solid rgba(255,255,255,.1)}
+.modal-btn.ok{background:linear-gradient(135deg,#d4af37,#c5981a);color:#1a1a1a}
+
+/* Enhancement colors */
+.enh-badge{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:3px;font-size:9px;font-weight:900;margin-top:4px}
+.enh-1{background:rgba(255,255,255,.1);color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.15)}
+.enh-2{background:rgba(205,127,50,.2);color:#cd7f32;border:1px solid rgba(205,127,50,.4)}
+.enh-3{background:rgba(192,192,192,.2);color:#c0c0c0;border:1px solid rgba(192,192,192,.4)}
+.enh-4{background:rgba(212,175,55,.2);color:#d4af37;border:1px solid rgba(212,175,55,.4)}
+.enh-5{background:rgba(100,200,255,.2);color:#64c8ff;border:1px solid rgba(100,200,255,.4)}
+
+/* Player detail modal */
+
+
+/* Enhancement result animation */
+.enh-result{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:260;font-size:36px;font-weight:900;pointer-events:none;opacity:0;transition:all .5s}
+.enh-result.success{color:#d4af37;opacity:1;transform:translate(-50%,-60%) scale(1.2)}
+.enh-result.fail{color:#ef4444;opacity:1;transform:translate(-50%,-60%) scale(1.2)}
+
+/* Collection card enhancement display */
+.coll-enh{margin-top:2px}
+
+/* Store token section */
+.token-card{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;margin-top:12px}
+.token-icon{font-size:28px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:rgba(212,175,55,.1);border-radius:10px;border:1px solid rgba(212,175,55,.2)}
+.token-info{flex:1}
+.token-name{font-size:13px;font-weight:800;color:#eee}
+.token-desc{font-size:10px;color:#888;margin-top:2px}
+.token-count{font-size:11px;color:#d4af37;font-weight:800;margin-top:2px}
+.token-buy-btn{padding:6px 14px;border-radius:6px;border:none;background:linear-gradient(135deg,#d4af37,#c5981a);color:#1a1a1a;font-size:11px;font-weight:800;cursor:pointer;transition:all .2s}
+.token-buy-btn:hover{transform:scale(1.05)}
+
+/* Enhancement colors */
+.enh-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:14px;border-radius:3px;font-size:9px;font-weight:900;margin-top:4px}
+.enh-1{background:rgba(255,255,255,.1);color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.15)}
+.enh-2{background:rgba(205,127,50,.2);color:#cd7f32;border:1px solid rgba(205,127,50,.4)}
+.enh-3{background:rgba(192,192,192,.2);color:#c0c0c0;border:1px solid rgba(192,192,192,.4)}
+.enh-4{background:rgba(212,175,55,.2);color:#d4af37;border:1px solid rgba(212,175,55,.4)}
+.enh-5{background:rgba(100,200,255,.2);color:#64c8ff;border:1px solid rgba(100,200,255,.4)}
+
+/* Player detail modal */
+.player-detail{display:none;position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px}
+.player-detail.active{display:flex}
+.pd-stats{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.pd-stat{background:rgba(255,255,255,.06);border-radius:6px;padding:4px 8px;text-align:center}
+.pd-stat .ps-val{font-size:14px;font-weight:900;color:#fff}
+.pd-stat .ps-lbl{font-size:7px;color:#888;font-weight:700}
+.pd-info{font-size:11px;color:#999;text-align:center}
+.pd-price{font-size:13px;font-weight:800;color:#d4af37;margin-top:4px}
+.pd-btns{display:flex;gap:10px;margin-top:8px}
+.pd-btn{padding:10px 24px;border-radius:10px;border:none;font-size:13px;font-weight:800;cursor:pointer;transition:all .2s}
+.pd-btn.enhance{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+.pd-btn.enhance:hover{transform:scale(1.05)}
+.pd-btn.close{background:rgba(255,255,255,.08);color:#999;border:1px solid rgba(255,255,255,.1)}
+.pd-enh-info{font-size:10px;color:#888;text-align:center;margin-top:4px}
+.pd-enh-info span{font-weight:800}
+
+/* Enhancement result */
+.enh-result{font-size:20px;font-weight:900;margin-top:8px;animation:enhPop .5s ease}
+.enh-success{color:#10b981}
+.enh-fail{color:#ef4444}
+@keyframes enhPop{0%{transform:scale(0);opacity:0}50%{transform:scale(1.3)}100%{transform:scale(1);opacity:1}}
+
+/* Token display in store */
+.token-shop{
+  margin-top:20px;padding:14px;border-radius:12px;
+  background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);
+}
+.token-shop .ts-title{font-size:12px;font-weight:800;color:#10b981;margin-bottom:8px}
+.token-shop .ts-row{display:flex;align-items:center;justify-content:space-between}
+.token-shop .ts-info{font-size:11px;color:#ccc}
+.token-shop .ts-count{font-size:13px;font-weight:900;color:#10b981}
+.ts-buy-btn{padding:6px 14px;border-radius:6px;border:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:11px;font-weight:800;cursor:pointer;transition:all .2s}
+.ts-buy-btn:hover{transform:scale(1.05)}
+
+/* Enhancement badge in collection cards */
+.coll-enh{margin-top:2px}
+
+/* Enhancement Screen */
+.enh-screen{display:none;position:fixed;inset:0;z-index:260;background:rgba(4,4,8,.97);flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px}
+.enh-screen.active{display:flex}
+.enh-player-name{font-size:18px;font-weight:900;letter-spacing:2px}
+.enh-arrow{font-size:14px;font-weight:800;margin:4px 0;display:flex;align-items:center;gap:8px;justify-content:center}
+.enh-from{color:#999}
+.enh-to{color:#10b981}
+.enh-arrow-icon{font-size:20px;color:#10b981}
+.enh-prob{font-size:12px;color:#888;margin-top:4px}
+.enh-prob span{color:#10b981;font-weight:800}
+.enh-cost{font-size:11px;color:#d4af37;margin-top:2px}
+.enh-go-btn{
+  margin-top:16px;padding:14px 40px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,#10b981,#059669);
+  color:#fff;font-size:16px;font-weight:900;cursor:pointer;
+  transition:all .2s;letter-spacing:1px;
+}
+.enh-go-btn:hover{transform:scale(1.05)}
+.enh-back-btn{margin-top:8px;padding:8px 20px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:none;color:#888;font-size:12px;font-weight:700;cursor:pointer}
+
+/* Suspense animation */
+@keyframes enhSpin{
+  0%{transform:rotateY(0) scale(1)}
+  25%{transform:rotateY(90deg) scale(1.05)}
+  50%{transform:rotateY(180deg) scale(1.1)}
+  75%{transform:rotateY(270deg) scale(1.05)}
+  100%{transform:rotateY(360deg) scale(1)}
+}
+@keyframes enhGlow{
+  0%,100%{box-shadow:0 0 20px rgba(16,185,129,.1)}
+  50%{box-shadow:0 0 60px rgba(16,185,129,.4)}
+}
+@keyframes enhShake{
+  0%,100%{transform:translateX(0)}
+  10%,30%,50%,70%,90%{transform:translateX(-3px)}
+  20%,40%,60%,80%{transform:translateX(3px)}
+}
+.enh-suspense{animation:enhGlow 0.6s ease-in-out 4}
+.enh-shake{animation:enhShake 0.5s ease}
+.enh-big-result{
+  font-size:32px;font-weight:900;letter-spacing:3px;
+  opacity:0;transform:scale(0);transition:all .5s cubic-bezier(.17,.67,.35,1.2);
+}
+.enh-big-result.show{opacity:1;transform:scale(1)}
+.enh-big-result.success{color:#10b981;text-shadow:0 0 30px rgba(16,185,129,.5)}
+.enh-big-result.fail{color:#ef4444;text-shadow:0 0 30px rgba(239,68,68,.5)}
+.enh-price-change{font-size:11px;color:#d4af37;margin-top:4px;opacity:0;transition:opacity .5s}
+.enh-price-change.show{opacity:1}
+
+/* Transfer Market */
+.tm-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.tm-title{font-size:16px;font-weight:900;letter-spacing:1px}
+.tm-timer{font-size:11px;color:#60a5fa;font-weight:700;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);padding:4px 10px;border-radius:6px}
+.tm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tm-card{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:12px;display:flex;flex-direction:column;align-items:center;
+  gap:6px;transition:all .2s;
+}
+.tm-card img{width:60px;height:60px;object-fit:contain}
+.tm-name{font-size:12px;font-weight:800;color:#eee}
+.tm-info{font-size:9px;color:#888}
+.tm-price{font-size:12px;font-weight:900;color:#d4af37}
+.tm-buy{
+  padding:6px 16px;border-radius:6px;border:none;
+  background:linear-gradient(135deg,#d4af37,#c5981a);
+  color:#1a1a1a;font-size:10px;font-weight:800;cursor:pointer;
+  transition:all .2s;width:100%;
+}
+.tm-buy:hover{transform:scale(1.03)}
+.tm-buy:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.tm-sold{font-size:10px;color:#ef4444;font-weight:800;padding:6px 0}
+
+.qty-selector{display:flex;align-items:center;gap:8px;margin:6px 0}
+.qty-btn{width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.qty-btn:hover{background:rgba(255,255,255,.12)}
+.qty-num{font-size:16px;font-weight:900;color:#fff;min-width:24px;text-align:center}
+.bulk-results{margin-top:12px;max-height:200px;overflow-y:auto;display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.bulk-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px;text-align:center;width:70px}
+.bulk-card img{width:40px;height:40px;object-fit:contain}
+.bulk-card .bc-name{font-size:7px;color:#ccc;font-weight:700;margin-top:2px}
+.bulk-card .bc-ovr{font-size:10px;color:#d4af37;font-weight:900}
+.bulk-card.best{border-color:rgba(212,175,55,.4);background:rgba(212,175,55,.05)}
+
+.box-visual{
+  width:110px;height:110px;position:relative;flex-shrink:0;
+  filter:drop-shadow(0 4px 16px rgba(0,0,0,.5)) drop-shadow(0 0 10px rgba(212,175,55,.15));
+}
+/* Box opening animation */
+.box-overlay{display:none;position:fixed;inset:0;z-index:270;background:rgba(4,4,8,.97);flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px}
+.box-overlay.active{display:flex}
+@keyframes boxShake{0%,100%{transform:rotate(0)}25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
+@keyframes boxGlow{0%,100%{filter:drop-shadow(0 0 8px rgba(212,175,55,.2))}50%{filter:drop-shadow(0 0 30px rgba(212,175,55,.6))}}
+@keyframes boxOpen{0%{transform:scale(1)}30%{transform:scale(1.15)}60%{transform:scale(0.9) rotateX(20deg)}100%{transform:scale(0) rotateX(90deg);opacity:0}}
+@keyframes boxBurst{0%{opacity:0;transform:scale(0)}50%{opacity:1;transform:scale(1.2)}100%{opacity:1;transform:scale(1)}}
+.box-anim{transition:all .3s}
+.box-anim.shake{animation:boxShake .15s ease 6}
+.box-anim.glow{animation:boxGlow .5s ease 3}
+.box-anim.open{animation:boxOpen .6s ease forwards}
+.box-result-card{opacity:0;transform:scale(0);transition:all .5s cubic-bezier(.17,.67,.35,1.2)}
+.box-result-card.show{opacity:1;transform:scale(1)}
+
+.store-tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.store-tab{flex:1;padding:10px;text-align:center;font-size:13px;font-weight:800;color:#666;cursor:pointer;transition:all .2s;border-bottom:2px solid transparent}
+.store-tab.active{color:#fff;border-bottom-color:#d4af37}
+.store-panel{display:none}
+.store-panel.active{display:block}
+</style></head><body>
+<div class="app">
+
+  <!-- Top Bar (overlay on lobby) -->
+  <div class="top-bar">
+    <div class="top-left">
+      <div class="cur-box cur-cp">CP 0</div>
+      <div class="cur-box cur-mp">MP 0</div>
+    </div>
+    <button class="store-btn" onclick="switchTab('store')">상점</button>
+  </div>
+
+  <div class="content">
+
+    <!-- HOME / LOBBY -->
+    <div class="screen active" id="screen-home">
+      <div class="lobby">
+        <div class="lobby-bg"></div>
+        <img class="lobby-img" id="lobbyImg" alt="">
+        <div class="lobby-overlay"></div>
+        <div class="lobby-title">
+          <div class="fcl">FCL</div>
+          
+        </div>
+        <div class="transfer-btn" onclick="switchTab('transfer')">
+          <span class="tb-icon">🔄</span>
+          <span class="tb-text">이적시장</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STORE -->
+    <div class="screen" id="screen-store">
+      <div class="back-btn" onclick="switchTab('home')">← 로비</div>
+      <div class="daily-reward">
+        <div class="dr-timer">
+          <div class="dr-label">일일 보상</div>
+          <div class="dr-time" id="drTimer">--:--:--</div>
+        </div>
+        <div class="dr-amount">10,000 MP</div>
+        <button class="dr-claim" id="drBtn" onclick="claimDaily()">받기</button>
+      </div>
+      <div class="store-header">STORE</div>
+      <div class="store-tabs">
+        <div class="store-tab active" onclick="switchStoreTab('packs')">팩</div>
+        <div class="store-tab" onclick="switchStoreTab('items')">아이템</div>
+      </div>
+
+      <!-- 팩 탭 -->
+      <div class="store-panel active" id="storePanel-packs">
+        <div class="store-packs">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0">
+            <div style="font-size:11px;font-weight:800;color:#ccc;text-align:center">FWC TOP40<br><span style="font-size:9px;color:#888">1강 선수팩</span></div>
+            <div class="pack-card">
+              <svg class="pc-svg" viewBox="0 0 110 160" fill="none"><defs><linearGradient id="spg1" x1="0" y1="0" x2="110" y2="160" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="50%" stop-color="#d4af37"/><stop offset="100%" stop-color="#f5e6a3"/></linearGradient></defs><polygon points="55,1 107,13 109,24 109,125 55,159 1,125 1,24 3,13" fill="none" stroke="url(#spg1)" stroke-width="1.5"/></svg>
+              <div class="pc-inner"><div class="pc-bg"></div><div class="pc-pattern"></div><div class="pc-label"><div class="pc-season">FWC</div><div class="pc-sub">1강 선수팩</div><div class="pc-tap">20 MP</div></div></div>
+            </div>
+            <div class="qty-selector"><button class="qty-btn" onclick="changeQty('pack',-1)">-</button><span class="qty-num" id="packQty">1</span><button class="qty-btn" onclick="changeQty('pack',1)">+</button></div>
+            <button class="pack-buy-btn" onclick="confirmBuy('fwc1')"><span id="packTotalPrice">20</span> MP</button>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0">
+            <div style="font-size:11px;font-weight:800;color:#ccc;text-align:center">FWC TOP40<br><span style="font-size:9px;color:#c0c0c0">3강 선수팩</span></div>
+            <div class="pack-card">
+              <svg class="pc-svg" viewBox="0 0 110 160" fill="none"><defs><linearGradient id="spg3" x1="0" y1="0" x2="110" y2="160" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#e0e0e0"/><stop offset="50%" stop-color="#c0c0c0"/><stop offset="100%" stop-color="#e0e0e0"/></linearGradient></defs><polygon points="55,1 107,13 109,24 109,125 55,159 1,125 1,24 3,13" fill="none" stroke="url(#spg3)" stroke-width="1.5"/></svg>
+              <div class="pc-inner"><div class="pc-bg" style="background:radial-gradient(ellipse at 40% 30%,rgba(192,192,192,.12) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,#0f0f18 0%,#08080d 100%)"></div><div class="pc-pattern"></div><div class="pc-label"><div class="pc-season" style="color:#c0c0c0">FWC</div><div class="pc-sub">3강 선수팩</div><div class="pc-tap" style="color:rgba(192,192,192,.4)">40 MP</div></div></div>
+            </div>
+            <div class="qty-selector"><button class="qty-btn" onclick="changeQty('pack3',-1)">-</button><span class="qty-num" id="pack3Qty">1</span><button class="qty-btn" onclick="changeQty('pack3',1)">+</button></div>
+            <button class="pack-buy-btn" onclick="confirmBuy('fwc3')"><span id="pack3TotalPrice">40</span> MP</button>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0">
+            <div style="font-size:11px;font-weight:800;color:#ccc;text-align:center">FWC TOP40<br><span style="font-size:9px;color:#64c8ff">5강 선수팩</span></div>
+            <div class="pack-card">
+              <svg class="pc-svg" viewBox="0 0 110 160" fill="none"><defs><linearGradient id="spg5" x1="0" y1="0" x2="110" y2="160" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#a8e4ff"/><stop offset="50%" stop-color="#64c8ff"/><stop offset="100%" stop-color="#a8e4ff"/></linearGradient></defs><polygon points="55,1 107,13 109,24 109,125 55,159 1,125 1,24 3,13" fill="none" stroke="url(#spg5)" stroke-width="1.5"/></svg>
+              <div class="pc-inner"><div class="pc-bg" style="background:radial-gradient(ellipse at 40% 30%,rgba(100,200,255,.12) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,#0f0f18 0%,#08080d 100%)"></div><div class="pc-pattern"></div><div class="pc-label"><div class="pc-season" style="color:#64c8ff">FWC</div><div class="pc-sub">5강 선수팩</div><div class="pc-tap" style="color:rgba(100,200,255,.4)">60 MP</div></div></div>
+            </div>
+            <div class="qty-selector"><button class="qty-btn" onclick="changeQty('pack5',-1)">-</button><span class="qty-num" id="pack5Qty">1</span><button class="qty-btn" onclick="changeQty('pack5',1)">+</button></div>
+            <button class="pack-buy-btn" onclick="confirmBuy('fwc5')"><span id="pack5TotalPrice">60</span> MP</button>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0">
+            <div style="font-size:11px;font-weight:800;color:#ccc;text-align:center">TEAM LEGEND<br><span style="font-size:9px;color:#d4af37">1강 선수팩</span></div>
+            <div class="pack-card">
+              <svg class="pc-svg" viewBox="0 0 110 160" fill="none"><defs><linearGradient id="spgtl" x1="0" y1="0" x2="110" y2="160" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="50%" stop-color="#d4af37"/><stop offset="100%" stop-color="#f5e6a3"/></linearGradient></defs><polygon points="55,1 107,13 109,24 109,125 55,159 1,125 1,24 3,13" fill="none" stroke="url(#spgtl)" stroke-width="1.5"/></svg>
+              <div class="pc-inner"><div class="pc-bg" style="background:radial-gradient(ellipse at 40% 30%,rgba(245,230,163,.18) 0%,transparent 50%),linear-gradient(180deg,#fafaf5 0%,#fff 60%,#0f0f18 60%,#08080d 100%)"></div><div class="pc-pattern"></div><div class="pc-label"><div class="pc-season" style="color:#d4af37">TL</div><div class="pc-sub" style="color:#1a1a1a">1강 선수팩</div><div class="pc-tap" style="color:#d4af37">30 MP</div></div></div>
+            </div>
+            <div class="qty-selector"><button class="qty-btn" onclick="changeQty('packtl1',-1)">-</button><span class="qty-num" id="packtl1Qty">1</span><button class="qty-btn" onclick="changeQty('packtl1',1)">+</button></div>
+            <button class="pack-buy-btn" onclick="confirmBuy('tl1')"><span id="packtl1TotalPrice">30</span> MP</button>
+          </div>
+        </div>
+        <div style="margin-top:20px;font-size:14px;font-weight:800;letter-spacing:1px;color:#999;margin-bottom:10px">SPECIAL BOX</div>
+        <div style="display:flex;gap:16px">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+            <div style="font-size:11px;font-weight:800;color:#ccc">FWC 특별 상자</div>
+            <div class="box-visual">
+              <svg width="110" height="90" viewBox="0 0 110 90">
+                <defs><linearGradient id="bxg" x1="0" y1="0" x2="110" y2="90" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="33%" stop-color="#c0c0c0"/><stop offset="66%" stop-color="#64c8ff"/><stop offset="100%" stop-color="#f5e6a3"/></linearGradient></defs>
+                <rect x="6" y="22" width="98" height="62" rx="4" fill="#12121f" stroke="url(#bxg)" stroke-width="1.5"/>
+                <rect x="2" y="14" width="106" height="14" rx="3" fill="#16162a" stroke="url(#bxg)" stroke-width="1.2"/>
+                <rect x="46" y="22" width="18" height="62" rx="1" fill="none" stroke="url(#bxg)" stroke-width=".6" opacity=".3"/>
+                <path d="M46,22 Q40,12 46,14 L55,8 L64,14 Q70,12 64,22" fill="none" stroke="url(#bxg)" stroke-width=".8" opacity=".4"/>
+                <text x="55" y="58" text-anchor="middle" font-size="14" font-weight="900" letter-spacing="2" fill="url(#bxg)" opacity=".6">FWC</text>
+                <text x="55" y="72" text-anchor="middle" font-size="6" font-weight="700" fill="rgba(255,255,255,.2)" letter-spacing="1">특별 상자</text>
+              </svg>
+            </div>
+            <div style="font-size:9px;color:#888;text-align:center">1강 70% · 3강 25% · 5강 5%</div>
+            <div class="qty-selector"><button class="qty-btn" onclick="changeQty('box',-1)">-</button><span class="qty-num" id="boxQty">1</span><button class="qty-btn" onclick="changeQty('box',1)">+</button></div>
+            <button class="pack-buy-btn" onclick="buySpecialBox()"><span id="boxTotalPrice">40</span> MP</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 아이템 탭 -->
+      <div class="store-panel" id="storePanel-items">
+        <div class="token-shop">
+          <div class="ts-title">⬆ 강화 토큰</div>
+          <div class="ts-row">
+            <div>
+              <div class="ts-info">강화 토큰</div>
+              <div style="font-size:9px;color:#888">보유: <span id="tokenCount" class="ts-count">0</span>개</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+              <div class="qty-selector"><button class="qty-btn" onclick="changeQty('token',-1)">-</button><span class="qty-num" id="tokenQty">1</span><button class="qty-btn" onclick="changeQty('token',1)">+</button></div>
+              <button class="ts-buy-btn" onclick="buyToken()"><span id="tokenTotalPrice">300</span> CP</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY PLAYERS -->
+    <div class="screen" id="screen-players">
+      <div class="back-btn" onclick="switchTab('home')">← 로비</div><div class="coll-header">
+        <div style="font-size:16px;font-weight:900;letter-spacing:1px">MY PLAYERS</div>
+        <div class="coll-count" id="collCount">0 / 40</div>
+      </div>
+      <div class="collection-grid" id="collGrid"></div>
+    </div>
+
+    <!-- ITEMS -->
+    <div class="screen" id="screen-items" style="padding-top:50px">
+      <div style="padding:0 16px">
+        <div class="back-btn" onclick="switchTab('home')">← 로비</div>
+        <div style="font-size:16px;font-weight:900;letter-spacing:1px;margin-bottom:12px">아이템</div>
+        <div id="itemsContent"></div>
+      </div>
+    </div>
+
+    <!-- TRANSFER MARKET -->
+    <div class="screen" id="screen-transfer" style="padding-top:50px">
+      <div style="padding:0 16px">
+        <div class="back-btn" onclick="switchTab('home')">← 로비</div>
+        <div class="tm-header">
+          <div class="tm-title">이적시장</div>
+          <div class="tm-timer">갱신까지 <span id="tmTimer">--:--</span></div>
+        </div>
+        <div class="tm-grid" id="tmGrid"></div>
+      </div>
+    </div>
+
+    <!-- SQUAD -->
+    <div class="screen" id="screen-squad" style="padding-top:50px">
+      <div style="padding:16px"><div class="back-btn" onclick="switchTab('home')">← 로비</div></div><div class="placeholder"><div class="ph-icon">🏟️</div><div class="ph-title">내 스쿼드</div><div class="ph-desc">곧 업데이트 예정</div></div>
+    </div>
+  </div>
+
+  <!-- Reveal Overlay -->
+  <div class="reveal-overlay" id="revealOverlay">
+    <div class="tier-bg" id="tierBg"></div>
+    <div id="revealArea" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:205"></div>
+  </div>
+
+  <div class="player-detail" id="playerDetail"></div>
+  <div class="box-overlay" id="boxOverlay"></div>
+  <div class="enh-screen" id="enhScreen"></div>
+  <div class="modal-overlay" id="modal">
+    <div class="modal-box">
+      <div class="modal-text" id="modalText"></div>
+      <div class="modal-btns" id="modalBtns"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="switchTab('squad')">
+      <span class="nav-label">내스쿼드</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('players')">
+      <span class="nav-label">내선수</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('items')">
+      <span class="nav-label">아이템</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const PLAYERS = [{"id": "cr7", "name": "Ronaldo", "ovr": 118, "pos": "ST", "stats": [115, 118, 113, 116, 54, 114], "foot": "L5·R5", "club": "Al Nassr", "nation": "PT", "tier": "118", "price": "5020억 9100만", "salary": 29}, {"id": "messi", "name": "Messi", "ovr": 118, "pos": "RW", "stats": [114, 118, 117, 119, 74, 110], "foot": "L5·R4", "club": "Inter Miami", "nation": "AR", "tier": "118", "price": "1930억 6300만", "salary": 28}, {"id": "lewa", "name": "Lewandowski", "ovr": 118, "pos": "ST", "stats": [114, 119, 113, 114, 43, 117], "foot": "L5·R5", "club": "Barcelona", "nation": "PL", "tier": "118", "price": "2990억 2400만", "salary": 28}, {"id": "son", "name": "Son Heung-Min", "ovr": 117, "pos": "LW", "stats": [117, 117, 114, 115, 71, 112], "foot": "L5·R5", "club": "LAFC", "nation": "KR", "tier": "117", "price": "3730억 6200만", "salary": 27}, {"id": "db", "name": "De Bruyne", "ovr": 117, "pos": "CAM", "stats": [113, 117, 118, 114, 92, 111], "foot": "L5·R5", "club": "Napoli", "nation": "BE", "tier": "117", "price": "1240억 560만", "salary": 27}, {"id": "modric", "name": "Modrić", "ovr": 117, "pos": "CM", "stats": [113, 115, 118, 114, 104, 109], "foot": "L5·R5", "club": "AC Milan", "nation": "HR", "tier": "117", "price": "910억 3200만", "salary": 27}, {"id": "salah", "name": "Salah", "ovr": 117, "pos": "RW", "stats": [116, 117, 114, 116, 65, 110], "foot": "L5·R4", "club": "Liverpool", "nation": "EG", "tier": "117", "price": "1490억 310만", "salary": 27}, {"id": "kane", "name": "Kane", "ovr": 117, "pos": "ST", "stats": [115, 118, 116, 114, 67, 117], "foot": "L5·R5", "club": "Bayern München", "nation": "EN", "tier": "117", "price": "2610억 9200만", "salary": 28}, {"id": "vd", "name": "Van Dijk", "ovr": 117, "pos": "CB", "stats": [116, 93, 111, 104, 118, 117], "foot": "L3·R5", "club": "Liverpool", "nation": "NL", "tier": "117", "price": "880억 5000만", "salary": 28}, {"id": "csm", "name": "Casemiro", "ovr": 117, "pos": "CDM", "stats": [112, 113, 112, 112, 116, 116], "foot": "L3·R5", "club": "Man United", "nation": "BR", "tier": "117", "price": "530억 8200만", "salary": 27}, {"id": "carv", "name": "Carvajal", "ovr": 117, "pos": "RB", "stats": [117, 104, 113, 114, 116, 114], "foot": "L3·R5", "club": "Real Madrid", "nation": "ES", "tier": "117", "price": "490억 2300만", "salary": 26}, {"id": "bs", "name": "B. Silva", "ovr": 116, "pos": "CM", "stats": [116, 114, 116, 117, 109, 108], "foot": "L5·R3", "club": "Man City", "nation": "PT", "tier": "116", "price": "615억 4200만", "salary": 26}, {"id": "mn", "name": "Mané", "ovr": 116, "pos": "LW", "stats": [117, 115, 114, 116, 78, 113], "foot": "L5·R5", "club": "Al Nassr", "nation": "SN", "tier": "116", "price": "1620억 3400만", "salary": 26}, {"id": "marq", "name": "Marquinhos", "ovr": 116, "pos": "CB", "stats": [117, 103, 112, 113, 118, 116], "foot": "L3·R5", "club": "PSG", "nation": "BR", "tier": "116", "price": "680억 1300만", "salary": 27}, {"id": "ali", "name": "Alisson", "ovr": 116, "pos": "GK", "stats": [117, 118, 116, 117, 116, 114], "foot": "L3·R5", "club": "Liverpool", "nation": "BR", "tier": "116", "gk": true, "price": "340억 2700만", "salary": 24}, {"id": "asx", "name": "A. Sánchez", "ovr": 116, "pos": "CF", "stats": [117, 115, 114, 117, 65, 114], "foot": "L4·R5", "club": "Sevilla", "nation": "CL", "tier": "116", "price": "1050억 5500만", "salary": 26}, {"id": "ddg", "name": "De Gea", "ovr": 116, "pos": "GK", "stats": [117, 117, 114, 118, 112, 115], "foot": "L3·R5", "club": "Free Agent", "nation": "ES", "tier": "116", "gk": true, "price": "385억 4700만", "salary": 24}, {"id": "er", "name": "Eriksen", "ovr": 115, "pos": "CAM", "stats": [113, 114, 117, 116, 97, 108], "foot": "L5·R5", "club": "Wolfsburg", "nation": "DK", "tier": "115", "price": "910억 7100만", "salary": 25}, {"id": "rud", "name": "Rüdiger", "ovr": 115, "pos": "CB", "stats": [117, 93, 103, 106, 116, 117], "foot": "L3·R5", "club": "Real Madrid", "nation": "DE", "tier": "115", "price": "1120억 3200만", "salary": 26}, {"id": "kou", "name": "Koulibaly", "ovr": 115, "pos": "CB", "stats": [113, 86, 94, 112, 117, 117], "foot": "L4·R5", "club": "Napoli", "nation": "SN", "tier": "115", "price": "530억 920만", "salary": 26}, {"id": "ota", "name": "Otamendi", "ovr": 115, "pos": "CB", "stats": [114, 94, 113, 112, 117, 116], "foot": "L3·R5", "club": "Benfica", "nation": "AR", "tier": "115", "price": "550억 1800만", "salary": 26}, {"id": "wij", "name": "Wijnaldum", "ovr": 115, "pos": "CM", "stats": [116, 113, 113, 116, 112, 113], "foot": "L4·R5", "club": "Roma", "nation": "NL", "tier": "115", "price": "870억 4200만", "salary": 26}, {"id": "xhk", "name": "Xhaka", "ovr": 115, "pos": "CM", "stats": [111, 110, 117, 112, 116, 117], "foot": "L5·R3", "club": "Leverkusen", "nation": "CH", "tier": "115", "price": "420억 6700만", "salary": 25}, {"id": "jam", "name": "James R.", "ovr": 115, "pos": "CAM", "stats": [112, 115, 116, 114, 65, 107], "foot": "L5·R3", "club": "Rayo Vallecano", "nation": "CO", "tier": "115", "price": "690억 2100만", "salary": 25}, {"id": "obl", "name": "Oblak", "ovr": 115, "pos": "GK", "stats": [115, 116, 117, 116, 114, 114], "foot": "L3·R5", "club": "Atlético", "nation": "SI", "tier": "115", "gk": true, "price": "405억 2200만", "salary": 23}, {"id": "cal", "name": "Çalhanoğlu", "ovr": 115, "pos": "CM", "stats": [113, 113, 117, 114, 113, 112], "foot": "L5·R5", "club": "Inter Milan", "nation": "TR", "tier": "115", "price": "1210억 5600만", "salary": 26}, {"id": "per", "name": "Perišić", "ovr": 114, "pos": "LM", "stats": [116, 116, 113, 114, 76, 113], "foot": "L5·R5", "club": "Inter Milan", "nation": "HR", "tier": "114", "price": "1820억 5700만", "salary": 25}, {"id": "sms", "name": "M-Savić", "ovr": 114, "pos": "CM", "stats": [113, 115, 116, 116, 112, 117], "foot": "L5·R5", "club": "Lazio", "nation": "RS", "tier": "114", "price": "1070억 390만", "salary": 25}, {"id": "kyg", "name": "Kim Y-G", "ovr": 114, "pos": "CB", "stats": [110, 98, 113, 104, 116, 115], "foot": "L5·R3", "club": "Ulsan HD", "nation": "KR", "tier": "114", "price": "432억 1200만", "salary": 25}, {"id": "nag", "name": "Nagatomo", "ovr": 114, "pos": "LB", "stats": [116, 97, 103, 105, 113, 109], "foot": "L5·R5", "club": "Marseille", "nation": "JP", "tier": "114", "price": "380억 3290만", "salary": 24}, {"id": "tar", "name": "Taremi", "ovr": 114, "pos": "ST", "stats": [114, 114, 110, 111, 72, 116], "foot": "L4·R5", "club": "Inter Milan", "nation": "IR", "tier": "114", "price": "720억 110만", "salary": 24}, {"id": "sou", "name": "Souček", "ovr": 114, "pos": "CDM", "stats": [108, 112, 111, 110, 116, 116], "foot": "L3·R5", "club": "West Ham", "nation": "CZ", "tier": "114", "price": "420억 6260만", "salary": 24}, {"id": "pty", "name": "T. Partey", "ovr": 114, "pos": "CDM", "stats": [109, 108, 113, 115, 115, 114], "foot": "L3·R5", "club": "Arsenal", "nation": "GH", "tier": "114", "price": "582억 3100만", "salary": 25}, {"id": "aur", "name": "Aurier", "ovr": 114, "pos": "RB", "stats": [116, 88, 101, 108, 116, 110], "foot": "L3·R5", "club": "Nott. Forest", "nation": "CI", "tier": "114", "price": "390억 3300만", "salary": 24}, {"id": "pele", "name": "Pelé", "ovr": 118, "pos": "ST", "stats": [117, 118, 115, 117, 63, 112], "foot": "L5·R5", "club": "Legend", "nation": "BR", "tier": "icon", "icon": true, "price": "2800억 3200만", "salary": 28}, {"id": "mara", "name": "Maradona", "ovr": 118, "pos": "CAM", "stats": [118, 116, 116, 118, 87, 113], "foot": "L5·R3", "club": "Legend", "nation": "AR", "tier": "icon", "icon": true, "price": "1050억 2790만", "salary": 28}, {"id": "zz", "name": "Zidane", "ovr": 118, "pos": "CAM", "stats": [116, 115, 117, 117, 102, 115], "foot": "L5·R5", "club": "Legend", "nation": "FR", "tier": "icon", "icon": true, "price": "3620억 8700만", "salary": 28}, {"id": "r9", "name": "Ronaldo R9", "ovr": 118, "pos": "ST", "stats": [118, 118, 113, 117, 55, 116], "foot": "L5·R5", "club": "Legend", "nation": "BR", "tier": "icon", "icon": true, "price": "5500억 6520만", "salary": 29}, {"id": "lahm", "name": "Lahm", "ovr": 118, "pos": "RB", "stats": [117, 108, 115, 114, 117, 115], "foot": "L5·R5", "club": "Legend", "nation": "DE", "tier": "icon", "icon": true, "price": "810억 1900만", "salary": 28}, {"id": "beck", "name": "Beckenbauer", "ovr": 118, "pos": "CB", "stats": [116, 115, 116, 115, 117, 114], "foot": "L5·R5", "club": "Legend", "nation": "DE", "tier": "icon", "icon": true, "price": "2150억 4700만", "salary": 29}, {"id": "torres", "name": "Torres", "ovr": 117, "pos": "ST", "stats": [118, 116, 108, 114, 65, 111], "foot": "L4·R5", "club": "Liverpool", "nation": "ES", "tier": "117", "season": "tl", "salary": 27, "price": "3220억 3900만"}, {"id": "gerrard_tl", "name": "Gerrard", "ovr": 118, "pos": "CM", "stats": [115, 118, 117, 114, 110, 113], "foot": "L4·R5", "club": "Liverpool", "nation": "EN", "tier": "118", "season": "tl", "salary": 27, "price": "2850억 2100만"}, {"id": "salah_tl", "name": "Salah", "ovr": 117, "pos": "RW", "stats": [118, 117, 115, 117, 71, 111], "foot": "L5·R4", "club": "Liverpool", "nation": "EG", "tier": "117", "season": "tl", "salary": 27, "price": "2300억 7200만"}, {"id": "dalglish_tl", "name": "Dalglish", "ovr": 116, "pos": "CF", "stats": [117, 116, 112, 116, 54, 110], "foot": "L5·R5", "club": "Liverpool", "nation": "SC", "tier": "116", "season": "tl", "salary": 26, "price": "1390억 2000만"}, {"id": "aguero_tl", "name": "Aguero", "ovr": 118, "pos": "ST", "stats": [115, 118, 111, 116, 58, 110], "foot": "L4·R5", "club": "Man City", "nation": "AR", "tier": "118", "season": "tl", "salary": 28, "price": "3780억 3900만"}, {"id": "kompany_tl", "name": "Kompany", "ovr": 116, "pos": "CB", "stats": [115, 113, 112, 113, 117, 117], "foot": "L3·R5", "club": "Man City", "nation": "BE", "tier": "116", "season": "tl", "salary": 27, "price": "860억 4300만"}, {"id": "db_tl", "name": "De Bruyne", "ovr": 118, "pos": "CAM", "stats": [115, 117, 118, 116, 102, 112], "foot": "L5·R5", "club": "Man City", "nation": "BE", "tier": "118", "season": "tl", "salary": 28, "price": "1980억 2800만"}, {"id": "silva_tl", "name": "D. Silva", "ovr": 116, "pos": "CAM", "stats": [115, 111, 116, 117, 61, 109], "foot": "L5·R3", "club": "Man City", "nation": "ES", "tier": "116", "season": "tl", "salary": 26, "price": "550억 2100만"}, {"id": "park_tl", "name": "Park J-S", "ovr": 116, "pos": "LM", "stats": [116, 111, 115, 116, 114, 111], "foot": "L5·R5", "club": "Man United", "nation": "KR", "tier": "116", "season": "tl", "salary": 26, "price": "1310억 3500만"}, {"id": "rooney_tl", "name": "Rooney", "ovr": 117, "pos": "ST", "stats": [115, 118, 114, 117, 67, 116], "foot": "L5·R5", "club": "Man United", "nation": "EN", "tier": "117", "season": "tl", "salary": 27, "price": "4220억 3900만"}, {"id": "ferdinand_tl", "name": "Ferdinand", "ovr": 117, "pos": "CB", "stats": [116, 98, 107, 108, 118, 118], "foot": "L3·R5", "club": "Man United", "nation": "EN", "tier": "117", "season": "tl", "salary": 28, "price": "1490억 2300만"}, {"id": "scholes_tl", "name": "Scholes", "ovr": 118, "pos": "CM", "stats": [111, 118, 117, 115, 104, 112], "foot": "L4·R5", "club": "Man United", "nation": "EN", "tier": "118", "season": "tl", "salary": 27, "price": "1520억 8000만"}, {"id": "beckham_tl", "name": "Beckham", "ovr": 118, "pos": "RM", "stats": [115, 118, 119, 116, 108, 112], "foot": "L4·R5", "club": "Man United", "nation": "EN", "tier": "118", "season": "tl", "salary": 28, "price": "3940억 7200만"}, {"id": "son_tl", "name": "Son H-M", "ovr": 116, "pos": "LW", "stats": [116, 116, 113, 115, 65, 111], "foot": "L5·R5", "club": "Tottenham", "nation": "KR", "tier": "116", "season": "tl", "salary": 26, "price": "3180억 5200만"}, {"id": "kane_tl", "name": "Kane", "ovr": 117, "pos": "ST", "stats": [114, 118, 115, 114, 48, 116], "foot": "L5·R5", "club": "Tottenham", "nation": "EN", "tier": "117", "season": "tl", "salary": 27, "price": "2560억 1200만"}, {"id": "lloris_tl", "name": "Lloris", "ovr": 114, "pos": "GK", "stats": [115, 114, 114, 116, 110, 113], "foot": "L5·R1", "club": "Tottenham", "nation": "FR", "tier": "114", "season": "tl", "gk": true, "salary": 23, "price": "310억 1200만"}, {"id": "bale_tl", "name": "Bale", "ovr": 115, "pos": "RW", "stats": [117, 115, 113, 115, 85, 112], "foot": "L5·R3", "club": "Tottenham", "nation": "WA", "tier": "115", "season": "tl", "salary": 26, "price": "1010억 9900만"}, {"id": "bergkamp_tl", "name": "Bergkamp", "ovr": 116, "pos": "CF", "stats": [115, 116, 114, 116, 66, 113], "foot": "L5·R5", "club": "Arsenal", "nation": "NL", "tier": "116", "season": "tl", "salary": 26, "price": "1920억 4500만"}, {"id": "henry_tl", "name": "Henry", "ovr": 117, "pos": "ST", "stats": [118, 117, 111, 117, 57, 112], "foot": "L4·R5", "club": "Arsenal", "nation": "FR", "tier": "117", "season": "tl", "salary": 28, "price": "4090억 2000만"}, {"id": "pires_tl", "name": "Pires", "ovr": 115, "pos": "LM", "stats": [116, 115, 114, 115, 77, 111], "foot": "L4·R5", "club": "Arsenal", "nation": "FR", "tier": "115", "season": "tl", "salary": 25, "price": "1600억 3210만"}, {"id": "vieira_tl", "name": "Vieira", "ovr": 117, "pos": "CDM", "stats": [115, 115, 116, 115, 117, 118], "foot": "L3·R5", "club": "Arsenal", "nation": "FR", "tier": "117", "season": "tl", "salary": 28, "price": "2530억 6600만"}, {"id": "lampard_tl", "name": "Lampard", "ovr": 117, "pos": "CM", "stats": [113, 117, 117, 115, 109, 113], "foot": "L4·R5", "club": "Chelsea", "nation": "EN", "tier": "117", "season": "tl", "salary": 27, "price": "1710억 3300만"}, {"id": "drogba_tl", "name": "Drogba", "ovr": 117, "pos": "ST", "stats": [115, 118, 108, 113, 50, 117], "foot": "L5·R5", "club": "Chelsea", "nation": "CI", "tier": "117", "season": "tl", "salary": 28, "price": "4010억 9200만"}, {"id": "terry_tl", "name": "Terry", "ovr": 117, "pos": "CB", "stats": [113, 110, 114, 109, 117, 116], "foot": "L4·R5", "club": "Chelsea", "nation": "EN", "tier": "117", "season": "tl", "salary": 27, "price": "710억 8200만"}, {"id": "cole_tl", "name": "A. Cole", "ovr": 115, "pos": "LB", "stats": [116, 106, 113, 115, 115, 112], "foot": "L5·R3", "club": "Chelsea", "nation": "EN", "tier": "115", "season": "tl", "salary": 24, "price": "560억 2300만"}, {"id": "hazard_tl", "name": "Hazard", "ovr": 115, "pos": "LW", "stats": [116, 115, 116, 117, 58, 109], "foot": "L5·R5", "club": "Chelsea", "nation": "BE", "tier": "115", "season": "tl", "salary": 26, "price": "2120억 4200만"}, {"id": "shearer_tl", "name": "Shearer", "ovr": 116, "pos": "ST", "stats": [113, 117, 112, 113, 68, 114], "foot": "L4·R5", "club": "Newcastle", "nation": "EN", "tier": "116", "season": "tl", "salary": 27, "price": "910억 7100만"}, {"id": "vardy_tl", "name": "Vardy", "ovr": 114, "pos": "ST", "stats": [115, 114, 107, 113, 76, 110], "foot": "L5·R5", "club": "Leicester", "nation": "EN", "tier": "114", "season": "tl", "salary": 25, "price": "950억 3800만"}, {"id": "griezmann_tl", "name": "Griezmann", "ovr": 116, "pos": "CF", "stats": [117, 116, 114, 116, 76, 110], "foot": "L5·R5", "club": "Atlético", "nation": "FR", "tier": "116", "season": "tl", "salary": 26}, {"id": "koke_tl", "name": "Koke", "ovr": 115, "pos": "CM", "stats": [110, 109, 116, 115, 111, 115], "foot": "L4·R5", "club": "Atlético", "nation": "ES", "tier": "115", "season": "tl", "salary": 26}, {"id": "falcao_tl", "name": "Falcao", "ovr": 115, "pos": "ST", "stats": [113, 116, 108, 113, 57, 112], "foot": "L4·R5", "club": "Atlético", "nation": "CO", "tier": "115", "season": "tl", "salary": 26}, {"id": "forlan_tl", "name": "Forlan", "ovr": 116, "pos": "ST", "stats": [115, 117, 111, 114, 61, 113], "foot": "L5·R5", "club": "Atlético", "nation": "UY", "tier": "116", "season": "tl", "salary": 27}];
+const IMGS = {"db":"images/db.png","messi":"images/messi.png","modric":"images/modric.png","salah":"images/salah.png","lewa":"images/lewa.png","kane":"images/kane.png","cr7":"images/cr7.png","son":"images/son.png","vd":"images/vd.png","bs":"images/bs.png","mn":"images/mn.png","csm":"images/csm.png","er":"images/er.png","marq":"images/marq.png","rud":"images/rud.png","carv":"images/carv.png","ali":"images/ali.png","obl":"images/obl.png","ota":"images/ota.png","per":"images/per.png","sms":"images/sms.png","kyg":"images/kyg.png","kou":"images/kou.png","asx":"images/asx.png","nag":"images/nag.png","wij":"images/wij.png","xhk":"images/xhk.png","jam":"images/jam.png","tar":"images/tar.png","cal":"images/cal.png","sou":"images/sou.png","pty":"images/pty.png","aur":"images/aur.png","ddg":"images/ddg.png","pele":"images/pele.png","mara":"images/mara.png","zz":"images/zz.png","r9":"images/r9.png","lahm":"images/lahm.png","beck":"images/beck.png","torres":"images/torres.png","gerrard_tl":"images/gerrard_tl.png","salah_tl":"images/salah_tl.png","dalglish_tl":"images/dalglish_tl.png","aguero_tl":"images/aguero_tl.png","kompany_tl":"images/kompany_tl.png","db_tl":"images/db_tl.png","silva_tl":"images/silva_tl.png","park_tl":"images/park_tl.png","rooney_tl":"images/rooney_tl.png","ferdinand_tl":"images/ferdinand_tl.png","scholes_tl":"images/scholes_tl.png","beckham_tl":"images/beckham_tl.png","son_tl":"images/son_tl.png","kane_tl":"images/kane_tl.png","lloris_tl":"images/lloris_tl.png","bale_tl":"images/bale_tl.png","bergkamp_tl":"images/bergkamp_tl.png","henry_tl":"images/henry_tl.png","pires_tl":"images/pires_tl.png","vieira_tl":"images/vieira_tl.png","lampard_tl":"images/lampard_tl.png","drogba_tl":"images/drogba_tl.png","terry_tl":"images/terry_tl.png","cole_tl":"images/cole_tl.png","hazard_tl":"images/hazard_tl.png","shearer_tl":"images/shearer_tl.png","vardy_tl":"images/vardy_tl.png","griezmann_tl":"images/griezmann_tl.png","koke_tl":"images/koke_tl.png","falcao_tl":"images/falcao_tl.png","forlan_tl":"images/forlan_tl.png"};
+const FLAGS = {"BE":"images/flag_be.png","AR":"images/flag_ar.png","HR":"images/flag_hr.png","EG":"images/flag_eg.png","PL":"images/flag_pl.png","EN":"images/flag_en.png","PT":"images/flag_pt.png","KR":"images/flag_kr.png","NL":"images/flag_nl.png","SN":"images/flag_sn.png","BR":"images/flag_br.png","DK":"images/flag_dk.png","DE":"images/flag_de.png","ES":"images/flag_es.png","SI":"images/flag_si.png","RS":"images/flag_rs.png","CL":"images/flag_cl.png","JP":"images/flag_jp.png","CH":"images/flag_ch.png","CO":"images/flag_co.png","IR":"images/flag_ir.png","TR":"images/flag_tr.png","CZ":"images/flag_cz.png","GH":"images/flag_gh.png","CI":"images/flag_ci.png","FR":"images/flag_fr.png","SC":"images/flag_sc.png","WA":"images/flag_wa.png","UY":"images/flag_uy.png"};
+const PROB = {"114":0.25,"115":0.35,"116":0.18,"117":0.12,"118":0.06,"icon":0.04};
+const STAT_LABELS = ["PAC","SHO","PAS","DRI","DEF","PHY"];
+const GK_LABELS = ["DIV","POS","HAN","REF","KIC","PHY"];
+const TIER_COLORS = {"114":"#9ca3af","115":"#3b82f6","116":"#a855f7","117":"#f59e0b","118":"#ef4444","icon":"#d4af37"};
+let collection=[];let animating=false;let enhanceTokens=0;let cp=0;let quantities={token:1,pack:1,open:1,pack3:1,pack5:1,open3:1,open5:1,box:1,openbox:1,packtl1:1,opentl1:1};
+
+const PACK_TYPES = {
+  fwc1: {
+    name: 'FWC TOP40', sub: '1강 선수팩', enhLevel: 1, price: 20,
+    prob: {"114":0.25,"115":0.35,"116":0.18,"117":0.12,"118":0.06,"icon":0.04}
+  },
+  fwc3: {
+    name: 'FWC TOP40', sub: '3강 선수팩', enhLevel: 3, price: 40,
+    prob: {"114":0.29,"115":0.37,"116":0.18,"117":0.08,"118":0.04,"icon":0.04}
+  },
+  fwc5: {
+    name: 'FWC TOP40', sub: '5강 선수팩', enhLevel: 5, price: 60,
+    prob: {"114":0.32,"115":0.41,"116":0.18,"117":0.04,"118":0.03,"icon":0.02}
+  },
+  tl1: {
+    name: 'TEAM LEGEND', sub: '1강 선수팩', enhLevel: 1, price: 30,
+    season: 'tl',
+    prob: {"114":0.05,"115":0.10,"116":0.30,"117":0.35,"118":0.20}
+  },
+};
+let packInv = {fwc1:0, fwc3:0, fwc5:0, tl1:0};
+
+// TL (Team Legend) card HTML builder
+function buildTLCardHTML(player, enhLvl) {
+  const statB = (typeof getStatBonus === 'function') ? getStatBonus(enhLvl) : 0;
+  const ovrB = (typeof getOvrBonus === 'function') ? getOvrBonus(enhLvl) : 0;
+  const labels = player.gk ? GK_LABELS : STAT_LABELS;
+  const sH = player.stats.map((v,i) =>
+    '<div style="flex:1;text-align:center;padding:3px 0;'+(i<5?'border-right:1px solid rgba(255,255,255,.12)':'')+'"><div style="font-size:13px;font-weight:900;color:#fff">'+(v+statB)+'</div><div style="font-size:6px;font-weight:700;color:#888;margin-top:1px;letter-spacing:.3px">'+labels[i]+'</div></div>'
+  ).join('');
+  return '<div style="width:220px;height:300px;position:relative;filter:drop-shadow(0 4px 24px rgba(0,0,0,.5)) drop-shadow(0 0 14px rgba(212,175,55,.35))">'+
+    '<svg style="width:100%;height:100%;position:absolute;top:0;left:0;z-index:20;pointer-events:none" viewBox="0 0 220 300" fill="none"><defs><linearGradient id="gxtl" x1="0" y1="0" x2="220" y2="300" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="20%" stop-color="#d4af37"/><stop offset="40%" stop-color="#f5d67b"/><stop offset="60%" stop-color="#c5981a"/><stop offset="80%" stop-color="#f5e6a3"/><stop offset="100%" stop-color="#d4af37"/></linearGradient></defs><polygon points="110,1 213,24 219,45 219,234 110,299 1,234 1,45 7,24" fill="none" stroke="url(#gxtl)" stroke-width="2.5"/><polygon points="110,5 210,27 216,46 216,232 110,295 4,232 4,46 10,27" fill="none" stroke="url(#gxtl)" stroke-width=".5" opacity=".3"/></svg>'+
+    '<div style="width:100%;height:100%;position:absolute;top:0;left:0;overflow:hidden;clip-path:polygon(50% 0%,97% 8%,100% 15%,100% 78%,50% 100%,0% 78%,0% 15%,3% 8%)">'+
+      '<div style="position:absolute;top:0;left:0;right:0;height:60%;z-index:1;background:radial-gradient(ellipse 80px 60px at 0% 0%,rgba(245,230,163,.45) 0%,transparent 70%),radial-gradient(ellipse 80px 60px at 100% 0%,rgba(245,230,163,.35) 0%,transparent 70%),linear-gradient(180deg,#fafaf5 0%,#fff 70%,#f5f2e8 100%)"></div>'+
+      '<div style="position:absolute;top:60%;left:0;right:0;bottom:0;z-index:1;background:radial-gradient(ellipse at 50% 0%,rgba(212,175,55,.15) 0%,transparent 50%),linear-gradient(180deg,#12121a 0%,#08080d 100%)"></div>'+
+      '<div style="position:absolute;top:60%;left:6%;right:6%;height:1.5px;z-index:12;background:linear-gradient(90deg,transparent,#d4af37 20%,#f5e6a3 50%,#d4af37 80%,transparent)"></div>'+
+      '<div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:900;letter-spacing:3px;color:rgba(180,140,30,.85);z-index:10;white-space:nowrap">TEAM LEGEND</div>'+
+      '<div style="position:absolute;top:26px;left:12px;z-index:10"><div style="font-size:28px;font-weight:900;color:#1a1a1a;line-height:1;text-shadow:0 1px 2px rgba(255,255,255,.8)">'+(player.ovr+ovrB)+'</div><div style="font-size:10px;font-weight:700;color:#666;letter-spacing:1px;margin-top:1px;text-shadow:0 1px 1px rgba(255,255,255,.8)">'+player.pos+'</div><img src="'+FLAGS[player.nation]+'" style="width:20px;height:14px;margin-top:5px;border-radius:2px;border:.5px solid rgba(0,0,0,.2)"></div>'+
+      '<div style="position:absolute;top:28px;right:12px;z-index:10;padding:3px 8px;background:rgba(15,15,25,.88);border:.5px solid rgba(212,175,55,.4);border-radius:3px;font-size:11px;font-weight:900;color:#d4af37;letter-spacing:.5px;box-shadow:0 1px 3px rgba(0,0,0,.2)">'+(player.salary||0)+'</div>'+
+      '<img src="'+IMGS[player.id]+'" style="position:absolute;top:20px;left:50%;transform:translateX(-50%);width:158px;height:158px;object-fit:contain;object-position:center bottom;z-index:4;filter:drop-shadow(0 3px 8px rgba(0,0,0,.25))">'+
+      '<div style="position:absolute;top:calc(60% - 8px);left:0;right:0;padding:6px 8px 5px;text-align:center;z-index:10;background:rgba(255,255,255,.97);border-top:2px solid #d4af37;border-bottom:2px solid #d4af37;font-size:13px;font-weight:900;letter-spacing:2.5px;text-transform:uppercase;color:#1a1a1a">'+player.name+'</div>'+
+      '<div style="position:absolute;top:calc(60% + 30px);left:0;right:0;display:flex;justify-content:center;padding:0 14px;z-index:10">'+sH+'</div>'+
+      '<div style="position:absolute;top:calc(60% + 64px);left:0;right:0;display:flex;justify-content:center;align-items:center;gap:20px;z-index:10;font-size:10px;font-weight:800;color:#aaa;letter-spacing:.5px"><span>'+player.foot+'</span><span>'+player.club+'</span></div>'+
+      '<div style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);z-index:15"><svg width="28" height="24" viewBox="0 0 28 24" fill="none"><path d="M5 1h18l5 8-14 14L0 9l5-8z" fill="#d4af37" opacity=".15"/><path d="M5 1h18l5 8-14 14L0 9l5-8z" stroke="#d4af37" stroke-width="1.2"/></svg></div>'+
+    '</div>'+
+  '</div>';
+}
+let boxInv = 0;
+
+
+document.getElementById('lobbyImg').src='images/lobby.png';
+
+function switchTab(name) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const tabs=['squad','players','items'];
+  document.querySelectorAll('.nav-item').forEach((n,i)=>{if(tabs[i]===name) n.classList.add('active');});
+  // Show/hide top bar store button based on screen
+  document.querySelector('.top-bar').style.display = (name==='home'||name==='store') ? 'flex' : 'flex';
+  if(name==='players') renderCollection();
+  if(name==='items') renderItems();
+  if(name==='transfer') renderTM();
+  if(name==='home') document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+}
+
+function pickPlayer(){const r=Math.random();let c=0,t="114";for(const[k,p] of Object.entries(PROB)){c+=p;if(r<c){t=k;break;}}const pool=PLAYERS.filter(p=>p.tier===t && !p.season);return pool[Math.floor(Math.random()*pool.length)];}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function spawnParticles(color,count=20){const cx=window.innerWidth/2,cy=window.innerHeight/2;for(let i=0;i<count;i++){const el=document.createElement('div');el.className='particle';el.style.left=cx+'px';el.style.top=cy+'px';el.style.background=color;el.style.setProperty('--tx',(Math.random()-.5)*400+'px');el.style.setProperty('--ty',(Math.random()-.5)*400+'px');el.style.width=(3+Math.random()*6)+'px';el.style.height=el.style.width;document.body.appendChild(el);setTimeout(()=>el.remove(),1500);}}
+function spawnFire(isIcon,duration=2500){const c=document.createElement('div');c.className='fire-container';document.body.appendChild(c);const g=document.createElement('div');g.className='fire-glow'+(isIcon?' icon':'');document.body.appendChild(g);setTimeout(()=>g.classList.add('show'),50);const f=document.createElement('div');f.className='screen-flash';f.style.background=isIcon?'rgba(212,175,55,.4)':'rgba(239,68,68,.3)';document.body.appendChild(f);setTimeout(()=>f.classList.add('show'),0);setTimeout(()=>f.classList.remove('show'),200);const colors=isIcon?['#d4af37','#f5d67b','#f5e6a3','#c5981a','#ff9500','#ffcc00']:['#ef4444','#f97316','#fbbf24','#ff6b35','#dc2626','#f59e0b'];let n=0;const iv=setInterval(()=>{if(n>=60){clearInterval(iv);return;}for(let i=0;i<3;i++){const p=document.createElement('div');p.className='fire-particle';const s=8+Math.random()*16;p.style.width=s+'px';p.style.height=s*1.3+'px';p.style.left=(10+Math.random()*80)+'%';p.style.background=colors[Math.floor(Math.random()*colors.length)];p.style.animationDuration=(.8+Math.random()*1.2)+'s';p.style.filter='blur('+(1+Math.random()*3)+'px)';c.appendChild(p);n++;}},80);setTimeout(()=>{g.classList.remove('show');setTimeout(()=>{c.remove();g.remove();f.remove();},500);},duration);}
+
+async function openPack(){if(animating)return;animating=true;const player=pickPlayer();const overlay=document.getElementById('revealOverlay');const area=document.getElementById('revealArea');const tierBg=document.getElementById('tierBg');const tColor=TIER_COLORS[player.tier];overlay.classList.add('active');area.innerHTML='';tierBg.className='tier-bg';
+await sleep(300);const fb=document.createElement('div');fb.className='hint-box';fb.innerHTML=`<div class="label">NATION</div><img class="flag-reveal" src="${FLAGS[player.nation]}" style="display:block;margin:0 auto">`;area.appendChild(fb);await sleep(100);fb.classList.add('show');
+await sleep(1000);const pb=document.createElement('div');pb.className='hint-box';pb.innerHTML=`<div class="label">POSITION</div><div class="value">${player.pos}</div>`;area.appendChild(pb);await sleep(100);pb.classList.add('show');
+await sleep(1000);const sb=document.createElement('div');sb.className='hint-box';const tn=player.icon?'ICON':'FWC';sb.innerHTML=`<div class="label">SEASON</div><div class="value" style="color:${tColor}">${tn}</div>`;area.appendChild(sb);await sleep(100);sb.classList.add('show');
+tierBg.className='tier-bg t'+player.tier+' show';
+await sleep(1200);if(player.tier==="118"||player.tier==="icon"){spawnFire(player.icon,3000);await sleep(600);}spawnParticles(tColor,player.icon?40:20);
+area.innerHTML='';const isIcon=player.icon;const labels=player.gk?GK_LABELS:STAT_LABELS;
+const sH=player.stats.map((v,i)=>`<div style="flex:1;text-align:center;padding:2px 0;${i<5?'border-right:1px solid rgba(0,0,0,.06)':''}"><div style="font-size:13px;font-weight:900;color:#1a1a1a">${v}</div><div style="font-size:6px;font-weight:700;color:#aaa;margin-top:1px">${labels[i]}</div></div>`).join('');
+const orn=isIcon?`<g opacity=".85"><path d="M7,55 Q1,80 5,105 Q9,130 3,155 Q-1,175 5,195 Q9,215 5,240" fill="none" stroke="url(#gg)" stroke-width="1.5"/><path d="M5,68 Q-8,72 -6,82 Q-4,90 5,88" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M5,105 Q-10,110 -7,120 Q-4,128 5,125" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M3,148 Q-10,152 -7,162 Q-4,170 5,167" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M5,190 Q-10,194 -7,204 Q-4,212 5,209" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><circle cx="5" cy="60" r="2" fill="#d4af37" opacity=".6"/><circle cx="3" cy="132" r="2" fill="#d4af37" opacity=".6"/><path d="M4,95 L1,99 L4,103 L7,99Z" fill="#d4af37" opacity=".5"/><path d="M3,138 L0,142 L3,146 L6,142Z" fill="#d4af37" opacity=".5"/></g><g opacity=".85"><path d="M213,55 Q219,80 215,105 Q211,130 217,155 Q221,175 215,195 Q211,215 215,240" fill="none" stroke="url(#gg)" stroke-width="1.5"/><path d="M215,68 Q228,72 226,82 Q224,90 215,88" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M215,105 Q230,110 227,120 Q224,128 215,125" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M217,148 Q230,152 227,162 Q224,170 215,167" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M215,190 Q230,194 227,204 Q224,212 215,209" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><circle cx="215" cy="60" r="2" fill="#d4af37" opacity=".6"/><circle cx="217" cy="132" r="2" fill="#d4af37" opacity=".6"/><path d="M216,95 L219,99 L216,103 L213,99Z" fill="#d4af37" opacity=".5"/><path d="M217,138 L220,142 L217,146 L214,142Z" fill="#d4af37" opacity=".5"/></g><g opacity=".65"><path d="M80,12 Q90,5 100,9 Q105,2 110,7 Q115,2 120,9 Q130,5 140,12" fill="none" stroke="#d4af37" stroke-width="1"/><circle cx="110" cy="5" r="2" fill="#d4af37" opacity=".8"/></g>`:'';
+const ce=document.createElement('div');ce.className='card-reveal';
+ce.innerHTML=`<div style="width:220px;height:300px;position:relative;filter:drop-shadow(0 4px 24px rgba(0,0,0,.5)) drop-shadow(0 0 ${isIcon?20:12}px ${tColor}40)"><svg style="width:100%;height:100%;position:absolute;top:0;left:0;z-index:20;pointer-events:none" viewBox="0 0 220 300" fill="none"><defs><linearGradient id="gx" x1="0" y1="0" x2="220" y2="300" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="20%" stop-color="#d4af37"/><stop offset="40%" stop-color="#f5d67b"/><stop offset="60%" stop-color="#c5981a"/><stop offset="80%" stop-color="#f5e6a3"/><stop offset="100%" stop-color="#d4af37"/></linearGradient><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="50%" stop-color="#d4af37"/><stop offset="100%" stop-color="#f5e6a3"/></linearGradient></defs><polygon points="110,1 213,24 219,45 219,234 110,299 1,234 1,45 7,24" fill="none" stroke="url(#gx)" stroke-width="2.5"/><polygon points="110,5 210,27 216,46 216,232 110,295 4,232 4,46 10,27" fill="none" stroke="url(#gx)" stroke-width=".5" opacity=".25"/>${orn}</svg><div style="width:100%;height:100%;position:absolute;top:0;left:0;overflow:hidden;clip-path:polygon(50% 0%,97% 8%,100% 15%,100% 78%,50% 100%,0% 78%,0% 15%,3% 8%)"><div style="position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse at 30% 20%,rgba(30,58,138,.5) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(88,28,135,.3) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(15,23,42,1) 0%,#0a0a12 100%)"></div><div style="position:absolute;top:61%;left:0;right:0;bottom:0;z-index:3;background:linear-gradient(180deg,rgba(255,255,255,.97) 0%,#fff 10%)"></div><div style="position:absolute;top:61%;left:6%;right:6%;height:1.5px;z-index:12;background:linear-gradient(90deg,transparent,#d4af37 20%,#f5e6a3 50%,#d4af37 80%,transparent)"></div><div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:900;letter-spacing:3px;color:rgba(212,175,55,.55);z-index:10">${isIcon?'FWC · ICON':'FWC'}</div><div style="position:absolute;top:28px;left:14px;z-index:10"><div style="font-size:30px;font-weight:900;color:#fff;line-height:1;text-shadow:0 0 20px ${tColor}40">${player.ovr}</div><div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:1px;margin-top:1px">${player.pos}</div><img src="${FLAGS[player.nation]}" style="width:22px;height:15px;margin-top:6px;border-radius:2px;border:.5px solid rgba(255,255,255,.15)"></div><div style="position:absolute;top:28px;right:14px;z-index:10;padding:3px 8px;background:rgba(212,175,55,.15);border:.5px solid rgba(212,175,55,.5);border-radius:3px;font-size:11px;font-weight:900;color:#f5e6a3;letter-spacing:.5px">${player.salary||0}</div><img src="${IMGS[player.id]}" style="position:absolute;top:20px;left:50%;transform:translateX(-44%);width:155px;height:158px;object-fit:contain;object-position:center bottom;z-index:4;filter:drop-shadow(0 2px 10px rgba(0,0,0,.5))"><div style="position:absolute;top:calc(61% - 8px);left:0;right:0;text-align:center;padding:6px 8px 5px;font-size:13px;font-weight:900;letter-spacing:2.5px;text-transform:uppercase;color:#1a1a1a;z-index:10;background:rgba(255,255,255,.97);border-top:2px solid #d4af37;border-bottom:2px solid #d4af37">${player.name}</div><div style="position:absolute;top:calc(61% + 30px);left:0;right:0;display:flex;justify-content:center;z-index:10;padding:0 14px">${sH}</div><div style="position:absolute;top:calc(61% + 64px);left:0;right:0;display:flex;justify-content:center;align-items:center;gap:20px;z-index:10;font-size:10px;font-weight:800;color:#555"><span>${player.foot}</span><span>${player.club}</span></div><div style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);z-index:15"><svg width="28" height="24" viewBox="0 0 28 24" fill="none"><path d="M5 1h18l5 8-14 14L0 9l5-8z" fill="#d4af37" opacity=".15"/><path d="M5 1h18l5 8-14 14L0 9l5-8z" stroke="#d4af37" stroke-width="1.2"/></svg></div></div></div>`;
+area.appendChild(ce);const pe=document.createElement('div');pe.className='price-tag';pe.innerHTML=(player.price||'미정')+' CP<div style="font-size:11px;color:#aaa;font-weight:700;margin-top:2px">급여 '+(player.salary||0)+'</div>';area.appendChild(pe);
+const remainEl=document.createElement('div');
+remainEl.style.cssText='font-size:11px;color:#888;font-weight:700;margin-top:8px';
+remainEl.textContent=(packInv.fwc1||0)+'팩 남았습니다';
+area.appendChild(remainEl);
+const ae=document.createElement('div');ae.className='action-btns';ae.innerHTML='<button class="action-btn again" onclick="closeRevealAndOpen()">OPEN AGAIN</button><button class="action-btn close" onclick="closeReveal()">CLOSE</button>';area.appendChild(ae);
+await sleep(100);ce.classList.add('show');if(isIcon){await sleep(300);spawnParticles('#d4af37',30);spawnParticles('#f5e6a3',20);}await sleep(800);pe.classList.add('show');ae.classList.add('show');
+collection.push({...player, enhLevel:1, uid:Date.now()+Math.random()});renderItems();animating=false;}
+
+function closeReveal(){document.getElementById('revealOverlay').classList.remove('active');document.getElementById('tierBg').className='tier-bg';}
+function closeRevealAndOpen(){
+  if((packInv.fwc1||0)<=0){
+    closeReveal();
+    showModal('보유 중인 팩이 없습니다. 상점에서 구매하세요!', [{label:'확인', cls:'ok'}]);
+    return;
+  }
+  packInv.fwc1--;
+  closeReveal();
+  setTimeout(()=>openPack(),300);
+}
+function renderCollection(){
+  const g=document.getElementById('collGrid');
+  document.getElementById('collCount').textContent=collection.length+' cards';
+  g.innerHTML=collection.map((c,i)=>{
+    const p=PLAYERS.find(pl=>pl.id===c.id);
+    if(!p)return'';
+    const lvl=c.enhLevel||1;
+    const ovrB=getOvrBonus(lvl);
+    return '<div class="coll-card '+(p.icon?'icon-card':'')+'" onclick="showPlayerDetail('+i+')"><img src="'+IMGS[c.id]+'"><div class="covr">'+(p.ovr+ovrB)+'</div><div class="cname">'+p.name+'</div><div class="cextra">급여 '+(p.salary||0)+'</div><div class="coll-enh">'+getEnhBadgeHTML(lvl)+'</div></div>';
+  }).join('');
+}
+
+let mp = 0;
+let lastClaim = null;
+
+function updateCPDisplay(){document.querySelector(".cur-cp").textContent="CP "+cp.toLocaleString();}
+function updateMPDisplay() {
+  document.querySelector('.cur-mp').textContent = 'MP ' + mp.toLocaleString();
+}
+
+function getNextMidnight() {
+  const now = new Date();
+  const next = new Date(now);
+  next.setHours(24, 0, 0, 0);
+  return next;
+}
+
+function canClaim() {
+  if (!lastClaim) return true;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const claimDay = new Date(lastClaim.getFullYear(), lastClaim.getMonth(), lastClaim.getDate());
+  return today > claimDay;
+}
+
+function claimDaily() {
+  if (!canClaim()) return;
+  mp += 10000;
+  lastClaim = new Date();
+  updateMPDisplay();
+  document.getElementById('drBtn').disabled = true;
+  document.getElementById('drBtn').textContent = '완료';
+}
+
+function updateTimer() {
+  const now = new Date();
+  const next = getNextMidnight();
+  const diff = next - now;
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  document.getElementById('drTimer').textContent = 
+    String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  
+  const btn = document.getElementById('drBtn');
+  if (canClaim()) {
+    btn.disabled = false;
+    btn.textContent = '받기';
+  } else {
+    btn.disabled = true;
+    btn.textContent = '완료';
+  }
+}
+
+setInterval(updateTimer, 1000);
+updateTimer();
+updateMPDisplay();
+updateCPDisplay();
+
+function confirmBuy(packType) {
+  const pt = PACK_TYPES[packType];
+  const qtyKey = packType === 'fwc1' ? 'pack' : (packType === 'fwc3' ? 'pack3' : (packType === 'fwc5' ? 'pack5' : 'packtl1'));
+  const qty = quantities[qtyKey] || 1;
+  const total = pt.price * qty;
+  if (mp < total) {
+    showModal('MP가 부족합니다! (필요: ' + total + ' MP)', [{label:'확인', cls:'ok'}]);
+    return;
+  }
+  showModal(pt.name + ' ' + pt.sub + ' ' + qty + '개를 구매하시겠습니까? (' + total + ' MP)', [
+    {label:'구매', cls:'confirm', fn: () => {
+      mp -= total;
+      packInv[packType] = (packInv[packType]||0) + qty;
+      updateMPDisplay();
+      showModal(qty + '개 구매 완료! 아이템 탭에서 열 수 있습니다.', [{label:'확인', cls:'ok'}]);
+    }},
+    {label:'취소', cls:'cancel'}
+  ]);
+}
+
+function renderItems() {
+  const el = document.getElementById('itemsContent');
+  if (!el) return;
+  const totalPacks = (packInv.fwc1||0)+(packInv.fwc3||0)+(packInv.fwc5||0)+(packInv.tl1||0);
+  const totalItems = totalPacks + boxInv;
+  if (totalItems <= 0) {
+    el.innerHTML = '<div class="items-empty">보유 중인 아이템이 없습니다.<br>상점에서 팩을 구매하세요!</div>';
+    return;
+  }
+  
+  const packConfigs = [
+    {key:'fwc1',color:'#d4af37',label:'1강',season:'FWC'},
+    {key:'fwc3',color:'#c0c0c0',label:'3강',season:'FWC'},
+    {key:'fwc5',color:'#64c8ff',label:'5강',season:'FWC'},
+    {key:'tl1',color:'#d4af37',label:'1강',season:'TL'},
+  ];
+  
+  let html = '';
+  if (boxInv > 0) {
+    html += '<div style="margin-bottom:16px"><div style="font-size:12px;font-weight:800;color:#999;margin-bottom:8px">상자</div><div class="items-grid"><div style="display:flex;flex-direction:column;align-items:center;gap:8px"><div class="item-pack"><div class="item-badge">'+boxInv+'</div><svg width="100" height="80" viewBox="0 0 110 90"><defs><linearGradient id="ibg" x1="0" y1="0" x2="110" y2="90" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="33%" stop-color="#c0c0c0"/><stop offset="66%" stop-color="#64c8ff"/><stop offset="100%" stop-color="#f5e6a3"/></linearGradient></defs><rect x="6" y="22" width="98" height="62" rx="4" fill="#12121f" stroke="url(#ibg)" stroke-width="1.5"/><rect x="2" y="14" width="106" height="14" rx="3" fill="#16162a" stroke="url(#ibg)" stroke-width="1.2"/><rect x="46" y="22" width="18" height="62" rx="1" fill="none" stroke="url(#ibg)" stroke-width=".6" opacity=".3"/><text x="55" y="58" text-anchor="middle" font-size="14" font-weight="900" letter-spacing="2" fill="url(#ibg)" opacity=".6">FWC</text></svg></div><div style="font-size:10px;color:#888;font-weight:700">'+boxInv+'개 보유</div><div class="qty-selector"><button class="qty-btn" onclick="changeQty(\'openbox\',-1)">-</button><span class="qty-num" id="openboxQty">1</span><button class="qty-btn" onclick="changeQty(\'openbox\',1)">+</button></div><button class="item-open-btn" onclick="openBoxBulk()">상자 열기</button></div></div></div>';
+  }
+  if (totalPacks > 0) html += '<div style="font-size:12px;font-weight:800;color:#999;margin-bottom:8px">선수팩</div>';
+  html += '<div class="items-grid">';
+  packConfigs.forEach(cfg => {
+    const count = packInv[cfg.key] || 0;
+    if (count <= 0) return;
+    const qtyKey = cfg.key === 'fwc1' ? 'open' : (cfg.key === 'tl1' ? 'opentl1' : ('open' + cfg.key.slice(3)));
+    html += `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div class="item-pack">
+          <div class="item-badge">${count}</div>
+          <svg class="ip-svg" viewBox="0 0 120 180" fill="none">
+            <defs><linearGradient id="ipg${cfg.key}" x1="0" y1="0" x2="120" y2="180" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="${cfg.color}"/><stop offset="50%" stop-color="${cfg.color}aa"/>
+              <stop offset="100%" stop-color="${cfg.color}"/>
+            </linearGradient></defs>
+            <polygon points="60,1 117,15 119,26 119,140 60,179 1,140 1,26 3,15" fill="none" stroke="url(#ipg${cfg.key})" stroke-width="1.5"/>
+          </svg>
+          <div class="ip-inner">
+            <div class="ip-bg"></div>
+            <div class="ip-label">
+              <div class="ip-season" style="color:${cfg.color}">${cfg.season}</div>
+              <div class="ip-sub">${cfg.label} 선수팩</div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:10px;color:#888;font-weight:700">${count}개 보유</div>
+        <div class="qty-selector">
+          <button class="qty-btn" onclick="changeQty('${qtyKey}',-1)">-</button>
+          <span class="qty-num" id="${qtyKey}Qty">1</span>
+          <button class="qty-btn" onclick="changeQty('${qtyKey}',1)">+</button>
+        </div>
+        <button class="item-open-btn" onclick="confirmOpenType('${cfg.key}','${qtyKey}')">팩 열기</button>
+      </div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function confirmOpen() {}
+
+function confirmOpenType(packType, qtyKey) {
+  const count = packInv[packType] || 0;
+  if (count <= 0) return;
+  const qty = Math.min(quantities[qtyKey] || 1, count);
+  const pt = PACK_TYPES[packType];
+  showModal(pt.name + ' ' + pt.sub + ' ' + qty + '개를 개봉하시겠습니까?', [
+    {label:'개봉', cls:'confirm', fn: () => {
+      if (qty === 1) {
+        packInv[packType]--;
+        openPackType(packType);
+      } else {
+        bulkOpenPacksType(packType, qty);
+      }
+    }},
+    {label:'취소', cls:'cancel'}
+  ]);
+}
+
+
+async function bulkOpenPacks(qty) {
+  packInv.fwc1 -= qty;
+  
+  // Generate all players
+  const pulled = [];
+  for (let i = 0; i < qty; i++) {
+    pulled.push(pickPlayer());
+  }
+  
+  // Find best player (highest price)
+  let bestIdx = 0;
+  let bestPrice = 0;
+  pulled.forEach((p, i) => {
+    const match = (p.price || '0').match(/(\d+)억/);
+    const price = match ? parseInt(match[1]) : 0;
+    if (price > bestPrice) { bestPrice = price; bestIdx = i; }
+  });
+  
+  const bestPlayer = pulled[bestIdx];
+  
+  // Add all to collection
+  pulled.forEach(p => {
+    collection.push({...p, enhLevel:1, uid:Date.now()+Math.random()});
+  });
+  
+  // Show best player with full animation
+  const overlay = document.getElementById('revealOverlay');
+  const area = document.getElementById('revealArea');
+  const tierBg = document.getElementById('tierBg');
+  const tColor = TIER_COLORS[bestPlayer.tier];
+  overlay.classList.add('active');
+  area.innerHTML = '';
+  tierBg.className = 'tier-bg';
+  
+  // Hints for best player
+  await sleep(300);
+  const fb = document.createElement('div'); fb.className = 'hint-box';
+  fb.innerHTML = '<div class="label">BEST PULL · NATION</div><img class="flag-reveal" src="'+FLAGS[bestPlayer.nation]+'" style="display:block;margin:0 auto">';
+  area.appendChild(fb); await sleep(100); fb.classList.add('show');
+  
+  await sleep(800);
+  const pb = document.createElement('div'); pb.className = 'hint-box';
+  pb.innerHTML = '<div class="label">POSITION</div><div class="value">'+bestPlayer.pos+'</div>';
+  area.appendChild(pb); await sleep(100); pb.classList.add('show');
+  
+  await sleep(800);
+  const sb = document.createElement('div'); sb.className = 'hint-box';
+  const tn = bestPlayer.icon ? 'ICON' : 'FWC';
+  sb.innerHTML = '<div class="label">SEASON</div><div class="value" style="color:'+tColor+'">'+tn+'</div>';
+  area.appendChild(sb); await sleep(100); sb.classList.add('show');
+  
+  tierBg.className = 'tier-bg t' + bestPlayer.tier + ' show';
+  
+  await sleep(1000);
+  if (bestPlayer.tier === "118" || bestPlayer.tier === "icon") { spawnFire(bestPlayer.icon, 3000); await sleep(600); }
+  spawnParticles(tColor, bestPlayer.icon ? 40 : 20);
+  
+  area.innerHTML = '';
+  
+  // Build best card (same as openPack)
+  const isIcon = bestPlayer.icon;
+  const labels = bestPlayer.gk ? GK_LABELS : STAT_LABELS;
+  const sH = bestPlayer.stats.map((v,i) => '<div style="flex:1;text-align:center;padding:2px 0;'+(i<5?'border-right:1px solid rgba(0,0,0,.06)':'')+'"><div style="font-size:13px;font-weight:900;color:#1a1a1a">'+v+'</div><div style="font-size:6px;font-weight:700;color:#aaa;margin-top:1px">'+labels[i]+'</div></div>').join('');
+  const orn = isIcon ? '<g opacity=".85"><path d="M7,55 Q1,80 5,105 Q9,130 3,155 Q-1,175 5,195 Q9,215 5,240" fill="none" stroke="url(#gg)" stroke-width="1.5"/><path d="M5,68 Q-8,72 -6,82 Q-4,90 5,88" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M5,105 Q-10,110 -7,120 Q-4,128 5,125" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M3,148 Q-10,152 -7,162 Q-4,170 5,167" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M5,190 Q-10,194 -7,204 Q-4,212 5,209" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><circle cx="5" cy="60" r="2" fill="#d4af37" opacity=".6"/><circle cx="3" cy="132" r="2" fill="#d4af37" opacity=".6"/><path d="M4,95 L1,99 L4,103 L7,99Z" fill="#d4af37" opacity=".5"/><path d="M3,138 L0,142 L3,146 L6,142Z" fill="#d4af37" opacity=".5"/></g><g opacity=".85"><path d="M213,55 Q219,80 215,105 Q211,130 217,155 Q221,175 215,195 Q211,215 215,240" fill="none" stroke="url(#gg)" stroke-width="1.5"/><path d="M215,68 Q228,72 226,82 Q224,90 215,88" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M215,105 Q230,110 227,120 Q224,128 215,125" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M217,148 Q230,152 227,162 Q224,170 215,167" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M215,190 Q230,194 227,204 Q224,212 215,209" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><circle cx="215" cy="60" r="2" fill="#d4af37" opacity=".6"/><circle cx="217" cy="132" r="2" fill="#d4af37" opacity=".6"/><path d="M216,95 L219,99 L216,103 L213,99Z" fill="#d4af37" opacity=".5"/><path d="M217,138 L220,142 L217,146 L214,142Z" fill="#d4af37" opacity=".5"/></g><g opacity=".65"><path d="M80,12 Q90,5 100,9 Q105,2 110,7 Q115,2 120,9 Q130,5 140,12" fill="none" stroke="#d4af37" stroke-width="1"/><circle cx="110" cy="5" r="2" fill="#d4af37" opacity=".8"/></g>' : '';
+  
+  const ce = document.createElement('div'); ce.className = 'card-reveal';
+  ce.innerHTML = '<div style="width:220px;height:300px;position:relative;filter:drop-shadow(0 4px 24px rgba(0,0,0,.5)) drop-shadow(0 0 '+(isIcon?20:12)+'px '+tColor+'40)"><svg style="width:100%;height:100%;position:absolute;top:0;left:0;z-index:20;pointer-events:none" viewBox="0 0 220 300" fill="none"><defs><linearGradient id="gx" x1="0" y1="0" x2="220" y2="300" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="20%" stop-color="#d4af37"/><stop offset="40%" stop-color="#f5d67b"/><stop offset="60%" stop-color="#c5981a"/><stop offset="80%" stop-color="#f5e6a3"/><stop offset="100%" stop-color="#d4af37"/></linearGradient><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="50%" stop-color="#d4af37"/><stop offset="100%" stop-color="#f5e6a3"/></linearGradient></defs><polygon points="110,1 213,24 219,45 219,234 110,299 1,234 1,45 7,24" fill="none" stroke="url(#gx)" stroke-width="2.5"/><polygon points="110,5 210,27 216,46 216,232 110,295 4,232 4,46 10,27" fill="none" stroke="url(#gx)" stroke-width=".5" opacity=".25"/>'+orn+'</svg><div style="width:100%;height:100%;position:absolute;top:0;left:0;overflow:hidden;clip-path:polygon(50% 0%,97% 8%,100% 15%,100% 78%,50% 100%,0% 78%,0% 15%,3% 8%)"><div style="position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse at 30% 20%,rgba(30,58,138,.5) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(88,28,135,.3) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(15,23,42,1) 0%,#0a0a12 100%)"></div><div style="position:absolute;top:61%;left:0;right:0;bottom:0;z-index:3;background:linear-gradient(180deg,rgba(255,255,255,.97) 0%,#fff 10%)"></div><div style="position:absolute;top:61%;left:6%;right:6%;height:1.5px;z-index:12;background:linear-gradient(90deg,transparent,#d4af37 20%,#f5e6a3 50%,#d4af37 80%,transparent)"></div><div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:900;letter-spacing:3px;color:rgba(212,175,55,.55);z-index:10">'+(isIcon?'FWC · ICON':'FWC')+'</div><div style="position:absolute;top:28px;left:14px;z-index:10"><div style="font-size:30px;font-weight:900;color:#fff;line-height:1;text-shadow:0 0 20px '+tColor+'40">'+bestPlayer.ovr+'</div><div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:1px;margin-top:1px">'+bestPlayer.pos+'</div><img src="'+FLAGS[bestPlayer.nation]+'" style="width:22px;height:15px;margin-top:6px;border-radius:2px;border:.5px solid rgba(255,255,255,.15)"></div><img src="'+IMGS[bestPlayer.id]+'" style="position:absolute;top:20px;left:50%;transform:translateX(-44%);width:155px;height:158px;object-fit:contain;object-position:center bottom;z-index:4;filter:drop-shadow(0 2px 10px rgba(0,0,0,.5))"><div style="position:absolute;top:calc(61% - 8px);left:0;right:0;text-align:center;padding:6px 8px 5px;font-size:13px;font-weight:900;letter-spacing:2.5px;text-transform:uppercase;color:#1a1a1a;z-index:10;background:rgba(255,255,255,.97);border-top:2px solid #d4af37;border-bottom:2px solid #d4af37">'+bestPlayer.name+'</div><div style="position:absolute;top:calc(61% + 30px);left:0;right:0;display:flex;justify-content:center;z-index:10;padding:0 14px">'+sH+'</div><div style="position:absolute;top:calc(61% + 64px);left:0;right:0;display:flex;justify-content:center;align-items:center;gap:20px;z-index:10;font-size:10px;font-weight:800;color:#555"><span>'+bestPlayer.foot+'</span><span>'+bestPlayer.club+'</span></div><div style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);z-index:15"><svg width="28" height="24" viewBox="0 0 28 24" fill="none"><path d="M5 1h18l5 8-14 14L0 9l5-8z" fill="#d4af37" opacity=".15"/><path d="M5 1h18l5 8-14 14L0 9l5-8z" stroke="#d4af37" stroke-width="1.2"/></svg></div></div></div>';
+  area.appendChild(ce);
+  await sleep(100); ce.classList.add('show');
+  if (isIcon) { await sleep(300); spawnParticles('#d4af37',30); }
+  
+  // Show all results below
+  await sleep(600);
+  const allResults = document.createElement('div');
+  allResults.className = 'bulk-results';
+  allResults.innerHTML = '<div style="width:100%;font-size:11px;color:#888;font-weight:700;text-align:center;margin-bottom:4px">전체 결과 (' + qty + '팩)</div>' + pulled.map((p,i) => 
+    '<div class="bulk-card '+(i===bestIdx?'best':'')+'"><img src="'+IMGS[p.id]+'"><div class="bc-ovr">'+p.ovr+'</div><div class="bc-name">'+p.name+'</div><div style="font-size:7px;color:#d4af37;font-weight:800;margin-top:1px">급여 '+(p.salary||0)+'</div></div>'
+  ).join('');
+  area.appendChild(allResults);
+  
+  const remainEl = document.createElement('div');
+  remainEl.style.cssText = 'font-size:11px;color:#888;font-weight:700;margin-top:8px';
+  remainEl.textContent = (packInv.fwc1||0) + '팩 남았습니다';
+  area.appendChild(remainEl);
+  
+  const ae = document.createElement('div'); ae.className = 'action-btns show';
+  ae.innerHTML = '<button class="action-btn again" onclick="closeRevealAndOpen()">OPEN AGAIN</button><button class="action-btn close" onclick="closeReveal()">CLOSE</button>';
+  area.appendChild(ae);
+  
+  renderItems();
+  animating = false;
+}
+
+function showModal(text, buttons) {
+  document.getElementById('modalText').textContent = text;
+  const btnsEl = document.getElementById('modalBtns');
+  btnsEl.innerHTML = '';
+  buttons.forEach(b => {
+    const btn = document.createElement('button');
+    btn.className = 'modal-btn ' + (b.cls || 'ok');
+    btn.textContent = b.label;
+    btn.onclick = () => { document.getElementById('modal').classList.remove('active'); if(b.fn) b.fn(); };
+    btnsEl.appendChild(btn);
+  });
+  document.getElementById('modal').classList.add('active');
+}
+
+function updateTokenDisplay() {
+  const el = document.getElementById('tokenCount');
+  if (el) el.textContent = enhanceTokens;
+}
+
+function buyToken() {
+  const qty = quantities.token || 1;
+  const total = 300 * qty;
+  if (cp < total) {
+    showModal('CP가 부족합니다! (필요: ' + total.toLocaleString() + ' CP)', [{label:'확인', cls:'ok'}]);
+    return;
+  }
+  showModal('강화 토큰 ' + qty + '개를 구매하시겠습니까? (' + total.toLocaleString() + ' CP)', [
+    {label:'구매', cls:'confirm', fn: () => {
+      cp -= total;
+      enhanceTokens += qty;
+      updateCPDisplay();
+      updateTokenDisplay();
+      showModal('강화 토큰 ' + qty + '개 구매 완료!', [{label:'확인', cls:'ok'}]);
+    }},
+    {label:'취소', cls:'cancel'}
+  ]);
+}
+
+const ENH_CONFIG = [
+  null,
+  {prob:0.9, priceMult:1.2, ovrUp:1, statUp:1, color:'enh-2', label:'2강', costTokens:1},
+  {prob:0.7, priceMult:1.7, ovrUp:1, statUp:1, color:'enh-3', label:'3강', costTokens:2},
+  {prob:0.5, priceMult:2.2, ovrUp:1, statUp:2, color:'enh-4', label:'4강', costTokens:3},
+  {prob:0.25, priceMult:2.7, ovrUp:1, statUp:2, color:'enh-5', label:'5강', costTokens:4},
+];
+
+function getEnhBadgeHTML(level) {
+  if (level <= 1) return '<div class="enh-badge enh-1">1</div>';
+  return '<div class="enh-badge enh-' + level + '">' + level + '</div>';
+}
+
+function showPlayerDetail(idx) {
+  const card = collection[idx];
+  if (!card) return;
+  const p = PLAYERS.find(pl => pl.id === card.id);
+  if (!p) return;
+  
+  const level = card.enhLevel || 1;
+  const ovrBonus = getOvrBonus(level);
+  const statBonus = getStatBonus(level);
+  const curOvr = p.ovr + ovrBonus;
+  const labels = p.gk ? GK_LABELS : STAT_LABELS;
+  
+  const statsHtml = p.stats.map((v,i) => 
+    '<div class="pd-stat"><div class="ps-val">' + (v + statBonus) + '</div><div class="ps-lbl">' + labels[i] + '</div></div>'
+  ).join('');
+  
+  const nextLevel = level < 5 ? level : null;
+  const config = nextLevel ? ENH_CONFIG[nextLevel] : null;
+  
+  const enhPrice = getEnhancedPrice(p.price, card.enhLevel || 1);
+  const sellPrice = getSellPrice(enhPrice);
+  const sellPriceDisplay = sellPrice + '억 CP';
+  let enhInfoHtml = '';
+  let enhBtnHtml = '';
+  if (config) {
+    enhInfoHtml = '<div class="pd-enh-info">' + level + '강 → <span>' + (level+1) + '강</span> | 확률 <span>' + (config.prob*100) + '%</span> | 토큰 <span>' + config.costTokens + '개</span> (보유: ' + enhanceTokens + '개)</div>';
+    enhBtnHtml = '<button class="pd-btn enhance" onclick="openEnhScreen(' + idx + ')">강화</button>';
+  } else {
+    enhInfoHtml = '<div class="pd-enh-info" style="color:#64c8ff">최대 강화 달성!</div>';
+  }
+  
+  const el = document.getElementById('playerDetail');
+  el.innerHTML = `
+    <div style="text-align:center">
+      ${getEnhBadgeHTML(level)}
+      <img src="${IMGS[card.id]}" style="width:120px;height:120px;object-fit:contain;margin:8px 0">
+      <div style="font-size:18px;font-weight:900;letter-spacing:2px">${p.name}</div>
+      <div style="font-size:24px;font-weight:900;color:#d4af37;margin:4px 0">${curOvr}</div>
+      <div class="pd-stats">${statsHtml}</div>
+      <div class="pd-info">${p.pos} | ${p.foot} | ${p.club}</div>
+      <div class="pd-price">${getEnhancedPrice(p.price, card.enhLevel || 1) || '미정'} CP</div>
+      <div style="font-size:12px;color:#aaa;font-weight:700;margin-top:-2px">급여 ${p.salary||0}</div>
+      ${enhInfoHtml}
+      <div class="pd-btns">
+        ${enhBtnHtml}
+        <button class="pd-btn" onclick="sellPlayer(${idx})" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff">판매 (${sellPriceDisplay})</button>
+        <button class="pd-btn close" onclick="closePlayerDetail()">닫기</button>
+      </div>
+      <div id="enhResult"></div>
+    </div>`;
+  el.classList.add('active');
+}
+
+function closePlayerDetail() {
+  document.getElementById('playerDetail').classList.remove('active');
+}
+
+function getOvrBonus(level) {
+  let bonus = 0;
+  for (let i = 1; i < level; i++) {
+    bonus += ENH_CONFIG[i].ovrUp;
+  }
+  return bonus;
+}
+
+function getStatBonus(level) {
+  let bonus = 0;
+  for (let i = 1; i < level; i++) {
+    bonus += ENH_CONFIG[i].statUp;
+  }
+  return bonus;
+}
+
+function getEnhancedPrice(priceStr, level) {
+  if (!priceStr || level <= 1) return priceStr;
+  const match = priceStr.match(/([\d]+)억/);
+  if (!match) return priceStr;
+  let base = parseInt(match[1]);
+  for (let i = 1; i < level; i++) {
+    base = Math.floor(base * ENH_CONFIG[i].priceMult);
+  }
+  return base + '억';
+}
+
+function openEnhScreen(idx) {
+  closePlayerDetail();
+  const card = collection[idx];
+  const p = PLAYERS.find(pl => pl.id === card.id);
+  if (!p) return;
+  
+  const level = card.enhLevel || 1;
+  if (level >= 5) return;
+  const config = ENH_CONFIG[level];
+  const nextLevel = level + 1;
+  
+  const curPrice = getEnhancedPrice(p.price, level);
+  const nextPrice = getEnhancedPrice(p.price, nextLevel);
+  const enhNames = {1:'1강',2:'2강',3:'3강',4:'4강',5:'5강'};
+  const enhColors = {1:'#999',2:'#cd7f32',3:'#c0c0c0',4:'#d4af37',5:'#64c8ff'};
+  
+  const el = document.getElementById('enhScreen');
+  el.innerHTML = `
+    <img src="${IMGS[card.id]}" style="width:100px;height:100px;object-fit:contain;filter:drop-shadow(0 2px 10px rgba(0,0,0,.5))">
+    <div class="enh-player-name">${p.name}</div>
+    <div class="enh-arrow">
+      <span class="enh-from" style="color:${enhColors[level]}">${enhNames[level]}</span>
+      <span class="enh-arrow-icon">→</span>
+      <span class="enh-to" style="color:${enhColors[nextLevel]}">${enhNames[nextLevel]}</span>
+    </div>
+    <div class="enh-prob">성공 확률: <span>${config.prob*100}%</span></div>
+    <div class="enh-cost">토큰 ${config.costTokens}개 필요 (보유: ${enhanceTokens}개)</div>
+    <div style="font-size:10px;color:#888;margin-top:2px">가치: ${curPrice} → ${nextPrice} CP</div>
+    <div id="enhAnimArea" style="min-height:60px;display:flex;align-items:center;justify-content:center"></div>
+    <button class="enh-go-btn" id="enhGoBtn" onclick="doEnhance(${idx})">강화하기</button>
+    <button class="enh-back-btn" onclick="closeEnhScreen()">돌아가기</button>
+  `;
+  el.classList.add('active');
+}
+
+function closeEnhScreen() {
+  document.getElementById('enhScreen').classList.remove('active');
+}
+
+async function doEnhance(idx) {
+  const card = collection[idx];
+  const p = PLAYERS.find(pl => pl.id === card.id);
+  const level = card.enhLevel || 1;
+  if (level >= 5) return;
+  
+  const config = ENH_CONFIG[level];
+  if (enhanceTokens < config.costTokens) {
+    showModal('강화 토큰이 부족합니다! (필요: ' + config.costTokens + '개)', [{label:'확인', cls:'ok'}]);
+    return;
+  }
+  
+  // Disable button
+  const goBtn = document.getElementById('enhGoBtn');
+  goBtn.disabled = true;
+  goBtn.style.opacity = '.4';
+  goBtn.textContent = '강화 중...';
+  
+  enhanceTokens -= config.costTokens;
+  updateTokenDisplay();
+  
+  const animArea = document.getElementById('enhAnimArea');
+  const roll = Math.random();
+  const success = roll < config.prob;
+  
+  // Suspense animation - 3 seconds of tension
+  animArea.innerHTML = '<div style="font-size:36px" id="enhSpinner">⬆</div>';
+  const spinner = document.getElementById('enhSpinner');
+  
+  // Phase 1: Slow glow pulse
+  spinner.style.animation = 'enhSpin 1s ease-in-out infinite';
+  spinner.style.color = '#10b981';
+  await sleep(800);
+  
+  // Phase 2: Speed up
+  spinner.style.animation = 'enhSpin 0.5s ease-in-out infinite';
+  await sleep(800);
+  
+  // Phase 3: Faster + shake
+  spinner.style.animation = 'enhSpin 0.25s linear infinite';
+  animArea.classList.add('enh-suspense');
+  await sleep(1000);
+  
+  // Phase 4: Brief pause (peak tension)
+  spinner.style.animation = 'none';
+  spinner.style.transform = 'scale(1.3)';
+  spinner.style.transition = 'transform 0.3s';
+  await sleep(500);
+  
+  // Result!
+  animArea.innerHTML = '';
+  animArea.classList.remove('enh-suspense');
+  
+  const resultEl = document.createElement('div');
+  resultEl.className = 'enh-big-result';
+  
+  if (success) {
+    card.enhLevel = level + 1;
+    resultEl.classList.add('success');
+    resultEl.textContent = '강화 성공!';
+    animArea.appendChild(resultEl);
+    await sleep(100);
+    resultEl.classList.add('show');
+    spawnParticles(level+1>=4?'#d4af37':'#10b981', 25);
+    
+    // Show price change
+    const priceEl = document.createElement('div');
+    priceEl.className = 'enh-price-change';
+    const newPrice = getEnhancedPrice(p.price, card.enhLevel);
+    priceEl.textContent = '새 가치: ' + newPrice + ' CP';
+    animArea.appendChild(priceEl);
+    await sleep(300);
+    priceEl.classList.add('show');
+  } else {
+    resultEl.classList.add('fail');
+    resultEl.textContent = '강화 실패...';
+    animArea.appendChild(resultEl);
+    await sleep(100);
+    resultEl.classList.add('show');
+  }
+  
+  renderCollection();
+  
+  // Change button to retry or back
+  await sleep(800);
+  goBtn.style.display = 'none';
+  const btnsArea = document.createElement('div');
+  btnsArea.style.cssText = 'display:flex;gap:10px;margin-top:8px';
+  if (level + (success?1:0) < 5) {
+    btnsArea.innerHTML = '<button class="enh-go-btn" style="padding:10px 24px;font-size:13px" onclick="openEnhScreen(' + idx + ')">다시 강화</button>';
+  }
+  btnsArea.innerHTML += '<button class="enh-back-btn" onclick="closeEnhScreen()">돌아가기</button>';
+  animArea.parentElement.appendChild(btnsArea);
+}
+
+function getSellPrice(priceStr) {
+  if (!priceStr) return 0;
+  const match = priceStr.match(/([\d]+)억/);
+  if (!match) return 0;
+  const full = parseInt(match[1]);
+  return Math.floor(full * 0.8);
+}
+
+function sellPlayer(idx) {
+  const card = collection[idx];
+  const p = PLAYERS.find(pl => pl.id === card.id);
+  if (!p) return;
+  const enhPrice = getEnhancedPrice(p.price, card.enhLevel || 1);
+  const sellPrice = getSellPrice(enhPrice);
+  
+  showModal(p.name + '을(를) 판매하시겠습니까?\n판매가: ' + sellPrice + '억 CP (수수료 20%)', [
+    {label:'판매', cls:'confirm', fn: () => {
+      cp += sellPrice;
+      collection.splice(idx, 1);
+      updateCPDisplay();
+      closePlayerDetail();
+      renderCollection();
+      showModal(sellPrice + '억 CP를 획득했습니다!', [{label:'확인', cls:'ok'}]);
+    }},
+    {label:'취소', cls:'cancel'}
+  ]);
+}
+
+const TM_PROB = {"114":0.25,"115":0.25,"116":0.20,"117":0.15,"118":0.08,"icon":0.06};
+
+let tmPlayers = [];
+let tmLastRefresh = 0;
+let tmSold = {};
+
+function getTMPrice(priceStr) {
+  if (!priceStr) return 0;
+  const match = priceStr.match(/([\d]+)억/);
+  if (!match) return 0;
+  return parseInt(match[1]);
+}
+
+function pickTMPlayer() {
+  const roll = Math.random();
+  let cum = 0, tier = "114";
+  for (const [t, p] of Object.entries(TM_PROB)) {
+    cum += p;
+    if (roll < cum) { tier = t; break; }
+  }
+  const pool = PLAYERS.filter(p => p.tier === tier);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function refreshTM() {
+  const now = Date.now();
+  const hourMs = 3600000;
+  const currentHour = Math.floor(now / hourMs);
+  
+  if (currentHour !== tmLastRefresh) {
+    tmPlayers = [];
+    tmSold = {};
+    const used = new Set();
+    while (tmPlayers.length < 4) {
+      const p = pickTMPlayer();
+      if (!used.has(p.id)) {
+        used.add(p.id);
+        tmPlayers.push(p);
+      }
+    }
+    tmLastRefresh = currentHour;
+  }
+}
+
+function renderTM() {
+  refreshTM();
+  const grid = document.getElementById('tmGrid');
+  if (!grid) return;
+  
+  grid.innerHTML = tmPlayers.map((p, i) => {
+    const price = getTMPrice(p.price);
+    const sold = tmSold[i];
+    return `<div class="tm-card">
+      <img src="${IMGS[p.id]}">
+      <div class="tm-name">${p.name}</div>
+      <div class="tm-info">${p.ovr} · ${p.pos} · ${p.club}</div>
+      <div style="font-size:8px;font-weight:900;letter-spacing:1.5px;color:${p.season==='tl'?'#d4af37':(p.icon?'#f5e6a3':'#999')};margin-top:-2px">${p.season==='tl'?'TL':(p.icon?'FWC · ICON':'FWC')}</div>
+      <div class="tm-price">${price}억 CP</div>
+      <div style="font-size:10px;color:#aaa;font-weight:700">급여 ${p.salary||0}</div>
+      ${sold ? '<div class="tm-sold">구매 완료</div>' : '<button class="tm-buy" onclick="buyTMPlayer('+i+')">구매</button>'}
+    </div>`;
+  }).join('');
+}
+
+function buyTMPlayer(i) {
+  const p = tmPlayers[i];
+  const price = getTMPrice(p.price);
+  
+  if (cp < price) {
+    showModal('CP가 부족합니다! (필요: ' + price + '억 CP)', [{label:'확인', cls:'ok'}]);
+    return;
+  }
+  
+  showModal(p.name + '을(를) 구매하시겠습니까? (' + price + '억 CP)', [
+    {label:'구매', cls:'confirm', fn: () => {
+      cp -= price;
+      updateCPDisplay();
+      collection.push({...p, enhLevel:1, uid:Date.now()+Math.random()});
+      tmSold[i] = true;
+      renderTM();
+      showModal(p.name + ' 영입 완료!', [{label:'확인', cls:'ok'}]);
+    }},
+    {label:'취소', cls:'cancel'}
+  ]);
+}
+
+function updateTMTimer() {
+  const now = new Date();
+  const nextHour = new Date(now);
+  nextHour.setMinutes(0, 0, 0);
+  nextHour.setHours(nextHour.getHours() + 1);
+  const diff = nextHour - now;
+  const m = Math.floor(diff / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  const el = document.getElementById('tmTimer');
+  if (el) el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+setInterval(updateTMTimer, 1000);
+setInterval(() => { if(document.getElementById('screen-transfer').classList.contains('active')) renderTM(); }, 60000);
+updateTMTimer();
+
+
+function changeQty(type, delta) {
+  const maxQty = (type.startsWith('open')) ? 5 : 10;
+  quantities[type] = Math.max(1, Math.min(maxQty, quantities[type] + delta));
+  const el = document.getElementById(type + 'Qty');
+  if (el) el.textContent = quantities[type];
+  
+  const priceMap = {token:300, pack:20, pack3:40, pack5:60, box:40, packtl1:30};
+  if (priceMap[type] !== undefined) {
+    const priceEl = document.getElementById(type + 'TotalPrice');
+    if (priceEl) priceEl.textContent = (priceMap[type] * quantities[type]);
+  }
+}
+
+function pickPlayerForPack(packType) {
+  const pt = PACK_TYPES[packType];
+  const roll = Math.random();
+  let cum = 0, tier = "114";
+  for (const [t, p] of Object.entries(pt.prob)) {
+    cum += p;
+    if (roll < cum) { tier = t; break; }
+  }
+  const targetSeason = pt.season || null;
+  const pool = PLAYERS.filter(p => p.tier === tier && (p.season || null) === targetSeason);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+async function openPackType(packType) {
+  if (animating) return;
+  animating = true;
+  const pt = PACK_TYPES[packType];
+  const player = pickPlayerForPack(packType);
+  const overlay = document.getElementById('revealOverlay');
+  const area = document.getElementById('revealArea');
+  const tierBg = document.getElementById('tierBg');
+  const tColor = TIER_COLORS[player.tier];
+  overlay.classList.add('active');
+  area.innerHTML = '';
+  tierBg.className = 'tier-bg';
+
+  await sleep(300);
+  const fb = document.createElement('div'); fb.className = 'hint-box';
+  fb.innerHTML = '<div class="label">NATION</div><img class="flag-reveal" src="'+FLAGS[player.nation]+'" style="display:block;margin:0 auto">';
+  area.appendChild(fb); await sleep(100); fb.classList.add('show');
+
+  await sleep(1000);
+  const pb = document.createElement('div'); pb.className = 'hint-box';
+  pb.innerHTML = '<div class="label">POSITION</div><div class="value">'+player.pos+'</div>';
+  area.appendChild(pb); await sleep(100); pb.classList.add('show');
+
+  await sleep(1000);
+  const sb = document.createElement('div'); sb.className = 'hint-box';
+  const tn = player.season === 'tl' ? 'TL' : (player.icon ? 'ICON' : 'FWC');
+  sb.innerHTML = '<div class="label">SEASON</div><div class="value" style="color:'+tColor+'">'+tn+'</div>';
+  area.appendChild(sb); await sleep(100); sb.classList.add('show');
+
+  tierBg.className = 'tier-bg t' + player.tier + ' show';
+
+  await sleep(1200);
+  if (player.tier === "118" || player.tier === "icon") { spawnFire(player.icon, 3000); await sleep(600); }
+  spawnParticles(tColor, player.icon ? 40 : 20);
+
+  area.innerHTML = '';
+  const isIcon = player.icon;
+  const labels = player.gk ? GK_LABELS : STAT_LABELS;
+  const enhLvl = pt.enhLevel;
+  const statB = getStatBonus(enhLvl);
+  const ovrB = getOvrBonus(enhLvl);
+  const sH = player.stats.map((v,i) => '<div style="flex:1;text-align:center;padding:2px 0;'+(i<5?'border-right:1px solid rgba(0,0,0,.06)':'')+'"><div style="font-size:13px;font-weight:900;color:#1a1a1a">'+(v+statB)+'</div><div style="font-size:6px;font-weight:700;color:#aaa;margin-top:1px">'+labels[i]+'</div></div>').join('');
+
+  const enhBadgeColors = {1:'rgba(255,255,255,.4)',2:'#cd7f32',3:'#c0c0c0',4:'#d4af37',5:'#64c8ff'};
+  const enhBadgeHTML = enhLvl > 1 ? '<div style="position:absolute;top:108px;left:14px;z-index:10;background:rgba(0,0,0,.4);border:1.5px solid '+enhBadgeColors[enhLvl]+';border-radius:4px;padding:2px 7px;font-size:11px;font-weight:900;color:'+enhBadgeColors[enhLvl]+'">'+enhLvl+'강</div>' : '';
+
+  const orn = isIcon ? '<g opacity=".85"><path d="M7,55 Q1,80 5,105 Q9,130 3,155 Q-1,175 5,195 Q9,215 5,240" fill="none" stroke="url(#gg)" stroke-width="1.5"/><path d="M5,68 Q-8,72 -6,82 Q-4,90 5,88" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M5,105 Q-10,110 -7,120 Q-4,128 5,125" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M3,148 Q-10,152 -7,162 Q-4,170 5,167" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M5,190 Q-10,194 -7,204 Q-4,212 5,209" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><circle cx="5" cy="60" r="2" fill="#d4af37" opacity=".6"/><circle cx="3" cy="132" r="2" fill="#d4af37" opacity=".6"/><path d="M4,95 L1,99 L4,103 L7,99Z" fill="#d4af37" opacity=".5"/><path d="M3,138 L0,142 L3,146 L6,142Z" fill="#d4af37" opacity=".5"/></g><g opacity=".85"><path d="M213,55 Q219,80 215,105 Q211,130 217,155 Q221,175 215,195 Q211,215 215,240" fill="none" stroke="url(#gg)" stroke-width="1.5"/><path d="M215,68 Q228,72 226,82 Q224,90 215,88" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M215,105 Q230,110 227,120 Q224,128 215,125" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M217,148 Q230,152 227,162 Q224,170 215,167" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M215,190 Q230,194 227,204 Q224,212 215,209" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><circle cx="215" cy="60" r="2" fill="#d4af37" opacity=".6"/><circle cx="217" cy="132" r="2" fill="#d4af37" opacity=".6"/><path d="M216,95 L219,99 L216,103 L213,99Z" fill="#d4af37" opacity=".5"/><path d="M217,138 L220,142 L217,146 L214,142Z" fill="#d4af37" opacity=".5"/></g><g opacity=".65"><path d="M80,12 Q90,5 100,9 Q105,2 110,7 Q115,2 120,9 Q130,5 140,12" fill="none" stroke="#d4af37" stroke-width="1"/><circle cx="110" cy="5" r="2" fill="#d4af37" opacity=".8"/></g>' : '';
+
+  const ce = document.createElement('div'); ce.className = 'card-reveal';
+  if (player.season === 'tl') {
+    ce.innerHTML = buildTLCardHTML(player, enhLvl);
+  } else {
+  ce.innerHTML = '<div style="width:220px;height:300px;position:relative;filter:drop-shadow(0 4px 24px rgba(0,0,0,.5)) drop-shadow(0 0 '+(isIcon?20:12)+'px '+tColor+'40)"><svg style="width:100%;height:100%;position:absolute;top:0;left:0;z-index:20;pointer-events:none" viewBox="0 0 220 300" fill="none"><defs><linearGradient id="gx" x1="0" y1="0" x2="220" y2="300" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="20%" stop-color="#d4af37"/><stop offset="40%" stop-color="#f5d67b"/><stop offset="60%" stop-color="#c5981a"/><stop offset="80%" stop-color="#f5e6a3"/><stop offset="100%" stop-color="#d4af37"/></linearGradient><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="50%" stop-color="#d4af37"/><stop offset="100%" stop-color="#f5e6a3"/></linearGradient></defs><polygon points="110,1 213,24 219,45 219,234 110,299 1,234 1,45 7,24" fill="none" stroke="url(#gx)" stroke-width="2.5"/><polygon points="110,5 210,27 216,46 216,232 110,295 4,232 4,46 10,27" fill="none" stroke="url(#gx)" stroke-width=".5" opacity=".25"/>'+orn+'</svg><div style="width:100%;height:100%;position:absolute;top:0;left:0;overflow:hidden;clip-path:polygon(50% 0%,97% 8%,100% 15%,100% 78%,50% 100%,0% 78%,0% 15%,3% 8%)"><div style="position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse at 30% 20%,rgba(30,58,138,.5) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(88,28,135,.3) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(15,23,42,1) 0%,#0a0a12 100%)"></div><div style="position:absolute;top:61%;left:0;right:0;bottom:0;z-index:3;background:linear-gradient(180deg,rgba(255,255,255,.97) 0%,#fff 10%)"></div><div style="position:absolute;top:61%;left:6%;right:6%;height:1.5px;z-index:12;background:linear-gradient(90deg,transparent,#d4af37 20%,#f5e6a3 50%,#d4af37 80%,transparent)"></div><div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:900;letter-spacing:3px;color:rgba(212,175,55,.55);z-index:10">'+(isIcon?'FWC · ICON':'FWC')+'</div><div style="position:absolute;top:28px;left:14px;z-index:10"><div style="font-size:30px;font-weight:900;color:#fff;line-height:1;text-shadow:0 0 20px '+tColor+'40">'+(player.ovr+ovrB)+'</div><div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:1px;margin-top:1px">'+player.pos+'</div><img src="'+FLAGS[player.nation]+'" style="width:22px;height:15px;margin-top:6px;border-radius:2px;border:.5px solid rgba(255,255,255,.15)"></div>'+enhBadgeHTML+'<div style="position:absolute;top:28px;right:14px;z-index:10;padding:3px 8px;background:rgba(212,175,55,.15);border:.5px solid rgba(212,175,55,.5);border-radius:3px;font-size:11px;font-weight:900;color:#f5e6a3;letter-spacing:.5px">'+(player.salary||0)+'</div><img src="'+IMGS[player.id]+'" style="position:absolute;top:20px;left:50%;transform:translateX(-44%);width:155px;height:158px;object-fit:contain;object-position:center bottom;z-index:4;filter:drop-shadow(0 2px 10px rgba(0,0,0,.5))"><div style="position:absolute;top:calc(61% - 8px);left:0;right:0;text-align:center;padding:6px 8px 5px;font-size:13px;font-weight:900;letter-spacing:2.5px;text-transform:uppercase;color:#1a1a1a;z-index:10;background:rgba(255,255,255,.97);border-top:2px solid #d4af37;border-bottom:2px solid #d4af37">'+player.name+'</div><div style="position:absolute;top:calc(61% + 30px);left:0;right:0;display:flex;justify-content:center;z-index:10;padding:0 14px">'+sH+'</div><div style="position:absolute;top:calc(61% + 64px);left:0;right:0;display:flex;justify-content:center;align-items:center;gap:20px;z-index:10;font-size:10px;font-weight:800;color:#555"><span>'+player.foot+'</span><span>'+player.club+'</span></div><div style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);z-index:15"><svg width="28" height="24" viewBox="0 0 28 24" fill="none"><path d="M5 1h18l5 8-14 14L0 9l5-8z" fill="#d4af37" opacity=".15"/><path d="M5 1h18l5 8-14 14L0 9l5-8z" stroke="#d4af37" stroke-width="1.2"/></svg></div></div></div>';
+  }
+  area.appendChild(ce);
+
+  const pe = document.createElement('div'); pe.className = 'price-tag';
+  pe.innerHTML = (getEnhancedPrice(player.price, enhLvl) || '미정') + ' CP<div style="font-size:11px;color:#aaa;font-weight:700;margin-top:2px">급여 ' + (player.salary||0) + '</div>';
+  area.appendChild(pe);
+
+  const re = document.createElement('div');
+  re.style.cssText = 'font-size:11px;color:#888;font-weight:700;margin-top:8px';
+  re.textContent = (packInv[packType]||0) + '팩 남았습니다';
+  area.appendChild(re);
+
+  const ae = document.createElement('div'); ae.className = 'action-btns';
+  ae.innerHTML = '<button class="action-btn again" onclick="reopenPack(\''+packType+'\')">OPEN AGAIN</button><button class="action-btn close" onclick="closeReveal()">CLOSE</button>';
+  area.appendChild(ae);
+
+  await sleep(100); ce.classList.add('show');
+  if (isIcon) { await sleep(300); spawnParticles('#d4af37',30); }
+  await sleep(800); pe.classList.add('show'); ae.classList.add('show');
+
+  collection.push({...player, enhLevel: enhLvl, uid: Date.now()+Math.random()});
+  renderItems();
+  animating = false;
+}
+
+async function bulkOpenPacksType(packType, qty) {
+  if (animating) return;
+  animating = true;
+  packInv[packType] -= qty;
+  const pt = PACK_TYPES[packType];
+  const pulled = [];
+  for (let i = 0; i < qty; i++) pulled.push(pickPlayerForPack(packType));
+  
+  let bestIdx = 0, bestPrice = 0;
+  pulled.forEach((p,i) => {
+    const m = (p.price||'0').match(/(\d+)억/);
+    const price = m ? parseInt(m[1]) : 0;
+    if (price > bestPrice) { bestPrice = price; bestIdx = i; }
+  });
+  const bestPlayer = pulled[bestIdx];
+  const enhLvl = pt.enhLevel;
+  const ovrB = getOvrBonus(enhLvl);
+  const statB = getStatBonus(enhLvl);
+  
+  pulled.forEach(p => collection.push({...p, enhLevel: enhLvl, uid: Date.now()+Math.random()}));
+  
+  const overlay = document.getElementById('revealOverlay');
+  const area = document.getElementById('revealArea');
+  const tierBg = document.getElementById('tierBg');
+  const tColor = TIER_COLORS[bestPlayer.tier];
+  overlay.classList.add('active');
+  area.innerHTML = '';
+  tierBg.className = 'tier-bg';
+
+  // Full reveal animation for best player
+  await sleep(300);
+  const fb = document.createElement('div'); fb.className = 'hint-box';
+  fb.innerHTML = '<div class="label">BEST PULL · NATION</div><img class="flag-reveal" src="'+FLAGS[bestPlayer.nation]+'" style="display:block;margin:0 auto">';
+  area.appendChild(fb); await sleep(100); fb.classList.add('show');
+
+  await sleep(800);
+  const pb = document.createElement('div'); pb.className = 'hint-box';
+  pb.innerHTML = '<div class="label">POSITION</div><div class="value">'+bestPlayer.pos+'</div>';
+  area.appendChild(pb); await sleep(100); pb.classList.add('show');
+
+  await sleep(800);
+  const sb = document.createElement('div'); sb.className = 'hint-box';
+  const tn = bestPlayer.icon ? 'ICON' : 'FWC';
+  sb.innerHTML = '<div class="label">SEASON</div><div class="value" style="color:'+tColor+'">'+tn+'</div>';
+  area.appendChild(sb); await sleep(100); sb.classList.add('show');
+
+  tierBg.className = 'tier-bg t' + bestPlayer.tier + ' show';
+
+  await sleep(1000);
+  if (bestPlayer.tier === "118" || bestPlayer.tier === "icon") { spawnFire(bestPlayer.icon, 2500); await sleep(500); }
+  spawnParticles(tColor, bestPlayer.icon ? 40 : 20);
+
+  area.innerHTML = '';
+  
+  const isIcon = bestPlayer.icon;
+  const labels = bestPlayer.gk ? GK_LABELS : STAT_LABELS;
+  const sH = bestPlayer.stats.map((v,i) => '<div style="flex:1;text-align:center;padding:2px 0;'+(i<5?'border-right:1px solid rgba(0,0,0,.06)':'')+'"><div style="font-size:13px;font-weight:900;color:#1a1a1a">'+(v+statB)+'</div><div style="font-size:6px;font-weight:700;color:#aaa;margin-top:1px">'+labels[i]+'</div></div>').join('');
+  
+  const enhBadgeColors = {1:'rgba(255,255,255,.4)',2:'#cd7f32',3:'#c0c0c0',4:'#d4af37',5:'#64c8ff'};
+  const enhBadgeHTML = enhLvl > 1 ? '<div style="position:absolute;top:108px;left:14px;z-index:10;background:rgba(0,0,0,.4);border:1.5px solid '+enhBadgeColors[enhLvl]+';border-radius:4px;padding:2px 7px;font-size:11px;font-weight:900;color:'+enhBadgeColors[enhLvl]+'">'+enhLvl+'강</div>' : '';
+  
+  const orn = isIcon ? '<g opacity=".85"><path d="M7,55 Q1,80 5,105 Q9,130 3,155 Q-1,175 5,195 Q9,215 5,240" fill="none" stroke="url(#gg)" stroke-width="1.5"/><path d="M5,68 Q-8,72 -6,82 Q-4,90 5,88" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M5,105 Q-10,110 -7,120 Q-4,128 5,125" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M3,148 Q-10,152 -7,162 Q-4,170 5,167" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M5,190 Q-10,194 -7,204 Q-4,212 5,209" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><circle cx="5" cy="60" r="2" fill="#d4af37" opacity=".6"/><circle cx="3" cy="132" r="2" fill="#d4af37" opacity=".6"/><path d="M4,95 L1,99 L4,103 L7,99Z" fill="#d4af37" opacity=".5"/><path d="M3,138 L0,142 L3,146 L6,142Z" fill="#d4af37" opacity=".5"/></g><g opacity=".85"><path d="M213,55 Q219,80 215,105 Q211,130 217,155 Q221,175 215,195 Q211,215 215,240" fill="none" stroke="url(#gg)" stroke-width="1.5"/><path d="M215,68 Q228,72 226,82 Q224,90 215,88" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M215,105 Q230,110 227,120 Q224,128 215,125" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M217,148 Q230,152 227,162 Q224,170 215,167" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><path d="M215,190 Q230,194 227,204 Q224,212 215,209" fill="none" stroke="#d4af37" stroke-width="1" opacity=".7"/><circle cx="215" cy="60" r="2" fill="#d4af37" opacity=".6"/><circle cx="217" cy="132" r="2" fill="#d4af37" opacity=".6"/><path d="M216,95 L219,99 L216,103 L213,99Z" fill="#d4af37" opacity=".5"/><path d="M217,138 L220,142 L217,146 L214,142Z" fill="#d4af37" opacity=".5"/></g><g opacity=".65"><path d="M80,12 Q90,5 100,9 Q105,2 110,7 Q115,2 120,9 Q130,5 140,12" fill="none" stroke="#d4af37" stroke-width="1"/><circle cx="110" cy="5" r="2" fill="#d4af37" opacity=".8"/></g>' : '';
+
+  const ce = document.createElement('div'); ce.className = 'card-reveal';
+  ce.innerHTML = '<div style="width:220px;height:300px;position:relative;filter:drop-shadow(0 4px 24px rgba(0,0,0,.5)) drop-shadow(0 0 '+(isIcon?20:12)+'px '+tColor+'40)"><svg style="width:100%;height:100%;position:absolute;top:0;left:0;z-index:20;pointer-events:none" viewBox="0 0 220 300" fill="none"><defs><linearGradient id="gx" x1="0" y1="0" x2="220" y2="300" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="20%" stop-color="#d4af37"/><stop offset="40%" stop-color="#f5d67b"/><stop offset="60%" stop-color="#c5981a"/><stop offset="80%" stop-color="#f5e6a3"/><stop offset="100%" stop-color="#d4af37"/></linearGradient><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="50%" stop-color="#d4af37"/><stop offset="100%" stop-color="#f5e6a3"/></linearGradient></defs><polygon points="110,1 213,24 219,45 219,234 110,299 1,234 1,45 7,24" fill="none" stroke="url(#gx)" stroke-width="2.5"/><polygon points="110,5 210,27 216,46 216,232 110,295 4,232 4,46 10,27" fill="none" stroke="url(#gx)" stroke-width=".5" opacity=".25"/>'+orn+'</svg><div style="width:100%;height:100%;position:absolute;top:0;left:0;overflow:hidden;clip-path:polygon(50% 0%,97% 8%,100% 15%,100% 78%,50% 100%,0% 78%,0% 15%,3% 8%)"><div style="position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse at 30% 20%,rgba(30,58,138,.5) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(88,28,135,.3) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(15,23,42,1) 0%,#0a0a12 100%)"></div><div style="position:absolute;top:61%;left:0;right:0;bottom:0;z-index:3;background:linear-gradient(180deg,rgba(255,255,255,.97) 0%,#fff 10%)"></div><div style="position:absolute;top:61%;left:6%;right:6%;height:1.5px;z-index:12;background:linear-gradient(90deg,transparent,#d4af37 20%,#f5e6a3 50%,#d4af37 80%,transparent)"></div><div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:900;letter-spacing:3px;color:rgba(212,175,55,.55);z-index:10">'+(isIcon?'FWC · ICON':'FWC')+'</div><div style="position:absolute;top:28px;left:14px;z-index:10"><div style="font-size:30px;font-weight:900;color:#fff;line-height:1;text-shadow:0 0 20px '+tColor+'40">'+(bestPlayer.ovr+ovrB)+'</div><div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:1px;margin-top:1px">'+bestPlayer.pos+'</div><img src="'+FLAGS[bestPlayer.nation]+'" style="width:22px;height:15px;margin-top:6px;border-radius:2px;border:.5px solid rgba(255,255,255,.15)"></div>'+enhBadgeHTML+'<img src="'+IMGS[bestPlayer.id]+'" style="position:absolute;top:20px;left:50%;transform:translateX(-44%);width:155px;height:158px;object-fit:contain;object-position:center bottom;z-index:4;filter:drop-shadow(0 2px 10px rgba(0,0,0,.5))"><div style="position:absolute;top:calc(61% - 8px);left:0;right:0;text-align:center;padding:6px 8px 5px;font-size:13px;font-weight:900;letter-spacing:2.5px;text-transform:uppercase;color:#1a1a1a;z-index:10;background:rgba(255,255,255,.97);border-top:2px solid #d4af37;border-bottom:2px solid #d4af37">'+bestPlayer.name+'</div><div style="position:absolute;top:calc(61% + 30px);left:0;right:0;display:flex;justify-content:center;z-index:10;padding:0 14px">'+sH+'</div><div style="position:absolute;top:calc(61% + 64px);left:0;right:0;display:flex;justify-content:center;align-items:center;gap:20px;z-index:10;font-size:10px;font-weight:800;color:#555"><span>'+bestPlayer.foot+'</span><span>'+bestPlayer.club+'</span></div><div style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);z-index:15"><svg width="28" height="24" viewBox="0 0 28 24" fill="none"><path d="M5 1h18l5 8-14 14L0 9l5-8z" fill="#d4af37" opacity=".15"/><path d="M5 1h18l5 8-14 14L0 9l5-8z" stroke="#d4af37" stroke-width="1.2"/></svg></div></div></div>';
+  area.appendChild(ce);
+  await sleep(100); ce.classList.add('show');
+  if (isIcon) { await sleep(300); spawnParticles('#d4af37',30); }
+  
+  // Price
+  await sleep(600);
+  const pe = document.createElement('div'); pe.className = 'price-tag';
+  pe.innerHTML = (getEnhancedPrice(bestPlayer.price, enhLvl) || '미정') + ' CP<div style="font-size:11px;color:#aaa;font-weight:700;margin-top:2px">급여 ' + (bestPlayer.salary||0) + '</div>';
+  area.appendChild(pe);
+  await sleep(200); pe.classList.add('show');
+  
+  // All results
+  const allR = document.createElement('div'); allR.className = 'bulk-results';
+  allR.innerHTML = '<div style="width:100%;font-size:11px;color:#888;font-weight:700;text-align:center;margin:4px 0">전체 결과 ('+qty+'팩)</div>' + pulled.map((p,i) => '<div class="bulk-card '+(i===bestIdx?'best':'')+'"><img src="'+IMGS[p.id]+'"><div class="bc-ovr">'+(p.ovr+ovrB)+'</div><div class="bc-name">'+p.name+'</div><div style="font-size:7px;color:#d4af37;font-weight:800;margin-top:1px">급여 '+(p.salary||0)+'</div></div>').join('');
+  area.appendChild(allR);
+  
+  const re2 = document.createElement('div');
+  re2.style.cssText='font-size:11px;color:#888;font-weight:700;margin-top:8px';
+  re2.textContent=(packInv[packType]||0)+'팩 남았습니다';
+  area.appendChild(re2);
+  
+  const ae2 = document.createElement('div'); ae2.className='action-btns show';
+  ae2.innerHTML='<button class="action-btn again" onclick="reopenPack(\''+packType+'\')">OPEN AGAIN</button><button class="action-btn close" onclick="closeReveal()">CLOSE</button>';
+  area.appendChild(ae2);
+  
+  renderItems();
+  animating = false;
+}
+
+function reopenPack(packType) {
+  if ((packInv[packType]||0) <= 0) {
+    closeReveal();
+    showModal('보유 중인 팩이 없습니다!', [{label:'확인', cls:'ok'}]);
+    return;
+  }
+  packInv[packType]--;
+  closeReveal();
+  setTimeout(() => openPackType(packType), 300);
+}
+
+function buySpecialBox() {
+  const qty = quantities.box || 1;
+  const total = 40 * qty;
+  if (mp < total) {
+    showModal('MP가 부족합니다! (필요: ' + total + ' MP)', [{label:'확인', cls:'ok'}]);
+    return;
+  }
+  showModal('FWC 특별 상자 ' + qty + '개를 구매하시겠습니까? (' + total + ' MP)', [
+    {label:'구매', cls:'confirm', fn: () => {
+      mp -= total;
+      boxInv += qty;
+      updateMPDisplay();
+      showModal(qty + '개 구매 완료! 아이템 탭에서 열 수 있습니다.', [{label:'확인', cls:'ok'}]);
+    }},
+    {label:'취소', cls:'cancel'}
+  ]);
+}
+
+function openBox() {
+  if (boxInv <= 0) return;
+  showModal('FWC 특별 상자를 개봉하시겠습니까?', [
+    {label:'개봉', cls:'confirm', fn: () => {
+      boxInv--;
+      const roll = Math.random();
+      let result, resultColor;
+      if (roll < 0.70) {
+        packInv.fwc1++;
+        result = '1강 선수팩';
+        resultColor = '#d4af37';
+      } else if (roll < 0.95) {
+        packInv.fwc3++;
+        result = '3강 선수팩';
+        resultColor = '#c0c0c0';
+      } else {
+        packInv.fwc5++;
+        result = '5강 선수팩';
+        resultColor = '#64c8ff';
+      }
+      spawnParticles(resultColor, 15);
+      renderItems();
+      showModal('🎉 ' + result + ' 획득!', [{label:'확인', cls:'ok'}]);
+    }},
+    {label:'취소', cls:'cancel'}
+  ]);
+}
+
+function openBoxBulk() {
+  const qty = Math.min(quantities.openbox || 1, boxInv);
+  if (qty <= 0) return;
+  showModal('FWC 특별 상자 ' + qty + '개를 개봉하시겠습니까?', [
+    {label:'개봉', cls:'confirm', fn: () => { doBoxOpen(qty); }},
+    {label:'취소', cls:'cancel'}
+  ]);
+}
+
+async function doBoxOpen(qty) {
+  boxInv -= qty;
+  
+  const overlay = document.getElementById('boxOverlay');
+  overlay.innerHTML = '';
+  overlay.classList.add('active');
+  
+  // Show box
+  const boxEl = document.createElement('div');
+  boxEl.className = 'box-anim';
+  boxEl.innerHTML = '<svg width="180" height="140" viewBox="0 0 110 90"><defs><linearGradient id="abg" x1="0" y1="0" x2="110" y2="90" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="33%" stop-color="#c0c0c0"/><stop offset="66%" stop-color="#64c8ff"/><stop offset="100%" stop-color="#f5e6a3"/></linearGradient></defs><rect x="6" y="22" width="98" height="62" rx="4" fill="#12121f" stroke="url(#abg)" stroke-width="1.5"/><rect x="2" y="14" width="106" height="14" rx="3" fill="#16162a" stroke="url(#abg)" stroke-width="1.2"/><rect x="46" y="22" width="18" height="62" rx="1" fill="none" stroke="url(#abg)" stroke-width=".6" opacity=".3"/><path d="M46,22 Q40,12 46,14 L55,8 L64,14 Q70,12 64,22" fill="none" stroke="url(#abg)" stroke-width=".8" opacity=".4"/><text x="55" y="58" text-anchor="middle" font-size="14" font-weight="900" letter-spacing="2" fill="url(#abg)" opacity=".7">FWC</text></svg>';
+  overlay.appendChild(boxEl);
+  
+  if (qty > 1) {
+    const qtyLabel = document.createElement('div');
+    qtyLabel.style.cssText = 'font-size:14px;font-weight:800;color:#888;margin-top:4px';
+    qtyLabel.textContent = 'x' + qty;
+    overlay.appendChild(qtyLabel);
+  }
+  
+  // Phase 1: Shake
+  await sleep(500);
+  boxEl.classList.add('shake');
+  await sleep(1000);
+  
+  // Phase 2: Open
+  boxEl.classList.remove('shake');
+  await sleep(300);
+  boxEl.classList.add('open');
+  await sleep(400);
+  
+  // Calculate results
+  let got1=0, got3=0, got5=0;
+  const results = [];
+  for (let i = 0; i < qty; i++) {
+    const roll = Math.random();
+    if (roll < 0.70) { packInv.fwc1++; got1++; results.push({name:'1강 선수팩',color:'#d4af37'}); }
+    else if (roll < 0.95) { packInv.fwc3++; got3++; results.push({name:'3강 선수팩',color:'#c0c0c0'}); }
+    else { packInv.fwc5++; got5++; results.push({name:'5강 선수팩',color:'#64c8ff'}); }
+  }
+  
+  // Burst particles
+  const bestColor = got5 > 0 ? '#64c8ff' : (got3 > 0 ? '#c0c0c0' : '#d4af37');
+  spawnParticles(bestColor, 25);
+  
+  // Show results
+  overlay.innerHTML = '';
+  
+  const titleEl = document.createElement('div');
+  titleEl.style.cssText = 'font-size:18px;font-weight:900;letter-spacing:2px;margin-bottom:12px';
+  titleEl.textContent = '상자 개봉 결과';
+  overlay.appendChild(titleEl);
+  
+  const resultsEl = document.createElement('div');
+  resultsEl.style.cssText = 'display:flex;gap:16px;align-items:flex-end;justify-content:center;flex-wrap:wrap';
+  
+  if (got1 > 0) {
+    const r1 = document.createElement('div');
+    r1.className = 'box-result-card';
+    r1.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px';
+    r1.innerHTML = '<svg width="70" height="100" viewBox="0 0 110 160"><defs><linearGradient id="rg1" x1="0" y1="0" x2="110" y2="160" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="50%" stop-color="#d4af37"/><stop offset="100%" stop-color="#f5e6a3"/></linearGradient></defs><polygon points="55,1 107,13 109,24 109,125 55,159 1,125 1,24 3,13" fill="#0e0e18" stroke="url(#rg1)" stroke-width="2"/><text x="55" y="68" text-anchor="middle" font-size="18" font-weight="900" letter-spacing="3" fill="#d4af37" opacity=".7">FWC</text><text x="55" y="86" text-anchor="middle" font-size="8" font-weight="700" fill="rgba(255,255,255,.25)">1강 선수팩</text></svg><div style="font-size:16px;font-weight:900;color:#d4af37">x'+got1+'</div>';
+    resultsEl.appendChild(r1);
+  }
+  if (got3 > 0) {
+    const r3 = document.createElement('div');
+    r3.className = 'box-result-card';
+    r3.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px';
+    r3.innerHTML = '<svg width="70" height="100" viewBox="0 0 110 160"><defs><linearGradient id="rg3" x1="0" y1="0" x2="110" y2="160" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#e0e0e0"/><stop offset="50%" stop-color="#c0c0c0"/><stop offset="100%" stop-color="#e0e0e0"/></linearGradient></defs><polygon points="55,1 107,13 109,24 109,125 55,159 1,125 1,24 3,13" fill="#0e0e18" stroke="url(#rg3)" stroke-width="2"/><text x="55" y="68" text-anchor="middle" font-size="18" font-weight="900" letter-spacing="3" fill="#c0c0c0" opacity=".7">FWC</text><text x="55" y="86" text-anchor="middle" font-size="8" font-weight="700" fill="rgba(255,255,255,.25)">3강 선수팩</text></svg><div style="font-size:16px;font-weight:900;color:#c0c0c0">x'+got3+'</div>';
+    resultsEl.appendChild(r3);
+  }
+  if (got5 > 0) {
+    const r5 = document.createElement('div');
+    r5.className = 'box-result-card';
+    r5.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px';
+    r5.innerHTML = '<svg width="70" height="100" viewBox="0 0 110 160"><defs><linearGradient id="rg5" x1="0" y1="0" x2="110" y2="160" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#a8e4ff"/><stop offset="50%" stop-color="#64c8ff"/><stop offset="100%" stop-color="#a8e4ff"/></linearGradient></defs><polygon points="55,1 107,13 109,24 109,125 55,159 1,125 1,24 3,13" fill="#0e0e18" stroke="url(#rg5)" stroke-width="2"/><text x="55" y="68" text-anchor="middle" font-size="18" font-weight="900" letter-spacing="3" fill="#64c8ff" opacity=".7">FWC</text><text x="55" y="86" text-anchor="middle" font-size="8" font-weight="700" fill="rgba(255,255,255,.25)">5강 선수팩</text></svg><div style="font-size:16px;font-weight:900;color:#64c8ff">x'+got5+'</div>';
+    resultsEl.appendChild(r5);
+  }
+  
+  overlay.appendChild(resultsEl);
+  
+  // Animate results appearing
+  await sleep(100);
+  document.querySelectorAll('.box-result-card').forEach((el, i) => {
+    setTimeout(() => el.classList.add('show'), i * 200);
+  });
+  
+  await sleep(800);
+  const closeBtn = document.createElement('button');
+  closeBtn.style.cssText = 'margin-top:16px;padding:10px 30px;border-radius:10px;border:none;background:rgba(255,255,255,.08);color:#999;font-size:13px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.1)';
+  closeBtn.textContent = '확인';
+  closeBtn.onclick = () => { overlay.classList.remove('active'); renderItems(); };
+  overlay.appendChild(closeBtn);
+  
+  renderItems();
+}
+
+function switchStoreTab(tab) {
+  document.querySelectorAll('.store-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.store-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('storePanel-' + tab).classList.add('active');
+  document.querySelectorAll('.store-tab').forEach(t => {
+    if ((tab === 'packs' && t.textContent === '팩') || (tab === 'items' && t.textContent === '아이템')) {
+      t.classList.add('active');
+    }
+  });
+}
+</script></body></html>
