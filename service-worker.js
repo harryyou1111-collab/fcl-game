@@ -1,61 +1,68 @@
-/* FCL 서비스 워커
-   게임을 고쳐서 올렸는데 옛 버전이 계속 뜨는 걸 막으려고
-   CACHE_VER 를 올리면 캐시가 통째로 갈린다.
-   ── 게임을 수정할 때마다 이 숫자를 올리세요 ── */
-const CACHE_VER = 'fcl-v1';
+/* ══════════════════════════════════════════════════════════════
+   FCL 서비스 워커
+   ──────────────────────────────────────────────────────────────
+   이전 방식은 파일을 고칠 때마다 CACHE_VER 를 직접 올려야 했다.
+   깜빡하면 옛날 화면이 계속 나오고, 올려도 앱을 완전히 껐다 켜야 했다.
 
-const CORE = [
+   이 버전은 "네트워크 우선" 방식이다.
+     · 인터넷이 되면 항상 서버에서 최신 파일을 받아온다  → 캐시 문제가 안 생긴다
+     · 받아온 파일은 캐시에 넣어둔다                      → 오프라인에서도 실행된다
+     · 새 서비스 워커가 곧바로 활성화된다                  → 앱을 껐다 켤 필요가 없다
+
+   앞으로는 게임 파일이나 선수 사진을 올리면 새로고침만 해도 바로 반영된다.
+   CACHE_VER 를 다시 올릴 일은 없다.
+   ══════════════════════════════════════════════════════════════ */
+
+const CACHE = 'fcl-runtime-v1';
+
+// 오프라인 대비로 미리 받아둘 최소 파일
+const PRECACHE = [
   './',
   './fcl-game.html',
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
 ];
 
-self.addEventListener('install', e => {
-  // 새 워커를 즉시 대기 상태에서 풀어준다
+self.addEventListener('install', (e) => {
+  // 새 워커를 기다리지 않고 바로 대기 상태에서 꺼낸다
   self.skipWaiting();
   e.waitUntil(
-    caches.open(CACHE_VER).then(c => c.addAll(CORE).catch(() => {}))
+    caches.open(CACHE).then((c) =>
+      // 한 개라도 실패하면 전체가 실패하므로 개별 처리한다
+      Promise.all(PRECACHE.map((u) => c.add(u).catch(() => {})))
+    )
   );
 });
 
-self.addEventListener('activate', e => {
+self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_VER).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())   // 열려 있는 탭도 바로 새 워커가 맡는다
   );
 });
 
-self.addEventListener('fetch', e => {
+self.addEventListener('fetch', (e) => {
   const req = e.request;
+
+  // GET 이 아니거나 다른 도메인 요청은 건드리지 않는다
   if (req.method !== 'GET') return;
+  if (new URL(req.url).origin !== self.location.origin) return;
 
-  const url = new URL(req.url);
-  // 게임 본체(HTML)는 항상 새 버전을 먼저 시도한다.
-  // 캐시 우선으로 두면 수정해도 옛 화면이 계속 보인다.
-  const isDoc = req.mode === 'navigate' || url.pathname.endsWith('.html');
-
-  if (isDoc) {
-    e.respondWith(
-      fetch(req).then(res => {
-        const copy = res.clone();
-        caches.open(CACHE_VER).then(c => c.put(req, copy));
-        return res;
-      }).catch(() => caches.match(req).then(r => r || caches.match('./fcl-game.html')))
-    );
-    return;
-  }
-
-  // 이미지·음악은 캐시 우선. 용량이 크고 잘 안 바뀐다.
   e.respondWith(
-    caches.match(req).then(hit => hit || fetch(req).then(res => {
-      if (res && res.status === 200 && res.type === 'basic') {
-        const copy = res.clone();
-        caches.open(CACHE_VER).then(c => c.put(req, copy));
-      }
-      return res;
-    }).catch(() => hit))
+    fetch(req)
+      .then((res) => {
+        // 정상 응답이면 캐시를 최신으로 갱신해둔다
+        if (res && res.status === 200 && res.type === 'basic') {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        }
+        return res;
+      })
+      .catch(() =>
+        // 오프라인이면 저장해둔 걸로 대신한다
+        caches.match(req).then((hit) =>
+          hit || (req.mode === 'navigate' ? caches.match('./fcl-game.html') : undefined)
+        )
+      )
   );
 });
