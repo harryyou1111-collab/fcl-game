@@ -45,7 +45,7 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
 }.cur-cp{background:rgba(10,18,36,.85);border:2px solid rgba(212,175,55,.7);color:#f5d67b;text-shadow:0 1px 3px rgba(0,0,0,.8);box-shadow:0 3px 12px rgba(0,0,0,.45)}.cur-mp{background:rgba(10,18,36,.85);border:2px solid rgba(96,165,250,.7);color:#93c5fd;text-shadow:0 1px 3px rgba(0,0,0,.8);box-shadow:0 3px 12px rgba(0,0,0,.45)}.mp-plus{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:6px;border-radius:50%;background:#60a5fa;color:#0a0a12;font-weight:900;font-size:12px;cursor:pointer;vertical-align:middle;line-height:1}.mp-plus:active{transform:scale(.9)}.mp-shop-overlay{position:fixed;inset:0;z-index:2100;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;padding:20px}.mp-shop{width:100%;max-width:360px;background:#f4f7fb;border:1px solid rgba(96,165,250,.3);border-radius:16px;padding:20px;box-shadow:0 8px 40px rgba(0,0,0,.6)}.mp-shop-title{font-size:18px;font-weight:900;letter-spacing:1px;text-align:center;color:#1a2233}.mp-shop-sub{font-size:12px;color:#6b7a90;text-align:center;margin:4px 0 16px}.mp-shop-sub b{color:#60a5fa}.mp-pkg{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;margin-bottom:10px;background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.2);border-radius:12px;cursor:pointer;transition:all .15s}.mp-pkg:active{transform:scale(.98);background:rgba(96,165,250,.12)}.mp-pkg-amt{font-size:16px;font-weight:900;color:#1a2233}.mp-bonus{display:inline-block;font-size:10px;font-weight:800;color:#4ade80;margin-top:2px}.mp-pkg-won{font-size:15px;font-weight:900;color:#60a5fa}.mp-shop-close{width:100%;margin-top:6px;padding:12px;border:none;border-radius:10px;background:rgba(20,40,80,.09);color:#4a5568;font-size:13px;font-weight:800;cursor:pointer}.store-btn{padding:9px 18px;border-radius:10px;font-size:12px;font-weight:900;background:rgba(10,18,36,.85);backdrop-filter:blur(10px);border:2px solid rgba(212,175,55,.75);color:#f5d67b;cursor:pointer;text-shadow:0 1px 3px rgba(0,0,0,.8);box-shadow:0 3px 14px rgba(0,0,0,.5)}.store-btn:hover{background:rgba(20,32,58,.92);border-color:#f5d67b}
 
 /* ─── Main Content Area ─── */
-.content{flex:1;overflow-y:auto;overflow-x:hidden;position:relative}.screen{display:none;height:100%;position:relative;overflow-y:auto}#screen-home{overflow:hidden}.screen.active{display:block}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;position:relative}.screen{display:none;height:100%;position:relative;overflow-y:auto;overscroll-behavior:contain}#screen-home{overflow:hidden}.screen.active{display:block}
 
 /* ─── HOME / LOBBY ─── */
 .lobby{
@@ -1189,7 +1189,7 @@ const BARCA_PLAYERS = [
 
 PLAYERS.push(...BARCA_PLAYERS);
 /* [밸런스 가드] 스탯 ≤ OVR+1 검사. 어떤 경우에도 게임을 멈추지 않도록 try/catch 로 감싼다 */
-try{(function(){var W=(console&&console.warn)?console.warn.bind(console):function(){};var over=PLAYERS.filter(function(p){return p.stats&&p.stats.some(function(v){return v>p.ovr+1;});});var strict=over.filter(function(p){return !p.season||p.season==='basic';});if(strict.length)W('[FCL] OVR+1 위반(FWC/ICON/BASIC) '+strict.length+'명: '+strict.map(function(p){return p.id;}).join(', '));var dup=PLAYERS.map(function(p){return p.id;}).filter(function(v,i,a){return a.indexOf(v)!==i;});if(dup.length)W('[FCL] 중복 id: '+dup.join(', '));})();}catch(e){}
+try{(function(){var W=(console&&console.warn)?console.warn.bind(console):function(){};var over=PLAYERS.filter(function(p){return p.stats&&p.stats.some(function(v){return v>p.ovr+1;});});var strict=over.filter(function(p){return !p.season||p.season==='basic';});if(strict.length)W('[FCL] OVR+1 위반(FWC/ICON/BASIC) '+strict.length+'명: '+strict.map(function(p){return p.id;}).join(', '));var dup=PLAYERS.map(function(p){return p.id;}).filter(function(v,i,a){return a.indexOf(v)!==i;});if(dup.length)W('[FCL] 중복 id: '+dup.join(', '));var bw=PLAYERS.filter(function(p){return p.season==='bar'&&!BARCA_WEIGHTS[p.id];});if(bw.length)W('[FCL] BARCA_WEIGHTS 누락 '+bw.length+'명(기본 1 적용, 거의 안 나옴): '+bw.map(function(p){return p.id;}).join(', '));})();}catch(e){}
 BARCA_PLAYERS.forEach(p => { IMGS[p.id] = 'images/' + p.id + '.png'; });
 
 // 실루엣 아이콘 (외부 이미지 파일 없이 동작)
@@ -2945,12 +2945,15 @@ const TL_PRICE_BUCKETS = [
 
 /* BARÇA 팩 선수 가중치. 선수가 6명뿐이라 균등하면 중복만 쌓인다.
    싼 선수일수록 자주 나오게 해서 비싼 선수에 희소성을 준다. */
+/* ⚠ 선수를 추가하면 여기에도 반드시 넣어야 한다.
+   빠뜨리면 기본값 1 이 적용돼 사실상 안 나온다. */
 const BARCA_WEIGHTS = {
-  bar_livakovic: 14, bar_espart: 13, bar_kounde: 12, bar_bernal: 12,
-  bar_abdelkarim: 11, bar_adeyemi: 11, bar_jesus: 10, bar_gavi: 10,
-  bar_olmo: 8, bar_martin: 8, bar_cubarsi: 8, bar_fermin: 7,
-  bar_gordon: 6, bar_cancelo: 6, bar_pedri: 5, bar_yamal: 4,
-  bar_raphinha: 3, bar_rodri: 3
+  bar_livakovic: 14, bar_farinas: 14, bar_dejong: 13, bar_espart: 13,
+  bar_kounde: 12, bar_bernal: 12, bar_christensen: 12, bar_joangarcia: 12,
+  bar_balde: 11, bar_abdelkarim: 11, bar_adeyemi: 11, bar_jesus: 10,
+  bar_gavi: 10, bar_ericgarcia: 9, bar_olmo: 8, bar_cubarsi: 8,
+  bar_martin: 8, bar_fermin: 7, bar_gordon: 6, bar_cancelo: 6,
+  bar_pedri: 5, bar_yamal: 4, bar_raphinha: 3, bar_rodri: 3
 };
 
 function pickBarcaPlayer() {
@@ -7584,7 +7587,9 @@ function startGame() {
   const a = document.getElementById('bgm');
   if (bgmOn && a) {
     a.volume = 0;
-    a.play().then(() => {
+    const pr = a.play();
+    if (!pr || !pr.then) { a.volume = 0.45; return; }   // 구형 웹뷰는 Promise 를 안 준다
+    pr.then(() => {
       // 갑자기 크게 나오면 놀란다. 1.5초에 걸쳐 서서히 올린다.
       let v = 0;
       const fade = setInterval(() => {
@@ -7648,6 +7653,39 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) saveG
 // 한 단계가 터져도 나머지는 계속 실행되게 격리
 [initSquad, renderCollection, updateCPDisplay, updateMPDisplay, updateTokenDisplay, updateTimer, syncStartSound, updateClubValue, updateScoutCnt]
   .forEach(fn => { try { fn(); } catch(e) { console.error('init 실패:', fn.name, e); } });
+
+/* ══ 연타 시 화면이 내려가는 문제 ══
+   CSS touch-action:manipulation 만으로는 일부 안드로이드 웹뷰에서 더블탭 스크롤이 남는다.
+   ① 문서 자체가 스크롤되면 즉시 되돌린다 (화면이 아래로 밀리는 직접 원인)
+   ② 빈 공간을 빠르게 두 번 누르면 두 번째 탭의 기본동작을 막는다.
+      버튼·입력창은 제외해서 연타로 팩 열기 같은 건 그대로 된다.
+   ③ 핀치 확대 제스처 차단 */
+(function () {
+  // ①
+  const pin = function () {
+    if (window.scrollY || window.pageYOffset) window.scrollTo(0, 0);
+    if (document.body && document.body.scrollTop) document.body.scrollTop = 0;
+    if (document.documentElement && document.documentElement.scrollTop) document.documentElement.scrollTop = 0;
+  };
+  window.addEventListener('scroll', pin, { passive: true });
+  window.addEventListener('resize', pin);
+
+  // ②
+  let last = 0;
+  document.addEventListener('touchend', function (e) {
+    const now = Date.now();
+    const t = e.target;
+    const interactive = t && t.closest &&
+      t.closest('button, input, textarea, select, a, [onclick], .coll-card, .sq-slot, .spc-cell, .sv-act');
+    if (now - last <= 350 && !interactive) e.preventDefault();
+    last = now;
+  }, { passive: false, capture: true });
+
+  // ③
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (t) {
+    document.addEventListener(t, function (e) { e.preventDefault(); }, { passive: false });
+  });
+})();
 
 /* 레벨 표시는 상수 선언 이후에 해야 한다 (TDZ) */
 try { updateLevelDisplay(); } catch(e) {}
