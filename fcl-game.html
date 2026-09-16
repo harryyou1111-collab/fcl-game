@@ -1434,7 +1434,7 @@ function switchTab(name) {
   if(name==='pach') { pachAnimating=false; setPachTab('board'); renderPach(); }
   if(name==='sv')   { svAnimating=false; setSvTab('play'); renderSv(); }
   if(name==='sc')   { scSpinning=false; renderSC(); }
-  if(name==='match') { if(matchTimer){clearInterval(matchTimer);matchTimer=null;} renderMatchList(); }
+  if(name==='match') { if(matchTimer){clearInterval(matchTimer);matchTimer=null;} renderMatch(); }
   if(name==='squad') { ensureLineups(); renderLineupTabs(); renderFormationBtns(); renderSquad(); }
   if(name==='home') updateClubValue();
   if(name==='collection') renderCollection();
@@ -4974,6 +4974,146 @@ function renderLineupTabs() {
 function saveSquad() { stashLineup(); saveGame(); }
 
 /* ══════════════════════════════════════════════════════════════
+   월드 — 가상 클럽 100팀. OVR 95 → 130.
+   입장 조건: 우리 팀 OVR 이 상대 OVR 이상이어야 한다.
+   보상: 승리 1회당 10억 CP + 10승 단위 누적 보상 10단계
+   ══════════════════════════════════════════════════════════════ */
+const WORLD_TEAMS = [
+  {"id": 1000, "name": "Chiran SC", "short": "CHI", "ovr": 95, "region": "ASIA", "regionKr": "아시아", "color": "#c8102e", "desc": "아시아 지역 리그", "form": "4-4-2", "players": {"GK": "Choi", "DF": ["Seo", "Yamashita", "Park", "Nguyen"], "MF": ["Aziz", "Gunawan", "Hashimoto", "Jalal"], "FW": ["Bintang", "Prasetyo"]}},
+  {"id": 1001, "name": "Palawan Athletic", "short": "PAL", "ovr": 95, "region": "ASIA", "regionKr": "아시아", "color": "#004170", "desc": "아시아 지역 리그", "form": "4-3-3", "players": {"GK": "Pratama", "DF": ["Fujita", "Nakamura", "Aziz", "Wijaya"], "MF": ["Nguyen", "Mahendra", "Santoso", "Iskandar"], "FW": ["Miyazaki", "Halim"]}},
+  {"id": 1002, "name": "Union Hanseo", "short": "HAN", "ovr": 96, "region": "ASIA", "regionKr": "아시아", "color": "#1a7f37", "desc": "아시아 지역 리그", "form": "4-2-3-1", "players": {"GK": "Bintang", "DF": ["Sharma", "Dewanto", "Kurniawan", "Choi"], "MF": ["Bahri", "Kimura", "Zaidan", "Watanabe"], "FW": ["Nasir", "Wijaya"]}},
+  {"id": 1003, "name": "Yangjin United", "short": "YAN", "ovr": 96, "region": "ASIA", "regionKr": "아시아", "color": "#e8a33d", "desc": "아시아 지역 리그", "form": "3-5-2", "players": {"GK": "Reddy", "DF": ["Jalal", "Suzuki", "Amir", "Lim"], "MF": ["Mahendra", "Halim", "Wijaya", "Chandra"], "FW": ["Tanaka", "Kaur"]}},
+  {"id": 1004, "name": "Jeonju FC", "short": "JEO", "ovr": 96, "region": "ASIA", "regionKr": "아시아", "color": "#6b21a8", "desc": "아시아 지역 리그", "form": "4-1-4-1", "players": {"GK": "Seo", "DF": ["Prasetyo", "Karimov", "Thapa", "Farhan"], "MF": ["Takeda", "Kaur", "Park", "Suzuki"], "FW": ["Halim", "Santoso"]}},
+  {"id": 1005, "name": "FC Bandara", "short": "BAN", "ovr": 97, "region": "ASIA", "regionKr": "아시아", "color": "#0ea5e9", "desc": "아시아 중위권", "form": "3-4-3", "players": {"GK": "Santoso", "DF": ["Okada", "Chandra", "Rahman", "Al-Harbi"], "MF": ["Prasetyo", "Pratama", "Lim", "Ishii"], "FW": ["Ong", "Seo"]}},
+  {"id": 1006, "name": "Isfara City", "short": "ISF", "ovr": 97, "region": "ASIA", "regionKr": "아시아", "color": "#be123c", "desc": "아시아 중위권", "form": "5-3-2", "players": {"GK": "Wijaya", "DF": ["Seo", "Mahendra", "Tanaka", "Halim"], "MF": ["Fujita", "Karimov", "Nguyen", "Ong"], "FW": ["Kaur", "Farhan"]}},
+  {"id": 1007, "name": "Qarshi Athletic", "short": "QAR", "ovr": 97, "region": "ASIA", "regionKr": "아시아", "color": "#0f766e", "desc": "아시아 중위권", "form": "4-5-1", "players": {"GK": "Nguyen", "DF": ["Saito", "Ong", "Takeda", "Iskandar"], "MF": ["Bae", "Seo", "Aziz", "Reddy"], "FW": ["Nakamura", "Park"]}},
+  {"id": 1008, "name": "Almaty United", "short": "ALM", "ovr": 98, "region": "ASIA", "regionKr": "아시아", "color": "#7c2d12", "desc": "아시아 중위권", "form": "4-4-2", "players": {"GK": "Saito", "DF": ["Kaur", "Choi", "Suzuki", "Kobayashi"], "MF": ["Lim", "Ishii", "Handoko", "Tanaka"], "FW": ["Miyazaki", "Mahendra"]}},
+  {"id": 1009, "name": "Chandran City", "short": "CHA", "ovr": 98, "region": "ASIA", "regionKr": "아시아", "color": "#334155", "desc": "아시아 중위권", "form": "4-3-3", "players": {"GK": "Al-Harbi", "DF": ["Nasir", "Kaur", "Saito", "Yoon"], "MF": ["Reddy", "Jalal", "Karimov", "Iskandar"], "FW": ["Nguyen", "Ong"]}},
+  {"id": 1010, "name": "Taipeng City", "short": "TAI", "ovr": 98, "region": "ASIA", "regionKr": "아시아", "color": "#a16207", "desc": "아시아 강호", "form": "4-2-3-1", "players": {"GK": "Yamashita", "DF": ["Rustamov", "Okada", "Nasir", "Rahman"], "MF": ["Chandra", "Kimura", "Zaidan", "Pratama"], "FW": ["Bahri", "Takeda"]}},
+  {"id": 1011, "name": "Minoya SC", "short": "MIN", "ovr": 99, "region": "ASIA", "regionKr": "아시아", "color": "#15803d", "desc": "아시아 강호", "form": "3-5-2", "players": {"GK": "Yamashita", "DF": ["Lim", "Karimov", "Mahendra", "Takeda"], "MF": ["Bahri", "Watanabe", "Jalal", "Zaidan"], "FW": ["Choi", "Nguyen"]}},
+  {"id": 1012, "name": "FC Jeonju", "short": "JEN", "ovr": 99, "region": "ASIA", "regionKr": "아시아", "color": "#9d174d", "desc": "아시아 강호", "form": "4-1-4-1", "players": {"GK": "Handoko", "DF": ["Seo", "Halim", "Park", "Farhan"], "MF": ["Amir", "Sharma", "Zaidan", "Kurniawan"], "FW": ["Jalal", "Takeda"]}},
+  {"id": 1013, "name": "Sagami FC", "short": "SAG", "ovr": 99, "region": "ASIA", "regionKr": "아시아", "color": "#1e3a8a", "desc": "아시아 강호", "form": "3-4-3", "players": {"GK": "Nasir", "DF": ["Takeda", "Wijaya", "Iskandar", "Nakamura"], "MF": ["Yamashita", "Kaur", "Halim", "Lim"], "FW": ["Rustamov", "Karimov"]}},
+  {"id": 1014, "name": "Mithara United", "short": "MIT", "ovr": 100, "region": "ASIA", "regionKr": "아시아", "color": "#b45309", "desc": "아시아 강호", "form": "5-3-2", "players": {"GK": "Kurniawan", "DF": ["Mahendra", "Bintang", "Zaidan", "Iskandar"], "MF": ["Karimov", "Nasir", "Rustamov", "Tanaka"], "FW": ["Miyazaki", "Park"]}},
+  {"id": 1015, "name": "Isfara Athletic", "short": "ISA", "ovr": 100, "region": "ASIA", "regionKr": "아시아", "color": "#4c1d95", "desc": "AFC 우승 후보", "form": "4-5-1", "players": {"GK": "Jalal", "DF": ["Ishii", "Thapa", "Tanaka", "Watanabe"], "MF": ["Kurniawan", "Nakamura", "Seo", "Prasetyo"], "FW": ["Yamashita", "Rahman"]}},
+  {"id": 1016, "name": "FC Bacolod", "short": "BAC", "ovr": 100, "region": "ASIA", "regionKr": "아시아", "color": "#065f46", "desc": "AFC 우승 후보", "form": "4-4-2", "players": {"GK": "Santoso", "DF": ["Takeda", "Bahri", "Seo", "Lim"], "MF": ["Al-Harbi", "Ong", "Hashimoto", "Zaidan"], "FW": ["Rahman", "Miyazaki"]}},
+  {"id": 1017, "name": "Vashira Athletic", "short": "VAS", "ovr": 101, "region": "ASIA", "regionKr": "아시아", "color": "#991b1b", "desc": "AFC 우승 후보", "form": "4-3-3", "players": {"GK": "Fujita", "DF": ["Rustamov", "Iskandar", "Zaidan", "Bintang"], "MF": ["Jalal", "Prasetyo", "Amir", "Takeda"], "FW": ["Al-Harbi", "Pratama"]}},
+  {"id": 1018, "name": "Taipeng FC", "short": "TAP", "ovr": 101, "region": "ASIA", "regionKr": "아시아", "color": "#0369a1", "desc": "AFC 우승 후보", "form": "4-2-3-1", "players": {"GK": "Kobayashi", "DF": ["Lim", "Handoko", "Aziz", "Suzuki"], "MF": ["Ong", "Watanabe", "Nakamura", "Karimov"], "FW": ["Reddy", "Amir"]}},
+  {"id": 1019, "name": "Sporting Hokuren", "short": "HOK", "ovr": 101, "region": "ASIA", "regionKr": "아시아", "color": "#78350f", "desc": "AFC 우승 후보", "form": "3-5-2", "players": {"GK": "Miyazaki", "DF": ["Nasir", "Rustamov", "Amir", "Wijaya"], "MF": ["Seo", "Bahri", "Farhan", "Kobayashi"], "FW": ["Takeda", "Nakamura"]}},
+  {"id": 1020, "name": "Club Jeonju", "short": "JEJ", "ovr": 102, "region": "ASIA", "regionKr": "아시아", "color": "#5b21b6", "desc": "아시아 최강", "form": "4-1-4-1", "players": {"GK": "Karimov", "DF": ["Bintang", "Kobayashi", "Rahman", "Miyazaki"], "MF": ["Al-Harbi", "Jalal", "Gunawan", "Zaidan"], "FW": ["Nasir", "Nguyen"]}},
+  {"id": 1021, "name": "Taipeng SC", "short": "TAE", "ovr": 102, "region": "ASIA", "regionKr": "아시아", "color": "#047857", "desc": "아시아 최강", "form": "3-4-3", "players": {"GK": "Bintang", "DF": ["Handoko", "Santoso", "Saito", "Watanabe"], "MF": ["Kurniawan", "Bahri", "Ong", "Prasetyo"], "FW": ["Dewanto", "Bae"]}},
+  {"id": 1022, "name": "Kanlaon FC", "short": "KAN", "ovr": 102, "region": "ASIA", "regionKr": "아시아", "color": "#a21caf", "desc": "아시아 최강", "form": "5-3-2", "players": {"GK": "Wijaya", "DF": ["Amir", "Bintang", "Yamashita", "Rahman"], "MF": ["Dewanto", "Handoko", "Mahendra", "Zaidan"], "FW": ["Iskandar", "Fujita"]}},
+  {"id": 1023, "name": "Sporting Jeonju", "short": "JEU", "ovr": 103, "region": "ASIA", "regionKr": "아시아", "color": "#1d4ed8", "desc": "아시아 최강", "form": "4-5-1", "players": {"GK": "Bae", "DF": ["Rahman", "Zaidan", "Farhan", "Ishii"], "MF": ["Okada", "Nasir", "Halim", "Ong"], "FW": ["Reddy", "Kaur"]}},
+  {"id": 1024, "name": "Bandara United", "short": "BAD", "ovr": 103, "region": "ASIA", "regionKr": "아시아", "color": "#92400e", "desc": "아시아 최강", "form": "4-4-2", "players": {"GK": "Rahman", "DF": ["Yamashita", "Aziz", "Al-Harbi", "Nakamura"], "MF": ["Lim", "Miyazaki", "Kimura", "Hashimoto"], "FW": ["Nguyen", "Ong"]}},
+  {"id": 1025, "name": "Club Sokodé", "short": "SOK", "ovr": 104, "region": "AFRICA", "regionKr": "아프리카", "color": "#c8102e", "desc": "아프리카 지역 리그", "form": "4-4-2", "players": {"GK": "Ndiaye", "DF": ["Tounkara", "Nkosi", "Owusu", "Moyo"], "MF": ["Boateng", "Okonkwo", "Dlamini", "Diarrassouba"], "FW": ["Cissé", "Sekou"]}},
+  {"id": 1026, "name": "Bamaki United", "short": "BAM", "ovr": 104, "region": "AFRICA", "regionKr": "아프리카", "color": "#004170", "desc": "아프리카 지역 리그", "form": "4-3-3", "players": {"GK": "Diarra", "DF": ["Kipchoge", "Fofana", "Kalala", "Adebayo"], "MF": ["Yeboah", "Zakaria", "Owusu", "Ndiaye"], "FW": ["Attia", "Hassaine"]}},
+  {"id": 1027, "name": "Racing Obudu", "short": "OBU", "ovr": 105, "region": "AFRICA", "regionKr": "아프리카", "color": "#1a7f37", "desc": "아프리카 지역 리그", "form": "4-2-3-1", "players": {"GK": "Ouedraogo", "DF": ["Kamara", "Zerhouni", "Gueye", "Zakaria"], "MF": ["Mwangi", "Kipchoge", "Kalala", "Ayew"], "FW": ["Chikwanda", "Nkosi"]}},
+  {"id": 1028, "name": "Ibadara Stars", "short": "IBA", "ovr": 105, "region": "AFRICA", "regionKr": "아프리카", "color": "#e8a33d", "desc": "아프리카 지역 리그", "form": "3-5-2", "players": {"GK": "Nyambe", "DF": ["Zakaria", "Bekele", "Yeboah", "Owusu"], "MF": ["Baradji", "Fofana", "Okonkwo", "Kouassi"], "FW": ["Moyo", "Dlamini"]}},
+  {"id": 1029, "name": "Ndoloma FC", "short": "NDO", "ovr": 105, "region": "AFRICA", "regionKr": "아프리카", "color": "#6b21a8", "desc": "아프리카 지역 리그", "form": "4-1-4-1", "players": {"GK": "Kalala", "DF": ["Sanogo", "Zakaria", "Traoré", "Chukwu"], "MF": ["Nkosi", "Kamara", "Ndiaye", "Ramadhani"], "FW": ["Zerhouni", "Nyambe"]}},
+  {"id": 1030, "name": "Lusanga Stars", "short": "LUS", "ovr": 106, "region": "AFRICA", "regionKr": "아프리카", "color": "#0ea5e9", "desc": "아프리카 중위권", "form": "3-4-3", "players": {"GK": "Ndiaye", "DF": ["Zerhouni", "Sanogo", "Onyango", "Msimang"], "MF": ["Kalala", "Zakaria", "Gueye", "Diop"], "FW": ["Diarra", "Hassaine"]}},
+  {"id": 1031, "name": "Harare City", "short": "HAR", "ovr": 106, "region": "AFRICA", "regionKr": "아프리카", "color": "#be123c", "desc": "아프리카 중위권", "form": "5-3-2", "players": {"GK": "Nkosi", "DF": ["Bekele", "Onyango", "Adeyemi", "Diop"], "MF": ["Sekou", "Ayew", "Adebayo", "Ndiaye"], "FW": ["Dlamini", "Tounkara"]}},
+  {"id": 1032, "name": "Takoro City", "short": "TAK", "ovr": 106, "region": "AFRICA", "regionKr": "아프리카", "color": "#0f766e", "desc": "아프리카 중위권", "form": "4-5-1", "players": {"GK": "Kamara", "DF": ["Baradji", "Fofana", "Chukwu", "Zerhouni"], "MF": ["Traoré", "Mensah", "Elmasri", "Mbeki"], "FW": ["Tshibola", "Sekou"]}},
+  {"id": 1033, "name": "Mbandaka City", "short": "MBA", "ovr": 107, "region": "AFRICA", "regionKr": "아프리카", "color": "#7c2d12", "desc": "아프리카 중위권", "form": "4-4-2", "players": {"GK": "Okonkwo", "DF": ["Onyango", "Adebayo", "Traoré", "Diarrassouba"], "MF": ["Mahrez", "Tounkara", "Sekou", "Kamara"], "FW": ["Ouedraogo", "Moyo"]}},
+  {"id": 1034, "name": "Union Sefrou", "short": "SEF", "ovr": 107, "region": "AFRICA", "regionKr": "아프리카", "color": "#334155", "desc": "아프리카 중위권", "form": "4-3-3", "players": {"GK": "Ouedraogo", "DF": ["Sekou", "Obeng", "Nkosi", "Mwangi"], "MF": ["Traoré", "Chikwanda", "Onyango", "Owusu"], "FW": ["Dlamini", "Ramadhani"]}},
+  {"id": 1035, "name": "FC Kisumbe", "short": "KIS", "ovr": 107, "region": "AFRICA", "regionKr": "아프리카", "color": "#a16207", "desc": "아프리카 강호", "form": "4-2-3-1", "players": {"GK": "Nyambe", "DF": ["Kouassi", "Salifu", "Diop", "Msimang"], "MF": ["Ayew", "Kalala", "Mensah", "Baradji"], "FW": ["Kipchoge", "Osei"]}},
+  {"id": 1036, "name": "Kigoma FC", "short": "KIG", "ovr": 108, "region": "AFRICA", "regionKr": "아프리카", "color": "#15803d", "desc": "아프리카 강호", "form": "3-5-2", "players": {"GK": "Hassaine", "DF": ["Ramadhani", "Msimang", "Cissé", "Mwangi"], "MF": ["Mbeki", "Nkosi", "Mahrez", "Gueye"], "FW": ["Kalala", "Sisoko"]}},
+  {"id": 1037, "name": "Ibadara SC", "short": "IBD", "ovr": 108, "region": "AFRICA", "regionKr": "아프리카", "color": "#9d174d", "desc": "아프리카 강호", "form": "4-1-4-1", "players": {"GK": "Osei", "DF": ["Boateng", "Fofana", "Tshibola", "Traoré"], "MF": ["Sekou", "Baradji", "Elmasri", "Adeyemi"], "FW": ["Msimang", "Hassaine"]}},
+  {"id": 1038, "name": "Kanembu City", "short": "KAE", "ovr": 108, "region": "AFRICA", "regionKr": "아프리카", "color": "#1e3a8a", "desc": "아프리카 강호", "form": "3-4-3", "players": {"GK": "Msimang", "DF": ["Kipchoge", "Owusu", "Onyango", "Nkosi"], "MF": ["Cissé", "Kalala", "Fofana", "Baradji"], "FW": ["Diarra", "Bekele"]}},
+  {"id": 1039, "name": "Sporting Kalunga", "short": "KAL", "ovr": 109, "region": "AFRICA", "regionKr": "아프리카", "color": "#b45309", "desc": "아프리카 강호", "form": "5-3-2", "players": {"GK": "Chukwu", "DF": ["Ndiaye", "Nkosi", "Obeng", "Nwachukwu"], "MF": ["Boateng", "Salifu", "Kipchoge", "Tounkara"], "FW": ["Mensah", "Elmasri"]}},
+  {"id": 1040, "name": "Sporting Mtwana", "short": "MTW", "ovr": 109, "region": "AFRICA", "regionKr": "아프리카", "color": "#4c1d95", "desc": "CAF 우승 후보", "form": "4-5-1", "players": {"GK": "Yeboah", "DF": ["Bekele", "Mbeki", "Mwangi", "Zakaria"], "MF": ["Adebayo", "Osei", "Fofana", "Attia"], "FW": ["Kipchoge", "Obeng"]}},
+  {"id": 1041, "name": "AS Mbandaka", "short": "MBN", "ovr": 109, "region": "AFRICA", "regionKr": "아프리카", "color": "#065f46", "desc": "CAF 우승 후보", "form": "4-4-2", "players": {"GK": "Osei", "DF": ["Diarra", "Nwachukwu", "Kalala", "Kamara"], "MF": ["Yeboah", "Msimang", "Hassaine", "Zerhouni"], "FW": ["Attia", "Mahrez"]}},
+  {"id": 1042, "name": "FC Ngamiland", "short": "NGA", "ovr": 110, "region": "AFRICA", "regionKr": "아프리카", "color": "#991b1b", "desc": "CAF 우승 후보", "form": "4-3-3", "players": {"GK": "Zakaria", "DF": ["Chukwu", "Hassaine", "Sanogo", "Traoré"], "MF": ["Mbatha", "Yeboah", "Diop", "Moyo"], "FW": ["Mensah", "Owusu"]}},
+  {"id": 1043, "name": "Serengo FC", "short": "SER", "ovr": 110, "region": "AFRICA", "regionKr": "아프리카", "color": "#0369a1", "desc": "CAF 우승 후보", "form": "4-2-3-1", "players": {"GK": "Msimang", "DF": ["Onyango", "Mbatha", "Obeng", "Ndiaye"], "MF": ["Tounkara", "Ramadhani", "Baradji", "Traoré"], "FW": ["Kipchoge", "Zakaria"]}},
+  {"id": 1044, "name": "Tafari Stars", "short": "TAF", "ovr": 110, "region": "AFRICA", "regionKr": "아프리카", "color": "#78350f", "desc": "CAF 우승 후보", "form": "3-5-2", "players": {"GK": "Chikwanda", "DF": ["Tshibola", "Sisoko", "Msimang", "Ndiaye"], "MF": ["Sanogo", "Yeboah", "Gueye", "Ayew"], "FW": ["Dlamini", "Kamara"]}},
+  {"id": 1045, "name": "Sporting Asmera", "short": "ASM", "ovr": 111, "region": "AFRICA", "regionKr": "아프리카", "color": "#5b21b6", "desc": "아프리카 최강", "form": "4-1-4-1", "players": {"GK": "Elmasri", "DF": ["Hassaine", "Msimang", "Zerhouni", "Mwangi"], "MF": ["Chukwu", "Attia", "Fofana", "Ramadhani"], "FW": ["Adebayo", "Cissé"]}},
+  {"id": 1046, "name": "Racing Kanembu", "short": "KAM", "ovr": 111, "region": "AFRICA", "regionKr": "아프리카", "color": "#047857", "desc": "아프리카 최강", "form": "3-4-3", "players": {"GK": "Ramadhani", "DF": ["Kipchoge", "Sisoko", "Bekele", "Tshibola"], "MF": ["Traoré", "Kouassi", "Diarra", "Nkosi"], "FW": ["Ndiaye", "Owusu"]}},
+  {"id": 1047, "name": "FC Sefrou", "short": "SEO", "ovr": 111, "region": "AFRICA", "regionKr": "아프리카", "color": "#a21caf", "desc": "아프리카 최강", "form": "5-3-2", "players": {"GK": "Hassaine", "DF": ["Diarrassouba", "Obeng", "Ndiaye", "Owusu"], "MF": ["Mwangi", "Kipchoge", "Kouassi", "Nyambe"], "FW": ["Okonkwo", "Diop"]}},
+  {"id": 1048, "name": "Marakesh FC", "short": "MAR", "ovr": 112, "region": "AFRICA", "regionKr": "아프리카", "color": "#1d4ed8", "desc": "아프리카 최강", "form": "4-5-1", "players": {"GK": "Mwangi", "DF": ["Zerhouni", "Chikwanda", "Ndiaye", "Tshibola"], "MF": ["Diarrassouba", "Adeyemi", "Mbeki", "Chukwu"], "FW": ["Traoré", "Msimang"]}},
+  {"id": 1049, "name": "AS Ngamiland", "short": "NGM", "ovr": 112, "region": "AFRICA", "regionKr": "아프리카", "color": "#92400e", "desc": "아프리카 최강", "form": "4-4-2", "players": {"GK": "Chukwu", "DF": ["Kamara", "Diarra", "Mahrez", "Sekou"], "MF": ["Nwachukwu", "Kipchoge", "Obeng", "Bekele"], "FW": ["Adebayo", "Nyambe"]}},
+  {"id": 1050, "name": "Quilmes City", "short": "QUI", "ovr": 113, "region": "AMERICA", "regionKr": "아메리카", "color": "#c8102e", "desc": "아메리카 지역 리그", "form": "4-4-2", "players": {"GK": "Machado", "DF": ["Ramírez", "Cabrera", "Pineda", "Teixeira"], "MF": ["Sullivan", "Duarte", "Grant", "Ochoa"], "FW": ["Almeida", "Assunção"]}},
+  {"id": 1051, "name": "Baytown City", "short": "BAY", "ovr": 113, "region": "AMERICA", "regionKr": "아메리카", "color": "#004170", "desc": "아메리카 지역 리그", "form": "4-3-3", "players": {"GK": "Ramírez", "DF": ["Carter", "Reeves", "Salazar", "Rocha"], "MF": ["Foster", "Zambrano", "Mitchell", "Bennett"], "FW": ["Assunção", "Teixeira"]}},
+  {"id": 1052, "name": "Real Northgate", "short": "NOR", "ovr": 114, "region": "AMERICA", "regionKr": "아메리카", "color": "#1a7f37", "desc": "아메리카 지역 리그", "form": "4-2-3-1", "players": {"GK": "Villalobos", "DF": ["Brooks", "Reeves", "Almeida", "Gutiérrez"], "MF": ["Wilson", "Salazar", "Delgado", "Navarrete"], "FW": ["Quintana", "Herrera"]}},
+  {"id": 1053, "name": "Tierrafría City", "short": "TIE", "ovr": 114, "region": "AMERICA", "regionKr": "아메리카", "color": "#e8a33d", "desc": "아메리카 지역 리그", "form": "3-5-2", "players": {"GK": "Peralta", "DF": ["Mason", "Moreira", "Machado", "Gutiérrez"], "MF": ["Teixeira", "Mitchell", "Hayes", "Cabrera"], "FW": ["Thompson", "Ochoa"]}},
+  {"id": 1054, "name": "Silverlake FC", "short": "SIL", "ovr": 114, "region": "AMERICA", "regionKr": "아메리카", "color": "#6b21a8", "desc": "아메리카 지역 리그", "form": "4-1-4-1", "players": {"GK": "Reeves", "DF": ["Rocha", "Sullivan", "Moreira", "Nogueira"], "MF": ["Johnson", "Ferreyra", "Assunção", "Ochoa"], "FW": ["Foster", "Fonseca"]}},
+  {"id": 1055, "name": "Club Huascarán", "short": "HUA", "ovr": 115, "region": "AMERICA", "regionKr": "아메리카", "color": "#0ea5e9", "desc": "아메리카 중위권", "form": "3-4-3", "players": {"GK": "Almeida", "DF": ["Gutiérrez", "Bennett", "Assunção", "Villalobos"], "MF": ["Mitchell", "Hayes", "Cabrera", "Zambrano"], "FW": ["Duarte", "Mason"]}},
+  {"id": 1056, "name": "Lucena FC", "short": "LUC", "ovr": 115, "region": "AMERICA", "regionKr": "아메리카", "color": "#be123c", "desc": "아메리카 중위권", "form": "5-3-2", "players": {"GK": "Teixeira", "DF": ["Peralta", "Villalobos", "Almeida", "Moreira"], "MF": ["Rodríguez", "Herrera", "Nogueira", "Vega"], "FW": ["Duarte", "Sullivan"]}},
+  {"id": 1057, "name": "Gold CD", "short": "GOL", "ovr": 115, "region": "AMERICA", "regionKr": "아메리카", "color": "#0f766e", "desc": "아메리카 중위권", "form": "4-5-1", "players": {"GK": "Brooks", "DF": ["Teixeira", "Almeida", "Silva", "Anderson"], "MF": ["Mitchell", "Pineda", "Ferreyra", "Salazar"], "FW": ["Zambrano", "Hayes"]}},
+  {"id": 1058, "name": "Real Huascarán", "short": "HUS", "ovr": 116, "region": "AMERICA", "regionKr": "아메리카", "color": "#7c2d12", "desc": "아메리카 중위권", "form": "4-4-2", "players": {"GK": "Gutiérrez", "DF": ["Reynolds", "Castillo", "Grant", "Martínez"], "MF": ["Vega", "Villalobos", "Nogueira", "Brooks"], "FW": ["Cabrera", "Pineda"]}},
+  {"id": 1059, "name": "Maracay City", "short": "MAA", "ovr": 116, "region": "AMERICA", "regionKr": "아메리카", "color": "#334155", "desc": "아메리카 중위권", "form": "4-3-3", "players": {"GK": "Moreira", "DF": ["Navarrete", "Villalobos", "Ibarra", "Mason"], "MF": ["Barbosa", "Cabrera", "Gutiérrez", "Cardoso"], "FW": ["Sullivan", "Paredes"]}},
+  {"id": 1060, "name": "Cascavela United", "short": "CAS", "ovr": 116, "region": "AMERICA", "regionKr": "아메리카", "color": "#a16207", "desc": "아메리카 강호", "form": "4-2-3-1", "players": {"GK": "Almeida", "DF": ["Villalobos", "Martínez", "Moreira", "Rodríguez"], "MF": ["Pineda", "Oliveira", "Ibarra", "Rocha"], "FW": ["Johnson", "Zambrano"]}},
+  {"id": 1061, "name": "Atlético Quilmes", "short": "QUL", "ovr": 117, "region": "AMERICA", "regionKr": "아메리카", "color": "#15803d", "desc": "아메리카 강호", "form": "3-5-2", "players": {"GK": "Paredes", "DF": ["Cardoso", "Ramírez", "Rocha", "Sullivan"], "MF": ["Fonseca", "Rodríguez", "Wilson", "Johnson"], "FW": ["Machado", "Mason"]}},
+  {"id": 1062, "name": "Atlético Northgate", "short": "NOT", "ovr": 117, "region": "AMERICA", "regionKr": "아메리카", "color": "#9d174d", "desc": "아메리카 강호", "form": "4-1-4-1", "players": {"GK": "Moreira", "DF": ["Herrera", "Quintana", "Paredes", "Bennett"], "MF": ["Ramírez", "Brooks", "Salazar", "Rodríguez"], "FW": ["Villalobos", "Vega"]}},
+  {"id": 1063, "name": "Baytown Athletic", "short": "BAT", "ovr": 117, "region": "AMERICA", "regionKr": "아메리카", "color": "#1e3a8a", "desc": "아메리카 강호", "form": "3-4-3", "players": {"GK": "Rodríguez", "DF": ["Herrera", "Navarrete", "Ferreyra", "Rocha"], "MF": ["Assunção", "Gutiérrez", "Reynolds", "Reeves"], "FW": ["Cardoso", "Cavalcante"]}},
+  {"id": 1064, "name": "CD Andes", "short": "AND", "ovr": 118, "region": "AMERICA", "regionKr": "아메리카", "color": "#b45309", "desc": "아메리카 강호", "form": "5-3-2", "players": {"GK": "Teixeira", "DF": ["Thompson", "Cabrera", "Sullivan", "Paredes"], "MF": ["Brooks", "Salazar", "Castillo", "Foster"], "FW": ["Hayes", "Pineda"]}},
+  {"id": 1065, "name": "Real Baytown", "short": "BAO", "ovr": 118, "region": "AMERICA", "regionKr": "아메리카", "color": "#4c1d95", "desc": "코파 우승 후보", "form": "4-5-1", "players": {"GK": "Gutiérrez", "DF": ["Foster", "Hayes", "Carter", "Delgado"], "MF": ["Herrera", "Rocha", "Thompson", "Teixeira"], "FW": ["Cardoso", "Ferreyra"]}},
+  {"id": 1066, "name": "Cauquenes City", "short": "CAU", "ovr": 118, "region": "AMERICA", "regionKr": "아메리카", "color": "#065f46", "desc": "코파 우승 후보", "form": "4-4-2", "players": {"GK": "Reynolds", "DF": ["Oliveira", "Duarte", "Mendoza", "Wilson"], "MF": ["Salazar", "Ibarra", "Nogueira", "Mason"], "FW": ["Bennett", "Mitchell"]}},
+  {"id": 1067, "name": "Deportivo Monteverde", "short": "MON", "ovr": 119, "region": "AMERICA", "regionKr": "아메리카", "color": "#991b1b", "desc": "코파 우승 후보", "form": "4-3-3", "players": {"GK": "Reynolds", "DF": ["Anderson", "Quintana", "Brooks", "Cabrera"], "MF": ["Cavalcante", "Silva", "Navarrete", "Paredes"], "FW": ["Herrera", "Barbosa"]}},
+  {"id": 1068, "name": "Cordillera FC", "short": "COR", "ovr": 119, "region": "AMERICA", "regionKr": "아메리카", "color": "#0369a1", "desc": "코파 우승 후보", "form": "4-2-3-1", "players": {"GK": "Moreira", "DF": ["Cavalcante", "Almeida", "Grant", "Paredes"], "MF": ["Sullivan", "Rocha", "Salazar", "Carter"], "FW": ["Quintana", "Machado"]}},
+  {"id": 1069, "name": "Atlético Alto", "short": "ALT", "ovr": 119, "region": "AMERICA", "regionKr": "아메리카", "color": "#78350f", "desc": "코파 우승 후보", "form": "3-5-2", "players": {"GK": "Ibarra", "DF": ["Barbosa", "Zambrano", "Reynolds", "Rodríguez"], "MF": ["Cabrera", "Castillo", "Gutiérrez", "Nogueira"], "FW": ["Mendoza", "Rocha"]}},
+  {"id": 1070, "name": "Club Baytown", "short": "BAW", "ovr": 120, "region": "AMERICA", "regionKr": "아메리카", "color": "#5b21b6", "desc": "아메리카 최강", "form": "4-1-4-1", "players": {"GK": "Peralta", "DF": ["Johnson", "Rodríguez", "Cabrera", "Zambrano"], "MF": ["Moreira", "Anderson", "Bennett", "Villalobos"], "FW": ["Assunção", "Martínez"]}},
+  {"id": 1071, "name": "Club Vallegrande", "short": "VAL", "ovr": 120, "region": "AMERICA", "regionKr": "아메리카", "color": "#047857", "desc": "아메리카 최강", "form": "3-4-3", "players": {"GK": "Pineda", "DF": ["Salazar", "Cabrera", "Delgado", "Ramírez"], "MF": ["Mitchell", "Carter", "Castillo", "Mason"], "FW": ["Rodríguez", "Martínez"]}},
+  {"id": 1072, "name": "Atlético Bellavista", "short": "BEL", "ovr": 120, "region": "AMERICA", "regionKr": "아메리카", "color": "#a21caf", "desc": "아메리카 최강", "form": "5-3-2", "players": {"GK": "Mitchell", "DF": ["Brooks", "Duarte", "Carter", "Castillo"], "MF": ["Moreira", "Vega", "Barbosa", "Oliveira"], "FW": ["Reeves", "Fonseca"]}},
+  {"id": 1073, "name": "CD Quilmes", "short": "QUM", "ovr": 121, "region": "AMERICA", "regionKr": "아메리카", "color": "#1d4ed8", "desc": "아메리카 최강", "form": "4-5-1", "players": {"GK": "Wilson", "DF": ["Herrera", "Barbosa", "Ferreyra", "Delgado"], "MF": ["Grant", "Silva", "Foster", "Bennett"], "FW": ["Brooks", "Carter"]}},
+  {"id": 1074, "name": "Sinaloa Athletic", "short": "SIN", "ovr": 121, "region": "AMERICA", "regionKr": "아메리카", "color": "#92400e", "desc": "아메리카 최강", "form": "4-4-2", "players": {"GK": "Navarrete", "DF": ["Johnson", "Reynolds", "Ochoa", "Peralta"], "MF": ["Castillo", "Nogueira", "Fonseca", "Barbosa"], "FW": ["Moreira", "Brooks"]}},
+  {"id": 1075, "name": "Oakhurst Rovers", "short": "OAK", "ovr": 122, "region": "EUROPE", "regionKr": "유럽", "color": "#c8102e", "desc": "유럽 중위권", "form": "4-4-2", "players": {"GK": "Falcone", "DF": ["Lindblad", "Freitas", "Kovacs", "Ferrante"], "MF": ["Palmer", "Bertrand", "Aaltonen", "Sandoval"], "FW": ["Moreau", "Petrov"]}},
+  {"id": 1076, "name": "Dynamo Ravenna", "short": "RAV", "ovr": 122, "region": "EUROPE", "regionKr": "유럽", "color": "#004170", "desc": "유럽 중위권", "form": "4-3-3", "players": {"GK": "Freitas", "DF": ["Sandoval", "Ponte", "Duarte", "Hargrave"], "MF": ["Renner", "Kristiansen", "Grimaldi", "Bruckner"], "FW": ["Amoros", "Bertrand"]}},
+  {"id": 1077, "name": "Dunmore Rovers", "short": "DUN", "ovr": 123, "region": "EUROPE", "regionKr": "유럽", "color": "#1a7f37", "desc": "유럽 중위권", "form": "4-2-3-1", "players": {"GK": "Novello", "DF": ["Weiss", "Keller", "Delaney", "Vranken"], "MF": ["Lindblad", "Bianchi", "Ostrowski", "Moreau"], "FW": ["Ponte", "Bakker"]}},
+  {"id": 1078, "name": "Ferrara Rovers", "short": "FER", "ovr": 123, "region": "EUROPE", "regionKr": "유럽", "color": "#e8a33d", "desc": "유럽 중위권", "form": "3-5-2", "players": {"GK": "Lombardi", "DF": ["Ferrante", "Abreu", "Varga", "Falcone"], "MF": ["Ostrowski", "Ilic", "Mercier", "Freitas"], "FW": ["Zanetti", "Kovacs"]}},
+  {"id": 1079, "name": "Olympique Cassano", "short": "CAA", "ovr": 123, "region": "EUROPE", "regionKr": "유럽", "color": "#6b21a8", "desc": "유럽 중위권", "form": "4-1-4-1", "players": {"GK": "Bruckner", "DF": ["Salgado", "Varga", "Duarte", "Aaltonen"], "MF": ["Ponte", "Vranken", "Ilic", "Rousseau"], "FW": ["Rosales", "Moravec"]}},
+  {"id": 1080, "name": "Eisenberg FC", "short": "EIS", "ovr": 124, "region": "EUROPE", "regionKr": "유럽", "color": "#0ea5e9", "desc": "유럽 강호", "form": "3-4-3", "players": {"GK": "Duval", "DF": ["Strand", "Petrov", "Kessler", "Cavalli"], "MF": ["Aaltonen", "Lindblad", "Delaney", "Abreu"], "FW": ["Moreau", "Brennan"]}},
+  {"id": 1081, "name": "Corvara FC", "short": "COV", "ovr": 124, "region": "EUROPE", "regionKr": "유럽", "color": "#be123c", "desc": "유럽 강호", "form": "5-3-2", "players": {"GK": "Palmer", "DF": ["Lindblad", "Sandoval", "Bakker", "Marchetti"], "MF": ["Sorrentino", "Renner", "Petrov", "Duval"], "FW": ["Abreu", "Grimaldi"]}},
+  {"id": 1082, "name": "SC Eisenberg", "short": "EIE", "ovr": 124, "region": "EUROPE", "regionKr": "유럽", "color": "#0f766e", "desc": "유럽 강호", "form": "4-5-1", "players": {"GK": "Bruckner", "DF": ["Milanovic", "Salgado", "Varga", "Freitas"], "MF": ["Aaltonen", "Falcone", "Strand", "Marchetti"], "FW": ["Sallinen", "Lindblad"]}},
+  {"id": 1083, "name": "SC Avalon", "short": "AVA", "ovr": 125, "region": "EUROPE", "regionKr": "유럽", "color": "#7c2d12", "desc": "유럽 강호", "form": "4-4-2", "players": {"GK": "Sallinen", "DF": ["Moravec", "Weiss", "Abreu", "Renner"], "MF": ["Bruckner", "Nowak", "Kristiansen", "Duval"], "FW": ["Rousseau", "Sorrentino"]}},
+  {"id": 1084, "name": "Dynamo Stanmoor", "short": "STA", "ovr": 125, "region": "EUROPE", "regionKr": "유럽", "color": "#334155", "desc": "유럽 강호", "form": "4-3-3", "players": {"GK": "Petrov", "DF": ["Aaltonen", "Moreau", "Grimaldi", "Ponte"], "MF": ["Bianchi", "Rosales", "Ferrante", "Milanovic"], "FW": ["Kessler", "Zanetti"]}},
+  {"id": 1085, "name": "Valdera FC", "short": "VAD", "ovr": 125, "region": "EUROPE", "regionKr": "유럽", "color": "#a16207", "desc": "UCL 단골", "form": "4-2-3-1", "players": {"GK": "Marchetti", "DF": ["Freitas", "Sallinen", "Rosales", "Mercier"], "MF": ["Petrov", "Renner", "Strand", "Bakker"], "FW": ["Vranken", "Hargrave"]}},
+  {"id": 1086, "name": "FC Montaigne", "short": "MOT", "ovr": 126, "region": "EUROPE", "regionKr": "유럽", "color": "#15803d", "desc": "UCL 단골", "form": "3-5-2", "players": {"GK": "Rosales", "DF": ["Strand", "Bertrand", "Hargrave", "Ibarra"], "MF": ["Lindqvist", "Sorrentino", "Renner", "Kessler"], "FW": ["Mercier", "Cavalli"]}},
+  {"id": 1087, "name": "Sylvaria SC", "short": "SYL", "ovr": 126, "region": "EUROPE", "regionKr": "유럽", "color": "#9d174d", "desc": "UCL 단골", "form": "4-1-4-1", "players": {"GK": "Bianchi", "DF": ["Salgado", "Nowak", "Brennan", "Abreu"], "MF": ["Ibarra", "Keller", "Strand", "Sorrentino"], "FW": ["Milanovic", "Freitas"]}},
+  {"id": 1088, "name": "Lindholm FC", "short": "LIN", "ovr": 126, "region": "EUROPE", "regionKr": "유럽", "color": "#1e3a8a", "desc": "UCL 단골", "form": "3-4-3", "players": {"GK": "Petrov", "DF": ["Moreau", "Nowak", "Ibarra", "Sorrentino"], "MF": ["Renner", "Salgado", "Keller", "Cavalli"], "FW": ["Weiss", "Milanovic"]}},
+  {"id": 1089, "name": "AC Dunmore", "short": "DUM", "ovr": 127, "region": "EUROPE", "regionKr": "유럽", "color": "#b45309", "desc": "UCL 단골", "form": "5-3-2", "players": {"GK": "Salgado", "DF": ["Brennan", "Rosales", "Aaltonen", "Delaney"], "MF": ["Falcone", "Varga", "Ilic", "Ferrante"], "FW": ["Bruckner", "Nowak"]}},
+  {"id": 1090, "name": "Real Argenta", "short": "ARG", "ovr": 127, "region": "EUROPE", "regionKr": "유럽", "color": "#4c1d95", "desc": "유럽 우승 후보", "form": "4-5-1", "players": {"GK": "Sandoval", "DF": ["Aaltonen", "Ilic", "Delaney", "Novello"], "MF": ["Ibarra", "Zanetti", "Sorrentino", "Halvorsen"], "FW": ["Kovacs", "Bianchi"]}},
+  {"id": 1091, "name": "Sporting Norvik", "short": "NOV", "ovr": 127, "region": "EUROPE", "regionKr": "유럽", "color": "#065f46", "desc": "유럽 우승 후보", "form": "4-4-2", "players": {"GK": "Mercier", "DF": ["Palmer", "Bruckner", "Sandoval", "Kessler"], "MF": ["Bakker", "Ferrante", "Nowak", "Lindblad"], "FW": ["Vranken", "Cavalli"]}},
+  {"id": 1092, "name": "Dynamo Avalon", "short": "AVL", "ovr": 128, "region": "EUROPE", "regionKr": "유럽", "color": "#991b1b", "desc": "유럽 우승 후보", "form": "4-3-3", "players": {"GK": "Cavalli", "DF": ["Kovacs", "Petrov", "Moravec", "Strand"], "MF": ["Bertrand", "Milanovic", "Ostrowski", "Nowak"], "FW": ["Freitas", "Bakker"]}},
+  {"id": 1093, "name": "Norvik FC", "short": "NOI", "ovr": 128, "region": "EUROPE", "regionKr": "유럽", "color": "#0369a1", "desc": "유럽 우승 후보", "form": "4-2-3-1", "players": {"GK": "Freitas", "DF": ["Zanetti", "Strand", "Salgado", "Vranken"], "MF": ["Lombardi", "Novello", "Kristiansen", "Bakker"], "FW": ["Weiss", "Rosales"]}},
+  {"id": 1094, "name": "AC Palencia", "short": "PAE", "ovr": 128, "region": "EUROPE", "regionKr": "유럽", "color": "#78350f", "desc": "유럽 우승 후보", "form": "3-5-2", "players": {"GK": "Marchetti", "DF": ["Abreu", "Petrov", "Bakker", "Keller"], "MF": ["Falcone", "Ilic", "Freitas", "Delaney"], "FW": ["Lindqvist", "Ferrante"]}},
+  {"id": 1095, "name": "Oakhurst FC", "short": "OAH", "ovr": 129, "region": "EUROPE", "regionKr": "유럽", "color": "#5b21b6", "desc": "세계 최강", "form": "4-1-4-1", "players": {"GK": "Duval", "DF": ["Nowak", "Strand", "Bertrand", "Varga"], "MF": ["Falcone", "Salgado", "Kessler", "Lombardi"], "FW": ["Grimaldi", "Lindblad"]}},
+  {"id": 1096, "name": "FC Norhaven", "short": "NOH", "ovr": 129, "region": "EUROPE", "regionKr": "유럽", "color": "#047857", "desc": "세계 최강", "form": "3-4-3", "players": {"GK": "Sallinen", "DF": ["Palmer", "Ferrante", "Abreu", "Lindqvist"], "MF": ["Moreau", "Hargrave", "Ilic", "Nowak"], "FW": ["Novello", "Cavalli"]}},
+  {"id": 1097, "name": "Solheim City", "short": "SOL", "ovr": 129, "region": "EUROPE", "regionKr": "유럽", "color": "#a21caf", "desc": "세계 최강", "form": "5-3-2", "players": {"GK": "Lombardi", "DF": ["Hargrave", "Renner", "Bertrand", "Strand"], "MF": ["Sorrentino", "Falcone", "Milanovic", "Bruckner"], "FW": ["Freitas", "Palmer"]}},
+  {"id": 1098, "name": "Ashford United", "short": "ASH", "ovr": 130, "region": "EUROPE", "regionKr": "유럽", "color": "#1d4ed8", "desc": "세계 최강", "form": "4-5-1", "players": {"GK": "Freitas", "DF": ["Ponte", "Sallinen", "Rousseau", "Renner"], "MF": ["Ilic", "Strand", "Bruckner", "Ibarra"], "FW": ["Sandoval", "Ferrante"]}},
+  {"id": 1099, "name": "AC Avalon", "short": "AVO", "ovr": 130, "region": "EUROPE", "regionKr": "유럽", "color": "#92400e", "desc": "세계 최강", "form": "4-4-2", "players": {"GK": "Novello", "DF": ["Freitas", "Aaltonen", "Varga", "Kristiansen"], "MF": ["Duarte", "Falcone", "Sallinen", "Moreau"], "FW": ["Hargrave", "Grimaldi"]}}
+];
+
+/* 누적 보상 — 10승마다 MP 500 씩 증가, 100승에는 1000억 CP 추가 */
+const WORLD_MILESTONES = [];
+for (let i = 1; i <= 10; i++) {
+  WORLD_MILESTONES.push({ wins: i * 10, mp: i * 500, cp: (i === 10 ? 1000 : 0) });
+}
+const WORLD_WIN_CP = 10;        // 경기 1승당 CP (억)
+
+let worldCleared = [];          // 처음 이긴 팀 id 목록 (누적 승수 기준)
+let worldClaimed = [];          // 이미 받은 누적 보상 단계 index
+
+function worldNextMilestone() {
+  for (let i = 0; i < WORLD_MILESTONES.length; i++) {
+    if (worldClaimed.indexOf(i) < 0) return { idx:i, m:WORLD_MILESTONES[i] };
+  }
+  return null;
+}
+/* 도달한 누적 보상을 한 번에 지급한다. 지급한 단계 목록을 돌려준다. */
+function grantWorldMilestones() {
+  const got = [];
+  WORLD_MILESTONES.forEach((m, i) => {
+    if (worldClaimed.indexOf(i) >= 0) return;
+    if (worldCleared.length < m.wins) return;
+    worldClaimed.push(i);
+    mp += m.mp;
+    if (m.cp) cp += m.cp;          // cp 는 '억' 단위로 저장된다
+    got.push(m);
+  });
+  if (got.length) { updateMPDisplay(); updateCPDisplay(); saveGame(); }
+  return got;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
    도장깨기 상대 팀 — 2025/26 시즌 실제 스쿼드 기준
    난이도 곡선(엔진 4만회 검증):
      기본 스쿼드(97) → 1~3단계 / 중급(107) → 6~7단계 / 최상급(118) → 12단계
@@ -5054,6 +5194,7 @@ function grantMatchReward(r) {
   if (r.packs) for (const k in r.packs) packInv[k] = (packInv[k] || 0) + r.packs[k];
 }
 
+let matchMode    = 'rival';   // 'rival' = 도장깨기 / 'world' = 월드
 let matchCleared = [];
 let matchView    = 'list';
 let matchStage   = null;
@@ -5689,10 +5830,99 @@ function mtGoalEffect(mine) {
   setTimeout(mtKickoff, 1900);
 }
 
-function renderMatch() { renderMatchList(); }
+function renderMatch() { matchMode === 'world' ? renderWorldList() : renderMatchList(); }
+function setMatchMode(m) { matchMode = m; renderMatch(); }
+function matchTabsHTML() {
+  const btn = (k, lbl) => '<button onclick="setMatchMode(\''+k+'\')" style="flex:1;padding:8px 0;border:none;'
+    + 'border-radius:8px;font-size:12px;font-weight:900;cursor:pointer;'
+    + (matchMode===k ? 'background:linear-gradient(135deg,#d4af37,#b8912a);color:#1a1405'
+                     : 'background:rgba(255,255,255,.06);color:#888') + '">'+lbl+'</button>';
+  return '<div style="display:flex;gap:8px;margin-bottom:12px">'+btn('rival','도장깨기')+btn('world','월드')+'</div>';
+}
+
+/* ══ 월드 목록 ══ */
+function renderWorldList() {
+  matchMode = 'world'; matchView = 'list';
+  const me = myTeamPower();
+  const myOvr = Math.round(me.ovr);
+  const next = worldNextMilestone();
+
+  const prog = (function(){
+    const w = worldCleared.length;
+    if (!next) return '<div style="padding:10px;border-radius:9px;background:rgba(212,175,55,.12);'
+      + 'border:1px solid rgba(212,175,55,.4);margin-bottom:12px;text-align:center;'
+      + 'font-size:12px;font-weight:900;color:#f5d67b">누적 보상 10단계 모두 획득 🏆</div>';
+    const m = next.m, pct = Math.min(100, w / m.wins * 100);
+    return '<div style="padding:10px 12px;border-radius:9px;background:rgba(255,255,255,.05);margin-bottom:12px">'
+      + '<div style="display:flex;justify-content:space-between;font-size:10px;font-weight:800;color:#888;margin-bottom:5px">'
+      + '<span>다음 누적 보상</span><span style="color:#d4af37">'
+      + m.mp.toLocaleString() + ' MP' + (m.cp ? ' + ' + fmtEok(m.cp) : '') + '</span></div>'
+      + '<div style="height:7px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden">'
+      + '<i style="display:block;height:100%;width:'+pct+'%;background:linear-gradient(90deg,#d4af37,#f5e6a3)"></i></div>'
+      + '<div style="font-size:10px;font-weight:800;color:#aaa;margin-top:5px;text-align:right">'
+      + w + ' / ' + m.wins + '승</div></div>';
+  })();
+
+  let lastRegion = null;
+  const rows = WORLD_TEAMS.map(t => {
+    let head = '';
+    if (t.region !== lastRegion) {
+      lastRegion = t.region;
+      const g = WORLD_TEAMS.filter(x => x.region === t.region);
+      const done = g.filter(x => worldCleared.indexOf(x.id) >= 0).length;
+      head = '<div style="display:flex;align-items:center;gap:8px;margin:16px 0 8px">'
+        + '<div style="font-size:13px;font-weight:900;letter-spacing:2px;color:' + t.color + '">'
+        + t.regionKr + '</div>'
+        + '<div style="flex:1;height:1px;background:linear-gradient(90deg,' + t.color + '55,transparent)"></div>'
+        + '<div style="font-size:10px;font-weight:800;color:#777">OVR ' + g[0].ovr + '~' + g[g.length-1].ovr
+        + ' · ' + done + '/' + g.length + '</div></div>';
+    }
+    const cleared = worldCleared.indexOf(t.id) >= 0;
+    const canPlay = myOvr >= t.ovr;
+    const cls = !canPlay ? ' locked' : (cleared ? ' cleared' : '');
+    const click = canPlay ? ' onclick="openWorldPre('+t.id+')"' : '';
+    const row = '<div class="mt-stage'+cls+'"'+click+'>'
+      + '<div class="mt-badge" style="background:'+(canPlay?t.color:'#3a3a44')+'">'+(canPlay?t.short:'🔒')+'</div>'
+      + '<div class="mt-info"><div class="mt-name">'+t.name+'</div>'
+      + '<div class="mt-desc">'+(canPlay ? t.desc : '우리 팀 OVR '+t.ovr+' 이상 필요')+'</div></div>'
+      + '<div style="text-align:right;flex-shrink:0"><div class="mt-ovr" style="color:'
+      + (canPlay?'#f87171':'#666')+'">'+t.ovr+'</div>'
+      + '<div style="font-size:9px;font-weight:800;color:'+(canPlay?'#4ade80':'#555')+';margin-top:1px">'
+      + fmtEok(WORLD_WIN_CP) + '</div></div>'
+      + (cleared ? '<div class="mt-chk">✔</div>' : '') + '</div>';
+    return head + row;
+  }).join('');
+
+  document.getElementById('matchView').innerHTML =
+      matchTabsHTML()
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+    + '<div style="font-size:16px;font-weight:900;letter-spacing:1px">월드</div>'
+    + '<div style="font-size:11px;font-weight:800;color:#888">우리 팀 <span style="color:#d4af37;font-size:15px">'
+    + myOvr + '</span></div></div>'
+    + '<div style="font-size:11px;font-weight:700;color:#777;margin-bottom:12px">'
+    + worldCleared.length + ' / ' + WORLD_TEAMS.length + ' 승리</div>'
+    + prog + rows;
+}
+
+function openWorldPre(id) {
+  const t = WORLD_TEAMS.find(x => x.id === id);
+  if (!t) return;
+  const me = myTeamPower();
+  if (me.filled < 11) {
+    showModal('선발 11명을 모두 채워야 경기할 수 있습니다. (현재 ' + me.filled + '명)', [{label:'확인', cls:'ok'}]);
+    return;
+  }
+  if (Math.round(me.ovr) < t.ovr) {
+    showModal('우리 팀 OVR 이 ' + t.ovr + ' 이상이어야 입장할 수 있습니다.\n(현재 ' + Math.round(me.ovr) + ')',
+      [{label:'확인', cls:'ok'}]);
+    return;
+  }
+  matchMode = 'world';
+  openMatchPre(id);
+}
 
 function renderMatchList() {
-  matchView = 'list';
+  matchMode = 'rival'; matchView = 'list';
   if (matchTimer) { clearInterval(matchTimer); matchTimer = null; }
   const el = document.getElementById('matchView');
   if (!el) return;
@@ -5712,7 +5942,8 @@ function renderMatchList() {
       + (cleared ? '<div class="mt-chk">✔</div>' : '') + '</div>';
   }).join('');
   el.innerHTML =
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+      matchTabsHTML()
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
     + '<div style="font-size:16px;font-weight:900;letter-spacing:1px">도장깨기</div>'
     + '<div style="font-size:11px;font-weight:800;color:#888">우리 팀 <span style="color:#d4af37;font-size:15px">'
     + Math.round(me.ovr) + '</span></div></div>'
@@ -5721,7 +5952,7 @@ function renderMatchList() {
 }
 
 function openMatchPre(id) {
-  const t = RIVAL_TEAMS.find(x => x.id === id);
+  const t = (matchMode === 'world' ? WORLD_TEAMS : RIVAL_TEAMS).find(x => x.id === id);
   if (!t) return;
   const me = myTeamPower();
   if (me.filled < 11) {
@@ -5741,7 +5972,7 @@ function openMatchPre(id) {
       + '<div class="mt-line-v">'+Math.round(b)+'</div></div>';
   };
   document.getElementById('matchView').innerHTML =
-      '<div class="back-btn" onclick="renderMatchList()" style="margin-bottom:10px">← 단계 선택</div>'
+      '<div class="back-btn" onclick="renderMatch()" style="margin-bottom:10px">← 상대 선택</div>'
     + '<div class="mt-vs">'
     + '<div class="mt-side"><div class="mt-side-name">우리 팀</div>'
     + '<div class="mt-side-ovr" style="color:#60a5fa">'+Math.round(me.ovr)+'</div></div>'
@@ -5757,6 +5988,14 @@ function openMatchPre(id) {
     + '<span style="color:#60a5fa">DF</span> '+t.players.DF.join(' · ')+'<br>'
     + '<span style="color:#d4af37">GK</span> '+t.players.GK+'</div></div>'
     + (function(){
+        if (matchMode === 'world') {
+          const done = worldCleared.indexOf(t.id) >= 0;
+          return '<div style="padding:10px;border-radius:9px;background:rgba(74,222,128,.07);'
+            + 'border:1px solid rgba(74,222,128,.25);margin-bottom:12px">'
+            + '<div style="font-size:10px;font-weight:900;color:#4ade80;margin-bottom:4px">승리 보상</div>'
+            + '<div style="font-size:11px;font-weight:800;color:#fff">' + fmtEok(WORLD_WIN_CP)
+            + (done ? '' : ' · 첫 승리 시 누적 +1') + '</div></div>';
+        }
         const i = RIVAL_TEAMS.indexOf(t);
         const done = matchCleared.indexOf(t.id) >= 0;
         const r = done ? {cp:MATCH_REPEAT_CP[i]}
@@ -5900,17 +6139,31 @@ function skipMatch() {
   showMatchResult();
 }
 
+function worldMilestonePopup(got) {
+  if (!got || !got.length) return;
+  const txt = got.map(m => m.wins + '승 달성 — ' + m.mp.toLocaleString() + ' MP'
+    + (m.cp ? ' + ' + fmtEok(m.cp) : '')).join('\n');
+  setTimeout(() => showModal('🏆 누적 보상\n' + txt, [{label:'확인', cls:'ok'}]), 400);
+}
+
 function showMatchResult() {
   const R = matchResult, t = matchStage;
-  if (!R || !t) return renderMatchList();
+  if (!R || !t) return renderMatch();
   matchView = 'result';
   const won = R.myG > R.rvG, drew = R.myG === R.rvG;
-  const first = won && matchCleared.indexOf(t.id) < 0;
+  const isWorld = (matchMode === 'world');
+  const first = won && (isWorld ? worldCleared.indexOf(t.id) < 0 : matchCleared.indexOf(t.id) < 0);
   const idx = RIVAL_TEAMS.indexOf(t);
 
   // 보상 지급. 승리해야만 준다 — 무승부·패배는 경기권만 소모.
-  let reward = null;
-  if (won) {
+  let reward = null, milestones = [];
+  if (won && isWorld) {
+    reward = { cp: WORLD_WIN_CP };
+    if (first) { worldCleared.push(t.id); addLevelPoints(50, 'match'); }
+    grantMatchReward(reward);
+    milestones = grantWorldMilestones();      // 10승 단위 누적 보상
+    saveGame();
+  } else if (won) {
     reward = first
       ? Object.assign({cp:MATCH_FIRST_CP[idx]}, MATCH_FIRST_ITEM[t.id] || {})
       : {cp: MATCH_REPEAT_CP[idx]};
@@ -5944,7 +6197,8 @@ function showMatchResult() {
         ? '<div style="padding:12px;border-radius:10px;background:rgba(212,175,55,.1);'
           + 'border:1px solid rgba(212,175,55,.35);margin-bottom:12px;text-align:center">'
           + '<div style="font-size:10px;font-weight:900;color:#d4af37;margin-bottom:5px">'
-          + (first ? '최초 클리어 보상' : '승리 보상') + '</div>'
+          + (isWorld ? (first ? '승리 보상 (누적 ' + worldCleared.length + '승)' : '승리 보상')
+                     : (first ? '최초 클리어 보상' : '승리 보상')) + '</div>'
           + '<div style="font-size:13px;font-weight:900;color:#fff">' + matchRewardText(reward) + '</div></div>'
         : '<div style="padding:10px;border-radius:9px;background:rgba(255,255,255,.04);'
           + 'margin-bottom:12px;text-align:center;font-size:11px;font-weight:700;color:#888">'
@@ -5957,7 +6211,9 @@ function showMatchResult() {
     + '<div style="font-size:10px;font-weight:900;color:#888;margin:12px 0 6px">선수 평점</div>' + rate
     + '<div style="display:flex;gap:8px;margin-top:14px">'
     + '<button onclick="openMatchPre('+t.id+')" style="flex:1;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:10px;background:rgba(255,255,255,.06);color:#ddd;font-size:12px;font-weight:800;cursor:pointer">다시 하기</button>'
-    + '<button onclick="renderMatchList()" style="flex:1;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#4ade80,#22a35a);color:#06210f;font-size:12px;font-weight:900;cursor:pointer">단계 선택</button></div>';
+    + '<button onclick="renderMatch()" style="flex:1;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#4ade80,#22a35a);color:#06210f;font-size:12px;font-weight:900;cursor:pointer">단계 선택</button></div>';
+
+  worldMilestonePopup(milestones);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -7810,7 +8066,7 @@ function saveGame() {
       tmPlayers, tmLastRefresh, tmSold,
       pachTickets, pachBoard, pachOpened, pachHints, pachHinted,
       svTickets, svPoints, svActive, svBoostRuns, svRevived,
-      scTickets, scCount, ulBlind,
+      scTickets, scCount, ulBlind, worldCleared, worldClaimed,
       clubName, playerLv, levelPts, mpSpentAcc, levelPending,
       matchCleared, scoutUsed, scoutDay,
       lineups, lineupIdx
@@ -7865,6 +8121,8 @@ function loadGame() {
   if (typeof s.scTickets === 'number') scTickets = s.scTickets;
   if (typeof s.scCount === 'number') scCount = s.scCount;
   if (typeof s.ulBlind === 'boolean') ulBlind = s.ulBlind;
+  if (Array.isArray(s.worldCleared)) worldCleared = s.worldCleared;
+  if (Array.isArray(s.worldClaimed)) worldClaimed = s.worldClaimed;
   if (typeof s.clubName === 'string') clubName = s.clubName;
   if (typeof s.playerLv === 'number') playerLv = s.playerLv;
   if (typeof s.levelPts === 'number') levelPts = s.levelPts;
