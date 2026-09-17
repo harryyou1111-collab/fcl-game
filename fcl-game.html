@@ -551,7 +551,7 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
 .sv-tab.active{background:#0f3d2e;color:#fff}
 
 /* ─── PACHINKO ─── */
-.ach-btn{position:absolute;bottom:152px;left:16px;z-index:10;padding:11px 18px;border-radius:12px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px;width:max-content;max-width:45%;white-space:nowrap;background:rgba(10,18,36,.82);backdrop-filter:blur(10px);border:2px solid #f5d67bcc;box-shadow:0 4px 18px rgba(0,0,0,.5)}.pach-btn{position:absolute;bottom:152px;right:16px;z-index:10;padding:11px 18px;border-radius:12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px;background:rgba(10,18,36,.82);backdrop-filter:blur(10px);border:2px solid #f5d67bcc;box-shadow:0 4px 18px rgba(0,0,0,.5),0 0 14px #f5d67b40}.pach-btn:hover{background:linear-gradient(135deg,rgba(212,175,55,.4),rgba(255,255,255,.12))}.pach-btn .tb-icon{font-size:16px;display:flex;align-items:center;line-height:0}.pach-btn .tb-icon svg{display:block;filter:drop-shadow(0 0 4px rgba(212,175,55,.5))}.pach-btn .tb-text{font-size:12px;font-weight:900;letter-spacing:.5px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.9)}.coll-use{position:absolute;top:4px;right:4px;z-index:3;padding:1.5px 5px;border-radius:4px;
+.ach-btn .tb-icon{font-size:16px}.ach-btn .tb-text{font-size:12px;font-weight:900;letter-spacing:.5px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.9)}.ach-btn{position:absolute;bottom:152px;left:16px;z-index:10;padding:11px 18px;border-radius:12px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px;width:max-content;max-width:45%;white-space:nowrap;background:rgba(10,18,36,.82);backdrop-filter:blur(10px);border:2px solid #f5d67bcc;box-shadow:0 4px 18px rgba(0,0,0,.5)}.pach-btn{position:absolute;bottom:152px;right:16px;z-index:10;padding:11px 18px;border-radius:12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px;background:rgba(10,18,36,.82);backdrop-filter:blur(10px);border:2px solid #f5d67bcc;box-shadow:0 4px 18px rgba(0,0,0,.5),0 0 14px #f5d67b40}.pach-btn:hover{background:linear-gradient(135deg,rgba(212,175,55,.4),rgba(255,255,255,.12))}.pach-btn .tb-icon{font-size:16px;display:flex;align-items:center;line-height:0}.pach-btn .tb-icon svg{display:block;filter:drop-shadow(0 0 4px rgba(212,175,55,.5))}.pach-btn .tb-text{font-size:12px;font-weight:900;letter-spacing:.5px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.9)}.coll-use{position:absolute;top:4px;right:4px;z-index:3;padding:1.5px 5px;border-radius:4px;
   font-size:8px;font-weight:900;letter-spacing:.5px;line-height:1.4}.coll-use.start{background:rgba(74,222,128,.9);color:#062b14}.coll-use.sub{background:rgba(96,165,250,.9);color:#06203f}.coll-card.in-use{border-color:rgba(74,222,128,.4)}.lobby-value{font-size:11px;font-weight:800;letter-spacing:.5px;color:#8fd0ff;
   margin-top:4px;text-shadow:0 1px 6px rgba(0,0,0,.8)}.pach-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.pach-title{font-size:16px;font-weight:900;letter-spacing:1px}.pach-ticket{font-size:12px;font-weight:800;color:#d4af37}.pach-tabs{display:flex;gap:6px;margin-bottom:10px}.pach-tab{flex:1;padding:8px;border-radius:8px;text-align:center;font-size:11px;font-weight:800;
   background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#888;cursor:pointer;transition:all .2s}.pach-tab.active{background:rgba(212,175,55,.18);border-color:rgba(212,175,55,.5);color:#f5d67b}.pach-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:11px;font-weight:700;color:#888}.pach-reset{padding:6px 12px;border-radius:8px;background:rgba(255,255,255,.06);
@@ -660,7 +660,7 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
         <div class="spc-btn" onclick="switchTab('sc')">스페셜 찬스</div>
         <div class="ach-btn" onclick="switchTab('ach')">
           <span class="tb-icon">🏅</span>
-          <span class="tb-text">업적</span>
+          <span class="tb-text">혜택</span>
           <span id="achBadge" style="display:none;position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;
             border-radius:9px;background:#ef4444;color:#fff;font-size:10px;font-weight:900;
             align-items:center;justify-content:center;padding:0 5px">0</span>
@@ -1068,7 +1068,7 @@ const GK_LABELS = ["DIV","POS","HAN","REF","KIC","PHY"];
 const TIER_COLORS = {"114":"#9ca3af","115":"#3b82f6","116":"#a855f7","117":"#f59e0b","118":"#ef4444","119":"#ffd7e8","120":"#7dffd4","icon":"#d4af37"};
 // 0.14*100 이 14.000000000000002 로 나오는 문제를 막는다.
 function fmtPct(p){ return Math.round(p * 1000) / 10; }
-let collection=[];let animating=false;let enhanceTokens=0;let protectTickets=0;let cp=0;let quantities={token:1,pack:1,open:1,pack3:1,pack5:1,open3:1,open5:1,box:1,openbox:1,packtl1:1,opentl1:1,packul1:1,openul1:1,openfwc56:1,openall57:1,packmix1:1,openmix1:1,shield:1,packfwc13:1,packfwc35:1,packtl13:1,packmix35:1,packbar1:1,packbar35:1,openfwc13:1,openfwc35:1,opentl13:1,openmix35:1,openbar1:1,openbar35:1,openlegend:1,luckykey:1,buylb5:1,buylb15:1,buylb30:1};
+let collection=[];let animating=false;let enhanceTokens=0;let protectTickets=0;let cp=0;let quantities={token:1,pack:1,open:1,pack3:1,pack5:1,open3:1,open5:1,box:1,openbox:1,packtl1:1,opentl1:1,packul1:1,openul1:1,openfwc56:1,openall57:1,packmix1:1,openmix1:1,shield:1,packfwc13:1,packfwc35:1,packtl13:1,packmix35:1,packbar1:1,packbar35:1,openfwc13:1,openfwc35:1,opentl13:1,openmix35:1,openbar1:1,openbar35:1,openlegend:1,luckykey:1,buylb5:1,buylb15:1,buylb30:1,buylb45:1};
 
 
 /* ══════════════════════════════════════════════════════════════
@@ -1447,7 +1447,7 @@ function switchTab(name) {
   if(name==='sv')   { svAnimating=false; setSvTab('play'); renderSv(); }
   if(name==='sc')   { scSpinning=false; renderSC(); }
   if(name==='match') { if(matchTimer){clearInterval(matchTimer);matchTimer=null;} renderMatch(); }
-  if(name==='ach')   { renderAch(); }
+  if(name==='ach')   { renderBenefit(); }
   if(name==='squad') { ensureLineups(); renderLineupTabs(); renderFormationBtns(); renderSquad(); }
   if(name==='home') { updateClubValue(); updateAchBadge(); }
   if(name==='collection') renderCollection();
@@ -2062,13 +2062,7 @@ function openMpShop() {
     ov.onclick = (e) => { if (e.target === ov) ov.style.display = 'none'; };
     document.body.appendChild(ov);
   }
-  const rows = MP_PACKAGES.map((pk, i) => {
-    const bonus = pk.mp - (pk.won / 10); // 5000원=500이 기준(원/10), 초과분이 보너스
-    const bonusTag = bonus > 0 ? '<span class="mp-bonus">+' + bonus.toLocaleString() + ' 보너스</span>' : '';
-    return '<div class="mp-pkg" onclick="buyMp(' + i + ')">' +
-      '<div class="mp-pkg-left"><div class="mp-pkg-amt">' + pk.mp.toLocaleString() + ' MP</div>' + bonusTag + '</div>' +
-      '<div class="mp-pkg-won">₩' + pk.won.toLocaleString() + '</div></div>';
-  }).join('');
+  const rows = mpPkgRowsHTML();
   ov.innerHTML = '<div class="mp-shop" onclick="event.stopPropagation()">' +
     '<div class="mp-shop-title">MP 충전</div>' +
     '<div class="mp-shop-sub">보유 MP <b>' + mp.toLocaleString() + '</b></div>' +
@@ -2077,18 +2071,66 @@ function openMpShop() {
   ov.style.display = 'flex';
 }
 
+
+/* MP 충전 — 패키지마다 수량을 정해 한 번에 살 수 있다. 수량은 상점 두 곳(팝업/충전탭)이 같이 쓴다. */
+let mpQty = {};
+function mpQtyOf(i) { return Math.max(1, Math.min(99, mpQty[i] || 1)); }
+function changeMpQty(i, d) {
+  mpQty[i] = Math.max(1, Math.min(99, mpQtyOf(i) + d));
+  paintMpRow(i);
+}
+function setMpQty(i, v) {
+  const n = parseInt(String(v).replace(/[^0-9]/g, ''), 10);
+  mpQty[i] = isNaN(n) ? 1 : Math.max(1, Math.min(99, n));
+  paintMpRow(i);
+}
+/* 한 줄만 다시 칠한다. 두 화면에 같은 id 가 있을 수 있어 전부 훑는다. */
+function paintMpRow(i) {
+  const pk = MP_PACKAGES[i];
+  const q = mpQtyOf(i);
+  document.querySelectorAll('[data-mpq="' + i + '"]').forEach(e => { e.value = q; e.textContent = q; });
+  document.querySelectorAll('[data-mpmp="' + i + '"]').forEach(e => e.textContent = (pk.mp * q).toLocaleString() + ' MP');
+  document.querySelectorAll('[data-mpwon="' + i + '"]').forEach(e => e.textContent = '₩' + (pk.won * q).toLocaleString());
+}
+function mpPkgRowsHTML() {
+  return MP_PACKAGES.map((pk, i) => {
+    const bonus = pk.mp - (pk.won / 10);   // 5000원=500이 기준(원/10), 초과분이 보너스
+    const bonusTag = bonus > 0 ? '<span class="mp-bonus">+' + bonus.toLocaleString() + ' 보너스</span>' : '';
+    const q = mpQtyOf(i);
+    const btn = (d, lbl) => '<button onclick="event.stopPropagation();changeMpQty(' + i + ',' + d + ')" '
+      + 'style="width:26px;height:26px;border-radius:7px;border:1px solid rgba(255,255,255,.18);'
+      + 'background:rgba(255,255,255,.07);color:#ddd;font-size:14px;font-weight:900;cursor:pointer;'
+      + 'line-height:1;flex-shrink:0">' + lbl + '</button>';
+    return '<div class="mp-pkg" style="align-items:center;gap:8px">'
+      + '<div class="mp-pkg-left" style="flex:1;min-width:0">'
+      + '<div class="mp-pkg-amt" data-mpmp="' + i + '">' + (pk.mp * q).toLocaleString() + ' MP</div>'
+      + bonusTag + '</div>'
+      + '<div style="display:flex;align-items:center;gap:5px;flex-shrink:0">' + btn(-1, '−')
+      + '<input data-mpq="' + i + '" value="' + q + '" inputmode="numeric" '
+      + 'onclick="event.stopPropagation()" oninput="setMpQty(' + i + ',this.value)" '
+      + 'style="width:34px;height:26px;text-align:center;border-radius:7px;border:1px solid rgba(255,255,255,.18);'
+      + 'background:rgba(0,0,0,.25);color:#fff;font-size:12px;font-weight:900">'
+      + btn(1, '＋') + '</div>'
+      + '<div class="mp-pkg-won" data-mpwon="' + i + '" onclick="buyMp(' + i + ')" '
+      + 'style="cursor:pointer;flex-shrink:0">₩' + (pk.won * q).toLocaleString() + '</div></div>';
+  }).join('');
+}
+
 function buyMp(i) {
   const pk = MP_PACKAGES[i];
   if (!pk) return;
-  showModal('₩' + pk.won.toLocaleString() + '을(를) 결제하고 ' + pk.mp.toLocaleString() + ' MP를 충전하시겠습니까?', [
+  const q = mpQtyOf(i);
+  const totWon = pk.won * q, totMp = pk.mp * q;
+  showModal('₩' + totWon.toLocaleString() + '을(를) 결제하고 ' + totMp.toLocaleString() + ' MP를 충전하시겠습니까?'
+    + (q > 1 ? '\n(' + pk.mp.toLocaleString() + ' MP × ' + q + '개)' : ''), [
     {label:'구매', cls:'confirm', fn: () => {
-      mp += pk.mp;
+      mp += totMp;
       updateMPDisplay();
       saveGame();
       const ov = document.getElementById('mpShopOverlay');
       if (ov) ov.style.display = 'none';
       if (document.getElementById('storePanel-charge') && document.getElementById('storePanel-charge').classList.contains('active')) renderChargePanel();
-      showModal(pk.mp.toLocaleString() + ' MP 충전 완료!', [{label:'확인', cls:'ok'}]);
+      showModal(totMp.toLocaleString() + ' MP 충전 완료!', [{label:'확인', cls:'ok'}]);
     }},
     {label:'취소', cls:'cancel'}
   ]);
@@ -3177,17 +3219,19 @@ function pickTMPlayer() {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+const TM_COUNT = 10;   // 이적시장에 한 번에 뜨는 선수 수
 function refreshTM() {
   const now = Date.now();
   const slotMs = 900000; // 15분
   const currentSlot = Math.floor(now / slotMs);
   
-  if (currentSlot !== tmLastRefresh) {
+  // 인원 설정이 바뀌면 옛 세이브도 그 자리에서 다시 채운다
+  if (currentSlot !== tmLastRefresh || tmPlayers.length !== TM_COUNT) {
     tmPlayers = [];
     tmSold = {};
     const used = new Set();
     let guard = 0;
-    while (tmPlayers.length < 8 && guard < 2000) {
+    while (tmPlayers.length < TM_COUNT && guard < 2000) {
       guard++;
       const p = pickTMPlayer();
       if (!used.has(p.id)) {
@@ -3273,7 +3317,8 @@ updateTMTimer();
 
 
 function changeQty(type, delta) {
-  const maxQty = (type.startsWith('open')) ? 5 : 10;
+  // 개봉은 10개, 상점 구매는 30개까지 (MP 충전은 mpQty 로 따로 관리)
+  const maxQty = type.startsWith('open') ? 10 : 30;
   quantities[type] = Math.max(1, Math.min(maxQty, quantities[type] + delta));
   const el = document.getElementById(type + 'Qty');
   if (el) el.textContent = quantities[type];
@@ -3716,10 +3761,10 @@ const LUCKY_BOXES = [
       { w:1, r:{packs:{tlbar56:1}} },
     ]},
   { id:'lb45', keys:45, name:'행운 상자 (특)', color:'#ff5ec7',
+    bonus: { trans: 1 },          // 뽑기와 별개로 열면 무조건 주는 보상
     rewards: [
       { w:1, r:{cp:45000} },
       { w:1, r:{packs:{all57:1}} },
-      { w:1, r:{trans:2} },
     ]},
 ];
 
@@ -3727,7 +3772,8 @@ function luckyBoxById(id) { return LUCKY_BOXES.find(b => b.id === id); }
 
 function luckyBoxValue(b) {
   const tot = b.rewards.reduce((a,o) => a + o.w, 0) || 1;
-  return b.rewards.reduce((a,o) => a + o.w * svRewardValue(o.r), 0) / tot;
+  const pick = b.rewards.reduce((a,o) => a + o.w * svRewardValue(o.r), 0) / tot;
+  return pick + (b.bonus ? svRewardValue(b.bonus) : 0);   // 확정 보상도 합산
 }
 
 function pickLuckyReward(b) {
@@ -3800,14 +3846,16 @@ async function doOpenLucky(id) {
   luckyBoxInv[id]--;
   const r = pickLuckyReward(b);
   grantSvReward(r);
+  if (b.bonus) grantSvReward(b.bonus);     // 확정 보상
   updateKeyDisplay(); saveGame();
   const pk = r.packs ? Object.keys(r.packs)[0] : null;
+  const items = [{ label: pk ? (r.packs[pk] > 1 ? r.packs[pk] + '개' : '획득!') : svRewardText(r),
+                   color: pk && PACK_ART[pk] ? PACK_ART[pk].c : b.color,
+                   icon: '💰',
+                   art: pk ? packArtHTML(pk, r.packs[pk]) : null }];
+  if (b.bonus) items.push({ label: svRewardText(b.bonus), color: '#f5d67b', icon: '◆' });
   await playBoxOpenFX({
-    title: b.name, color: b.color, keyLabel: '🔑' + b.keys,
-    items: [{ label: pk ? (r.packs[pk] > 1 ? r.packs[pk] + '개' : '획득!') : svRewardText(r),
-              color: pk && PACK_ART[pk] ? PACK_ART[pk].c : b.color,
-              icon: '💰',
-              art: pk ? packArtHTML(pk, r.packs[pk]) : null }]
+    title: b.name, color: b.color, keyLabel: '🔑' + b.keys, items: items
   });
 }
 
@@ -4092,13 +4140,7 @@ function renderLuckyShop() {
 function renderChargePanel() {
   const panel = document.getElementById('storePanel-charge');
   if (!panel) return;
-  const rows = MP_PACKAGES.map((pk, i) => {
-    const bonus = pk.mp - (pk.won / 10);
-    const bonusTag = bonus > 0 ? '<span class="mp-bonus">+' + bonus.toLocaleString() + ' 보너스</span>' : '';
-    return '<div class="mp-pkg" onclick="buyMp(' + i + ')">' +
-      '<div class="mp-pkg-left"><div class="mp-pkg-amt">' + pk.mp.toLocaleString() + ' MP</div>' + bonusTag + '</div>' +
-      '<div class="mp-pkg-won">₩' + pk.won.toLocaleString() + '</div></div>';
-  }).join('');
+  const rows = mpPkgRowsHTML();
   panel.innerHTML = '<div style="font-size:16px;font-weight:900;letter-spacing:1px;margin-bottom:4px">MP 충전</div>' +
     '<div style="font-size:12px;color:#888;margin-bottom:14px">보유 MP <b style="color:#60a5fa">' + mp.toLocaleString() + '</b></div>' + rows;
 }
@@ -5151,14 +5193,167 @@ function claimAllAch() {
 function updateAchBadge() {
   const b = document.getElementById('achBadge');
   if (!b) return;
-  const n = achClaimable();
+  const n = achClaimable() + (attCanClaim() ? 1 : 0) + mailUnread();
   b.textContent = n;
   b.style.display = n > 0 ? 'flex' : 'none';
 }
 
-function renderAch() {
+
+/* ══════════════════════════════════════════════════════════════
+   출석 보상 — 하루 한 번. 7일 주기로 돌고, 7일차에 큰 보상.
+   연속이 아니라 누적 출석일 기준이라 하루 빠져도 진도가 밀리지 않는다.
+   ══════════════════════════════════════════════════════════════ */
+const ATT_REWARDS = [
+  { mp:50 },
+  { cp:50 },
+  { mp:100 },
+  { tokens:3 },
+  { mp:150 },
+  { cp:100 },
+  { mp:300, keys:1 },
+];
+let attDays = 0;       // 누적 출석 일수
+let attLast = '';      // 마지막으로 받은 날짜 (YYYY-MM-DD)
+
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+}
+function attCanClaim() { return attLast !== todayKey(); }
+function attIndex() { return attDays % ATT_REWARDS.length; }   // 오늘 받을 칸
+
+function claimAttendance() {
+  if (!attCanClaim()) return;
+  const r = ATT_REWARDS[attIndex()];
+  attDays++; attLast = todayKey();
+  grantSvReward(r);
+  updateMPDisplay(); updateCPDisplay(); updateTokenDisplay(); updateKeyDisplay();
+  saveGame(); renderBenefit(); updateAchBadge();
+  showModal('📅 ' + attDays + '일차 출석!\n' + svRewardText(r) + ' 획득', [{label:'확인', cls:'ok'}]);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   우편함 — 운영자가 넣어주는 보상.
+   새 우편은 MAILS 에 항목만 추가하면 된다. id 는 절대 바꾸지 말 것
+   (이미 받은 사람이 다시 받게 된다).
+   ══════════════════════════════════════════════════════════════ */
+const MAILS = [
+  { id:'welcome', from:'운영자', title:'신규 유저 환영 보상',
+    body: 'FCL 에 오신 것을 환영합니다!\n첫 시작에 보탬이 되도록 준비했습니다.\n즐거운 구단 운영 되세요.',
+    r: { mp:1500, cp:500 } },
+];
+let mailClaimed = [];
+
+function mailUnread() { return MAILS.filter(m => mailClaimed.indexOf(m.id) < 0).length; }
+function claimMail(id) {
+  const m = MAILS.find(x => x.id === id);
+  if (!m || mailClaimed.indexOf(id) >= 0) return;
+  mailClaimed.push(id);
+  grantSvReward(m.r);
+  updateMPDisplay(); updateCPDisplay(); updateTokenDisplay(); updateKeyDisplay();
+  saveGame(); renderBenefit(); updateAchBadge();
+  showModal('✉️ ' + m.title + '\n' + svRewardText(m.r) + ' 획득', [{label:'확인', cls:'ok'}]);
+}
+function claimAllMail() {
+  const list = MAILS.filter(m => mailClaimed.indexOf(m.id) < 0);
+  if (!list.length) return;
+  list.forEach(m => { mailClaimed.push(m.id); grantSvReward(m.r); });
+  updateMPDisplay(); updateCPDisplay(); updateTokenDisplay(); updateKeyDisplay();
+  saveGame(); renderBenefit(); updateAchBadge();
+  showModal('✉️ 우편 ' + list.length + '통 수령 완료', [{label:'확인', cls:'ok'}]);
+}
+
+/* ══ 혜택 화면 (업적 / 출석 / 우편함) ══ */
+let benefitTab = 'ach';
+function setBenefitTab(t) { benefitTab = t; renderBenefit(); }
+
+function renderBenefit() {
   const el = document.getElementById('achContent');
   if (!el) return;
+  const badge = n => n > 0
+    ? '<span style="display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;'
+      + 'border-radius:8px;background:#ef4444;color:#fff;font-size:9px;font-weight:900;margin-left:5px;padding:0 4px">'
+      + n + '</span>' : '';
+  const tab = (k, lbl, n) => '<button onclick="setBenefitTab(\'' + k + '\')" style="flex:1;padding:9px 0;border:none;'
+    + 'border-radius:8px;font-size:12px;font-weight:900;cursor:pointer;'
+    + (benefitTab === k ? 'background:linear-gradient(135deg,#d4af37,#b8912a);color:#1a1405'
+                        : 'background:rgba(255,255,255,.06);color:#888') + '">' + lbl + badge(n) + '</button>';
+
+  const tabs = '<div style="display:flex;gap:7px;margin-bottom:14px">'
+    + tab('ach', '업적', achClaimable())
+    + tab('att', '출석', attCanClaim() ? 1 : 0)
+    + tab('mail', '우편함', mailUnread()) + '</div>';
+
+  if (benefitTab === 'att')  { el.innerHTML = tabs + attendanceHTML(); return; }
+  if (benefitTab === 'mail') { el.innerHTML = tabs + mailboxHTML();   return; }
+  el.innerHTML = tabs + achListHTML();
+}
+
+function attendanceHTML() {
+  const idx = attIndex(), can = attCanClaim();
+  const cells = ATT_REWARDS.map((r, i) => {
+    const isToday = can && i === idx;
+    const passed  = i < idx;
+    return '<div style="padding:12px 6px;border-radius:10px;text-align:center;'
+      + 'border:1px solid ' + (isToday ? 'rgba(212,175,55,.6)' : 'rgba(255,255,255,.07)') + ';'
+      + 'background:' + (isToday ? 'rgba(212,175,55,.12)' : 'rgba(255,255,255,.04)') + ';'
+      + (passed ? 'opacity:.4' : '') + '">'
+      + '<div style="font-size:9px;font-weight:800;color:#888;margin-bottom:5px">' + (i+1) + '일차</div>'
+      + '<div style="font-size:18px;margin-bottom:4px">' + (passed ? '✅' : i === 6 ? '🎁' : '📅') + '</div>'
+      + '<div style="font-size:9px;font-weight:800;color:' + (isToday ? '#f5d67b' : '#aaa') + ';line-height:1.35">'
+      + svRewardText(r).replace(/, /g, '<br>') + '</div></div>';
+  }).join('');
+
+  return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+    + '<div style="font-size:16px;font-weight:900;letter-spacing:1px">출석 보상</div>'
+    + '<div style="font-size:11px;font-weight:800;color:#888">누적 <span style="color:#d4af37;font-size:15px">'
+    + attDays + '</span>일</div></div>'
+    + '<div style="font-size:11px;color:#777;margin-bottom:12px">7일마다 한 바퀴 돕니다. 하루 빠져도 진도는 그대로입니다.</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:14px">' + cells + '</div>'
+    + (can
+        ? '<button onclick="claimAttendance()" style="width:100%;padding:13px;border:none;border-radius:10px;'
+          + 'background:linear-gradient(135deg,#d4af37,#b8912a);color:#1a1405;font-size:13px;font-weight:900;'
+          + 'cursor:pointer">' + (attDays+1) + '일차 보상 받기</button>'
+        : '<div style="padding:13px;border-radius:10px;background:rgba(255,255,255,.04);text-align:center;'
+          + 'font-size:12px;font-weight:800;color:#777">오늘 출석 완료 · 내일 다시 오세요</div>');
+}
+
+function mailboxHTML() {
+  const unread = mailUnread();
+  let html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+    + '<div style="font-size:16px;font-weight:900;letter-spacing:1px">우편함</div>'
+    + '<div style="font-size:11px;font-weight:800;color:#888">' + unread + ' / ' + MAILS.length + '</div></div>';
+  if (unread > 1) {
+    html += '<button onclick="claimAllMail()" style="width:100%;padding:11px;margin-bottom:12px;border:none;'
+      + 'border-radius:10px;background:linear-gradient(135deg,#d4af37,#b8912a);color:#1a1405;'
+      + 'font-size:13px;font-weight:900;cursor:pointer">우편 ' + unread + '통 모두 받기</button>';
+  }
+  if (!MAILS.length) {
+    return html + '<div style="padding:30px;text-align:center;color:#666;font-size:12px">우편이 없습니다</div>';
+  }
+  html += MAILS.map(m => {
+    const done = mailClaimed.indexOf(m.id) >= 0;
+    return '<div style="padding:13px;margin-bottom:9px;border-radius:11px;'
+      + 'background:' + (done ? 'rgba(255,255,255,.03)' : 'rgba(212,175,55,.09)') + ';'
+      + 'border:1px solid ' + (done ? 'rgba(255,255,255,.06)' : 'rgba(212,175,55,.4)') + ';'
+      + (done ? 'opacity:.5' : '') + '">'
+      + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">'
+      + '<span style="font-size:15px">' + (done ? '📭' : '📬') + '</span>'
+      + '<span style="font-size:13px;font-weight:900;color:' + (done ? '#999' : '#f5d67b') + '">' + m.title + '</span>'
+      + '<span style="font-size:9px;color:#666;margin-left:auto">' + m.from + '</span></div>'
+      + '<div style="font-size:11px;color:#9aa;line-height:1.6;white-space:pre-line;margin-bottom:9px">' + m.body + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px">'
+      + '<div style="flex:1;font-size:11px;font-weight:800;color:#4ade80">' + svRewardText(m.r) + '</div>'
+      + (done ? '<div style="font-size:10px;font-weight:800;color:#666">수령함</div>'
+              : '<button onclick="claimMail(\'' + m.id + '\')" style="padding:7px 15px;border:none;border-radius:8px;'
+                + 'background:linear-gradient(135deg,#d4af37,#b8912a);color:#1a1405;font-size:11px;font-weight:900;'
+                + 'cursor:pointer">받기</button>')
+      + '</div></div>';
+  }).join('');
+  return html;
+}
+
+function achListHTML() {
   const cats = [];
   ACHIEVEMENTS.forEach(a => { if (cats.indexOf(a.cat) < 0) cats.push(a.cat); });
   const doneN = ACHIEVEMENTS.filter(a => achClaimed.indexOf(a.id) >= 0).length;
@@ -5197,8 +5392,10 @@ function renderAch() {
         + '</div>';
     });
   });
-  el.innerHTML = html;
+  return html;
 }
+/* 이전 이름을 쓰던 곳이 있어 그대로 남겨둔다 */
+function renderAch() { renderBenefit(); }
 
 
 /* ══════════════════════════════════════════════════════════════
@@ -7039,7 +7236,7 @@ let gameResetting = false;   // 초기화 중에는 어떤 경로로도 저장�
    횟수 제한이 진짜 브레이크 역할을 하고, 배수는 보조 장치다.
    ══════════════════════════════════════════════════════════════ */
 const SCOUT_MULT = 3;        // 정가 배수
-const SCOUT_DAILY = 2;       // 하루 사용 횟수
+const SCOUT_DAILY = 3;       // 하루 사용 횟수
 
 let scoutUsed = 0;
 let scoutDay = '';
@@ -7332,6 +7529,7 @@ function svRewardValue(r) {
   v += (r.svtickets  || 0) * svUnitPrice()   * SV_MP2CP;
   v += (r.legend     || 0) * legendBoxValue();
   // 럭키 열쇠는 아직 사용처가 없어 가치 0 으로 잡는다 (시스템 추가 시 여기만 고치면 된다)
+  v += (r.mp         || 0) * SV_MP2CP;
   v += (r.keys       || 0) * 0;
   // 초월석은 상점에서 팔지 않아 MP 환산가가 없다. 회수율 계산에서는 0 으로 둔다.
   v += (r.trans      || 0) * 0;
@@ -7344,6 +7542,7 @@ function svRewardValue(r) {
 function svRewardText(r) {
   if (!r) return '-';
   const p = [];
+  if (r.mp)        p.push(r.mp.toLocaleString() + ' MP');
   if (r.cp)        p.push(fmtEok(r.cp) + ' CP');
   if (r.tokens)    p.push('강화토큰 ' + r.tokens);
   if (r.protects)  p.push('보호권 ' + r.protects);
@@ -7361,6 +7560,7 @@ function svRewardText(r) {
 }
 function grantSvReward(r) {
   if (!r) return;
+  if (r.mp)        { mp += r.mp; updateMPDisplay(); }
   if (r.cp)        { cp += r.cp; updateCPDisplay(); }
   if (r.tokens)    { enhanceTokens += r.tokens; updateTokenDisplay(); }
   if (r.protects)  { protectTickets += r.protects; updateTokenDisplay(); }
@@ -8382,7 +8582,7 @@ function saveGame() {
       tmPlayers, tmLastRefresh, tmSold,
       pachTickets, pachBoard, pachOpened, pachHints, pachHinted,
       svTickets, svPoints, svActive, svBoostRuns, svRevived,
-      scTickets, scCount, ulBlind, worldCleared, worldClaimed, worldRegionClaimed, transTokens, achClaimed, achStats,
+      scTickets, scCount, ulBlind, worldCleared, worldClaimed, worldRegionClaimed, transTokens, achClaimed, achStats, attDays, attLast, mailClaimed,
       clubName, playerLv, levelPts, mpSpentAcc, levelPending,
       matchCleared, scoutUsed, scoutDay,
       lineups, lineupIdx
@@ -8443,6 +8643,9 @@ function loadGame() {
   if (typeof s.transTokens === 'number') transTokens = s.transTokens;
   if (Array.isArray(s.achClaimed)) achClaimed = s.achClaimed;
   if (s.achStats && typeof s.achStats === 'object') achStats = Object.assign(achStats, s.achStats);
+  if (typeof s.attDays === 'number') attDays = s.attDays;
+  if (typeof s.attLast === 'string') attLast = s.attLast;
+  if (Array.isArray(s.mailClaimed)) mailClaimed = s.mailClaimed;
   if (typeof s.clubName === 'string') clubName = s.clubName;
   if (typeof s.playerLv === 'number') playerLv = s.playerLv;
   if (typeof s.levelPts === 'number') levelPts = s.levelPts;
