@@ -280,7 +280,7 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
   background:rgba(255,255,255,.6);transform:translate(-50%,-50%)}.mt-dot{position:absolute;width:4.2%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);contain:layout style paint;
   will-change:left,top;
   box-shadow:0 2px 4px rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;
-  font-size:6px;font-weight:900;color:rgba(255,255,255,.9)}.mt-dot.us{background:linear-gradient(160deg,#7cb8fb,#2563eb);border:1.5px solid #dbeafe}.mt-dot.them{background:linear-gradient(160deg,#fca5a5,#dc2626);border:1.5px solid #fee2e2}.mt-dot.gk{background:linear-gradient(160deg,#fde68a,#d97706);border:1.5px solid #fef3c7}.mt-dot.act{box-shadow:0 0 0 4px rgba(255,255,255,.6),0 2px 4px rgba(0,0,0,.5);z-index:3}.mt-ball{position:absolute;width:3%;aspect-ratio:1;border-radius:50%;z-index:5;
+  font-size:6px;font-weight:900;color:rgba(255,255,255,.9)}.mt-dot.us{background:linear-gradient(160deg,#7cb8fb,#2563eb);border:1.5px solid #dbeafe}.mt-dot.them{background:linear-gradient(160deg,#fca5a5,#dc2626);border:1.5px solid #fee2e2}.mt-dot.gk{background:linear-gradient(160deg,#fde68a,#d97706);border:1.5px solid #fef3c7}.mt-dot.act{box-shadow:0 0 0 4px rgba(255,255,255,.6),0 2px 4px rgba(0,0,0,.5);z-index:3}.mt-ball{position:absolute;width:4%;aspect-ratio:1;border-radius:50%;z-index:9;
   background:radial-gradient(circle at 35% 30%,#fff 0%,#e8e8e8 55%,#b8b8b8 100%);
   transform:translate(-50%,-50%);box-shadow:0 0 8px rgba(255,255,255,.75),0 2px 4px rgba(0,0,0,.5);
   will-change:left,top}.mt-ball.reset{transition:left .6s ease,top .6s ease}@keyframes mtNet{0%{transform:translate(-50%,-50%) scale(1)}
@@ -673,6 +673,11 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
       <div style="padding:0 16px 150px"><div id="achContent"></div></div>
     </div>
 
+    <div class="screen" id="screen-fuse" style="padding-top:50px">
+      <div class="back-btn" onclick="switchTab('players')">← 내 선수</div>
+      <div style="padding:0 16px 150px"><div id="fuseContent"></div></div>
+    </div>
+
     <!-- STORE -->
     <div class="screen" id="screen-store">
       <div class="back-btn" onclick="switchTab('home')">← 로비</div>
@@ -813,6 +818,7 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
         <div style="font-size:16px;font-weight:900;letter-spacing:1px">MY PLAYERS</div>
         <div style="display:flex;align-items:center;gap:8px">
           <div class="coll-count" id="collCount">0 / 40</div>
+          <button class="coll-selbtn" onclick="openFuse()" style="border-color:rgba(212,175,55,.5);color:#d4af37">합성</button>
           <button class="coll-selbtn" id="collSelBtn" onclick="toggleSellMode()">선택</button>
         </div>
       </div>
@@ -1448,6 +1454,7 @@ function switchTab(name) {
   if(name==='sc')   { scSpinning=false; renderSC(); }
   if(name==='match') { if(matchTimer){clearInterval(matchTimer);matchTimer=null;} renderMatch(); }
   if(name==='ach')   { renderBenefit(); }
+  if(name==='fuse')  { renderFuse(); }
   if(name==='squad') { ensureLineups(); renderLineupTabs(); renderFormationBtns(); renderSquad(); }
   if(name==='home') { updateClubValue(); updateAchBadge(); }
   if(name==='collection') renderCollection();
@@ -5064,6 +5071,347 @@ function renderLineupTabs() {
 function saveSquad() { stashLineup(); saveGame(); }
 
 /* ══════════════════════════════════════════════════════════════
+   합성 — 같은 시즌 · 같은 티어 3장 + CP 수수료 → 상위 티어 1장 (랜덤)
+   중복 카드를 털면서 CP 도 함께 소모시키는 게 목적이다.
+   2장 교환도 검토했지만 일부 구간이 회수 100% 를 넘어 무한 증식이 돼서 3장으로 둔다.
+   ══════════════════════════════════════════════════════════════ */
+const FUSE_NEED = 3;
+const FUSE_FEE_RATE = 0.15;     // 결과 티어 평균가의 15% 를 수수료로
+
+/* 결과 등급 — 확률로 한 단계 위를 더 건너뛴다.
+   전 구간 회수율 34~72% 로 100% 를 넘지 않는 걸 확인하고 정한 값. */
+const FUSE_JUMP = [
+  { up:1, p:0.87, name:'성공',   color:'#d4af37', glow:'rgba(212,175,55,'  },
+  { up:2, p:0.10, name:'대성공', color:'#64c8ff', glow:'rgba(100,200,255,' },
+  { up:3, p:0.03, name:'초대박', color:'#ff5ec7', glow:'rgba(255,94,199,'  },
+];
+function fuseRollJump() {
+  const r = Math.random();
+  let c = 0;
+  for (const j of FUSE_JUMP) { c += j.p; if (r < c) return j; }
+  return FUSE_JUMP[0];
+}
+/* 사다리에서 up 단계 위 티어. 끝을 넘으면 최상위로 */
+function fuseTierUp(seasonKey, tier, up) {
+  const L = fuseLadder(seasonKey);
+  const i = L.indexOf(String(tier));
+  if (i < 0) return null;
+  return L[Math.min(i + up, L.length - 1)];
+}
+
+/* 시즌별 티어 사다리. BARÇA 는 티어가 하나라 합성 대상이 아니다. */
+function fuseSeasonKey(p) { return p.season || 'fwc'; }
+function fuseLadder(seasonKey) {
+  const want = seasonKey === 'fwc' ? null : seasonKey;
+  const tiers = {};
+  PLAYERS.forEach(p => {
+    if (p.basic || p.icon) return;
+    if ((p.season || null) !== want) return;
+    (tiers[p.tier] = tiers[p.tier] || []).push(p);
+  });
+  return Object.keys(tiers).filter(t => /^\d+$/.test(t)).sort();
+}
+function fuseNextTier(seasonKey, tier) {
+  const L = fuseLadder(seasonKey);
+  const i = L.indexOf(String(tier));
+  return (i >= 0 && i < L.length - 1) ? L[i + 1] : null;
+}
+function fusePool(seasonKey, tier) {
+  const want = seasonKey === 'fwc' ? null : seasonKey;
+  return PLAYERS.filter(p => !p.basic && !p.icon && (p.season || null) === want && p.tier === String(tier));
+}
+function fuseFee(seasonKey, nextTier) {
+  const pool = fusePool(seasonKey, nextTier);
+  if (!pool.length) return 0;
+  const avg = pool.reduce((a, p) => a + parsePriceNum(p.price), 0) / pool.length;
+  return Math.max(50, Math.round(avg * FUSE_FEE_RATE));
+}
+/* 재료로 쓸 수 있는 카드 — 판매 잠금과 같은 규칙 */
+function fuseEligible() {
+  return collection.filter(c => {
+    if (isSellLocked(c)) return false;
+    const p = PLAYERS.find(x => x.id === c.id);
+    if (!p || p.basic || p.icon) return false;
+    return !!fuseNextTier(fuseSeasonKey(p), p.tier);
+  });
+}
+/* 시즌+티어별로 몇 장 있는지 */
+function fuseGroups() {
+  const g = {};
+  fuseEligible().forEach(c => {
+    const p = PLAYERS.find(x => x.id === c.id);
+    const k = fuseSeasonKey(p) + '|' + p.tier;
+    (g[k] = g[k] || []).push(c);
+  });
+  return g;
+}
+
+let fuseKey = null;             // 고른 '시즌|티어'
+let fusePicked = new Set();     // 고른 재료 uid
+
+function openFuse() { fuseKey = null; fusePicked.clear(); switchTab('fuse'); }
+function fusePick(key) { fuseKey = key; fusePicked.clear(); renderFuse(); }
+function fuseToggle(uid) {
+  if (fusePicked.has(uid)) fusePicked.delete(uid);
+  else if (fusePicked.size < FUSE_NEED) fusePicked.add(uid);
+  renderFuse();
+}
+function fuseAuto() {
+  const g = fuseGroups()[fuseKey] || [];
+  fusePicked.clear();
+  g.slice(0, FUSE_NEED).forEach(c => fusePicked.add(c.uid));
+  renderFuse();
+}
+
+function doFuse() {
+  if (!fuseKey || fusePicked.size !== FUSE_NEED) return;
+  const [sk, tier] = fuseKey.split('|');
+  const next = fuseNextTier(sk, tier);
+  if (!next) return;
+  const fee = fuseFee(sk, next);
+  if (cp < fee) { showModal('CP가 부족합니다. (필요: ' + fmtEok(fee) + ')', [{label:'확인', cls:'ok'}]); return; }
+  const pool = fusePool(sk, next);
+  if (!pool.length) return;
+
+  const jumpTxt = FUSE_JUMP.map(j => {
+    const t = fuseTierUp(sk, tier, j.up);
+    return t + ' ' + Math.round(j.p * 100) + '%';
+  }).filter((v, i, a) => a.indexOf(v) === i).join(' / ');
+  showModal(tier + ' 등급 ' + FUSE_NEED + '장을 합성합니다.\n결과 ' + jumpTxt
+    + '\n수수료 ' + fmtEok(fee) + ' CP\n재료는 사라집니다.', [
+    {label:'합성', cls:'confirm', fn: async () => {
+      const ids = new Set(fusePicked);
+      const mats = collection.filter(c => ids.has(c.uid));
+      const jump = fuseRollJump();
+      const outTier = fuseTierUp(sk, tier, jump.up) || next;
+      const outPool = fusePool(sk, outTier);
+      const got = (outPool.length ? outPool : pool)[Math.floor(Math.random() * (outPool.length || pool.length))];
+
+      collection = collection.filter(c => !ids.has(c.uid));
+      cp -= fee;
+      const uid = Date.now() + Math.random();
+      collection.push({ ...got, uid, enhLevel: 1, trainLevel: 0 });
+      fusePicked.clear();
+      updateCPDisplay(); saveGame(); renderFuse();
+
+      await playFuseFX(mats, jump, tier, outTier);
+      showRevealCardByUid(uid);
+    }},
+    {label:'취소', cls:'cancel'}
+  ]);
+}
+
+
+/* 합성 연출 — 재료 3장이 가운데로 빨려들어가 터진다.
+   등급 점프에 따라 색과 세기가 달라진다. */
+function playFuseFX(mats, jump, fromTier, toTier) {
+  return new Promise(resolve => {
+    try {
+      if (!document.getElementById('fuseFxStyle')) {
+        const st = document.createElement('style');
+        st.id = 'fuseFxStyle';
+        st.textContent =
+            '@keyframes fzSuck{0%{opacity:0;transform:translate(-50%,-50%) scale(1) rotate(var(--r))}'
+          + '18%{opacity:1}70%{opacity:1;transform:translate(-50%,-50%) scale(.85) rotate(var(--r))}'
+          + '100%{opacity:0;transform:translate(-50%,-50%) translate(var(--tx),var(--ty)) scale(.15) rotate(0deg)}}'
+          + '@keyframes fzRing{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}'
+          + '45%{opacity:.9}100%{opacity:0;transform:translate(-50%,-50%) scale(2.6)}}'
+          + '@keyframes fzSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}'
+          + '@keyframes fzBoom{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}'
+          + '30%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}'
+          + '60%{opacity:1;transform:translate(-50%,-50%) scale(1)}'
+          + '100%{opacity:0;transform:translate(-50%,-50%) scale(1.5)}}'
+          + '@keyframes fzFlash{0%{opacity:0}45%{opacity:1}100%{opacity:0}}';
+        document.head.appendChild(st);
+      }
+    } catch (e) {}
+
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:400;background:rgba(4,6,12,.93);'
+      + 'display:flex;align-items:center;justify-content:center;overflow:hidden';
+    document.body.appendChild(ov);
+
+    const C = jump.color, G = jump.glow;
+
+    // 회전하는 링
+    const ring = document.createElement('div');
+    ring.style.cssText = 'position:absolute;top:50%;left:50%;width:210px;height:210px;border-radius:50%;'
+      + 'border:2px dashed ' + G + '.55);animation:fzSpin 3.2s linear infinite;transform:translate(-50%,-50%)';
+    ov.appendChild(ring);
+
+    // 재료 3장이 가운데로
+    const spots = [[-92, -58], [92, -58], [0, 74]];
+    mats.slice(0, 3).forEach((c, i) => {
+      const p = PLAYERS.find(x => x.id === c.id);
+      const el = document.createElement('div');
+      const [ox, oy] = spots[i] || [0, 0];
+      el.style.cssText = 'position:absolute;top:50%;left:50%;width:78px;padding:6px;border-radius:10px;'
+        + 'background:rgba(255,255,255,.06);border:1px solid ' + G + '.5);text-align:center;'
+        + '--r:' + ((i - 1) * 9) + 'deg;--tx:' + (-ox) + 'px;--ty:' + (-oy) + 'px;'
+        + 'margin-left:' + ox + 'px;margin-top:' + oy + 'px;'
+        + 'animation:fzSuck 1.5s cubic-bezier(.55,.06,.68,.19) forwards;animation-delay:' + (i * 0.1) + 's';
+      el.innerHTML = (p && IMGS[p.id] ? '<img src="' + IMGS[p.id] + '" style="width:100%;aspect-ratio:1;object-fit:contain">' : '')
+        + '<div style="font-size:9px;font-weight:900;color:#ccc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+        + (p ? p.name : '') + '</div>';
+      ov.appendChild(el);
+    });
+
+    // 등급 표시
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);'
+      + 'margin-top:-150px;font-size:13px;font-weight:900;letter-spacing:3px;color:#666';
+    lbl.textContent = fromTier;
+    ov.appendChild(lbl);
+
+    const fin = [];
+    // 1.6초 뒤 폭발
+    fin.push(setTimeout(() => {
+      const fl = document.createElement('div');
+      fl.style.cssText = 'position:absolute;inset:0;background:' + G + '.85);animation:fzFlash .5s ease-out forwards';
+      ov.appendChild(fl);
+      for (let k = 0; k < (jump.up + 1); k++) {
+        const r = document.createElement('div');
+        r.style.cssText = 'position:absolute;top:50%;left:50%;width:150px;height:150px;border-radius:50%;'
+          + 'border:3px solid ' + G + '.9);animation:fzRing .9s ease-out forwards;animation-delay:' + (k * 0.13) + 's';
+        ov.appendChild(r);
+      }
+      try { spawnParticles(C, 60 + jump.up * 40); } catch (e) {}
+      const txt = document.createElement('div');
+      txt.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;'
+        + 'animation:fzBoom 1.5s ease-out forwards';
+      txt.innerHTML = '<div style="font-size:15px;font-weight:900;letter-spacing:4px;color:' + C + ';'
+        + 'text-shadow:0 0 14px ' + G + '.8)">' + jump.name + '</div>'
+        + '<div style="font-size:40px;font-weight:900;color:#fff;line-height:1.1;margin-top:4px;'
+        + 'text-shadow:0 0 20px ' + G + '.9)">' + toTier + '</div>'
+        + (jump.up > 1 ? '<div style="font-size:12px;font-weight:900;color:' + C + ';margin-top:2px">+'
+            + jump.up + ' 등급!</div>' : '');
+      ov.appendChild(txt);
+      lbl.remove();
+    }, 1600));
+
+    fin.push(setTimeout(() => { ov.remove(); resolve(); }, 3100));
+    ov.onclick = () => { fin.forEach(clearTimeout); ov.remove(); resolve(); };   // 탭하면 건너뛰기
+  });
+}
+
+function renderFuse() {
+  const el = document.getElementById('fuseContent');
+  if (!el) return;
+  const groups = fuseGroups();
+  const keys = Object.keys(groups).sort();
+  const SN = { fwc:'FWC', tl:'TL', ul:'UL' };
+
+  if (!fuseKey || !groups[fuseKey]) {
+    fuseKey = null;
+    let html = '<div style="font-size:16px;font-weight:900;letter-spacing:1px;margin-bottom:4px">합성</div>'
+      + '<div style="font-size:11px;color:#777;margin-bottom:14px">같은 시즌 · 같은 등급 '
+      + FUSE_NEED + '장을 모으면 한 단계 위 등급 1장으로 바꿉니다.<br>'
+      + '선발·교체·기본지급 선수는 재료로 쓸 수 없습니다.</div>';
+    if (!keys.length) {
+      return void (el.innerHTML = html
+        + '<div style="padding:34px;text-align:center;color:#666;font-size:12px">합성할 수 있는 카드가 없습니다</div>');
+    }
+    html += keys.map(k => {
+      const [sk, tr] = k.split('|');
+      const n = groups[k].length;
+      const next = fuseNextTier(sk, tr);
+      const ok = n >= FUSE_NEED;
+      return '<div' + (ok ? ' onclick="fusePick(\'' + k + '\')"' : '')
+        + ' style="display:flex;align-items:center;gap:11px;padding:12px;margin-bottom:8px;border-radius:11px;'
+        + 'background:' + (ok ? 'rgba(212,175,55,.08)' : 'rgba(255,255,255,.03)') + ';'
+        + 'border:1px solid ' + (ok ? 'rgba(212,175,55,.35)' : 'rgba(255,255,255,.06)') + ';'
+        + (ok ? 'cursor:pointer' : 'opacity:.45') + '">'
+        + '<div style="font-size:11px;font-weight:900;color:#9aa;min-width:42px">' + (SN[sk] || sk) + '</div>'
+        + '<div style="flex:1"><div style="font-size:13px;font-weight:900;color:' + (ok ? '#f5d67b' : '#888') + '">'
+        + tr + ' → ' + next + '</div>'
+        + '<div style="font-size:10px;color:#777;margin-top:1px">수수료 ' + fmtEok(fuseFee(sk, next)) + ' CP</div></div>'
+        + '<div style="font-size:15px;font-weight:900;color:' + (ok ? '#fff' : '#666') + '">' + n
+        + '<span style="font-size:10px;color:#777">/' + FUSE_NEED + '</span></div></div>';
+    }).join('');
+    el.innerHTML = html;
+    return;
+  }
+
+  // 재료 고르는 화면
+  const [sk, tr] = fuseKey.split('|');
+  const next = fuseNextTier(sk, tr);
+  const fee = fuseFee(sk, next);
+  const list = groups[fuseKey];
+  const ready = fusePicked.size === FUSE_NEED;
+
+  const cards = list.map(c => {
+    const p = PLAYERS.find(x => x.id === c.id);
+    const on = fusePicked.has(c.uid);
+    return '<div onclick="fuseToggle(' + c.uid + ')" style="position:relative;padding:8px 6px;border-radius:9px;'
+      + 'text-align:center;cursor:pointer;background:' + (on ? 'rgba(212,175,55,.16)' : 'rgba(255,255,255,.04)') + ';'
+      + 'border:1px solid ' + (on ? 'rgba(212,175,55,.7)' : 'rgba(255,255,255,.07)') + '">'
+      + (IMGS[p.id] ? '<img src="' + IMGS[p.id] + '" style="width:100%;aspect-ratio:1;object-fit:contain">' : '')
+      + '<div style="font-size:10px;font-weight:900;color:#ddd;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+      + p.name + '</div>'
+      + '<div style="font-size:9px;color:#888">' + p.ovr + ' · ' + (c.enhLevel || 1) + '강</div>'
+      + (on ? '<div style="position:absolute;top:3px;right:4px;font-size:13px">✅</div>' : '') + '</div>';
+  }).join('');
+
+  el.innerHTML =
+      '<div class="back-btn" onclick="fusePick(null)" style="margin-bottom:10px">← 등급 선택</div>'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+    + '<div style="font-size:16px;font-weight:900;letter-spacing:1px">' + (SN[sk] || sk) + ' ' + tr + ' → ' + next + '</div>'
+    + '<div style="font-size:11px;font-weight:800;color:#888">' + fusePicked.size + ' / ' + FUSE_NEED + '</div></div>'
+    + '<div style="font-size:11px;color:#777;margin-bottom:10px">수수료 <b style="color:#d4af37">' + fmtEok(fee)
+    + ' CP</b> · 보유 ' + fmtEok(cp) + '</div>'
+    + '<div style="display:flex;gap:8px;margin-bottom:12px">'
+    + '<button onclick="fuseAuto()" style="flex:1;padding:10px;border:none;border-radius:9px;'
+    + 'background:rgba(255,255,255,.07);color:#ccc;font-size:12px;font-weight:800;cursor:pointer">자동 선택</button>'
+    + '<button onclick="doFuse()" ' + (ready ? '' : 'disabled ')
+    + 'style="flex:2;padding:10px;border:none;border-radius:9px;cursor:' + (ready ? 'pointer' : 'not-allowed') + ';'
+    + 'background:' + (ready ? 'linear-gradient(135deg,#d4af37,#b8912a)' : 'rgba(255,255,255,.06)') + ';'
+    + 'color:' + (ready ? '#1a1405' : '#666') + ';font-size:13px;font-weight:900">합성하기</button></div>'
+    + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px">' + cards + '</div>';
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   일일 매치 — 매일 자정 초기화. 6경기 전부 "참여"하면 보상.
+   승패는 보상 조건에 넣지 않는다 (참여만 하면 지급).
+   ══════════════════════════════════════════════════════════════ */
+const DAILY_TEAMS = [
+  {"id": 2000, "name": "Riverton Athletic", "short": "RVT", "ovr": 100, "color": "#0ea5e9", "desc": "일일 매치 1", "form": "4-4-2", "players": {"GK": "Engberg", "DF": ["Ingram", "Uggeri", "Yarrow", "Joubert"], "MF": ["Torvik", "Fontana", "Kovac", "Dorset"], "FW": ["Jerez", "Stellan"]}},
+  {"id": 2001, "name": "CD Solano", "short": "SOL", "ovr": 102, "color": "#e8a33d", "desc": "일일 매치 2", "form": "4-3-3", "players": {"GK": "Anselmi", "DF": ["Lindmark", "Pellegrin", "Ortega", "Jansen"], "MF": ["Stellan", "Nyberg", "Falkner", "Yarrow"], "FW": ["Kovac", "Jerez"]}},
+  {"id": 2002, "name": "Kastel United", "short": "KST", "ovr": 104, "color": "#15803d", "desc": "일일 매치 3", "form": "4-2-3-1", "players": {"GK": "Aldridge", "DF": ["Torvik", "Lindmark", "Joubert", "Nyberg"], "MF": ["Brunet", "Osgood", "Hveding", "Imbert"], "FW": ["Dumont", "Cavendish"]}},
+  {"id": 2003, "name": "Atlético Verano", "short": "AVR", "ovr": 106, "color": "#be123c", "desc": "일일 매치 4", "form": "3-5-2", "players": {"GK": "Ekstrand", "DF": ["Ekberg", "Urbina", "Solberg", "Jansen"], "MF": ["Kristof", "Ocampo", "Granger", "Perrault"], "FW": ["Dorset", "Kallio"]}},
+  {"id": 2004, "name": "Nordvik SC", "short": "NDV", "ovr": 108, "color": "#1e3a8a", "desc": "일일 매치 5", "form": "4-1-4-1", "players": {"GK": "Bertani", "DF": ["Hallberg", "Hveding", "Caldera", "Anselmi"], "MF": ["Lombard", "Zubiri", "Perrault", "Cavendish"], "FW": ["Lagerman", "Ferrand"]}},
+  {"id": 2005, "name": "Club Meridian", "short": "MRD", "ovr": 110, "color": "#6b21a8", "desc": "일일 매치 6", "form": "3-4-3", "players": {"GK": "Imbert", "DF": ["Uggeri", "Borghese", "Pineiro", "Osgood"], "MF": ["Zeller", "Marchand", "Lombard", "Halvard"], "FW": ["Kristof", "Ekstrand"]}}
+];
+const DAILY_CP        = 300;    // 6경기 완주 보상 (억)
+const DAILY_JACKPOT_CP = 3000;  // 1% 확률로 이쪽
+const DAILY_JACKPOT_P  = 0.01;
+
+let dailyDone   = [];   // 오늘 치른 팀 id
+let dailyDay    = '';   // dailyDone 이 가리키는 날짜
+let dailyClaim  = '';   // 완주 보상을 받은 날짜
+
+/* 날짜가 바뀌었으면 기록을 비운다 */
+function refreshDaily() {
+  const t = todayKey();
+  if (dailyDay !== t) { dailyDay = t; dailyDone = []; }
+}
+function dailyLeft() { refreshDaily(); return DAILY_TEAMS.length - dailyDone.length; }
+function dailyClaimed() { return dailyClaim === todayKey(); }
+
+/* 6경기를 다 치렀으면 보상. 돌려주는 값은 지급한 CP (없으면 0) */
+function grantDailyReward() {
+  refreshDaily();
+  if (dailyDone.length < DAILY_TEAMS.length || dailyClaimed()) return 0;
+  dailyClaim = todayKey();
+  const jack = Math.random() < DAILY_JACKPOT_P;
+  const amount = jack ? DAILY_JACKPOT_CP : DAILY_CP;
+  cp += amount;
+  updateCPDisplay(); saveGame();
+  return jack ? -amount : amount;      // 음수면 잭팟
+}
+
+
+/* ══════════════════════════════════════════════════════════════
    업적 — 달성하면 MP 를 준다. 조건은 지금 저장되는 값만으로 판정한다.
    chk() 는 true/false 만 돌려주면 되고, 매 렌더마다 다시 계산한다.
    ══════════════════════════════════════════════════════════════ */
@@ -5728,8 +6076,9 @@ function simulateMatch(me, rv) {
     let kind, mult = 1;
     if (r < 0.06)      { kind='pk';      mult = 5.5; }
     else if (r < 0.18) { kind='counter'; mult = 1.5; }
-    else if (r < 0.30) { kind='set';     mult = 1.1; }
-    else if (r < 0.40) { kind='header';  mult = 0.9; }
+    else if (r < 0.26) { kind='set';     mult = 1.1; }   // 프리킥
+    else if (r < 0.34) { kind='corner';  mult = 1.0; }   // 코너킥
+    else if (r < 0.44) { kind='header';  mult = 0.9; }
     else               { kind='open';    mult = 1; }
 
     const p = Math.min(0.92, fin * mult);
@@ -5805,7 +6154,8 @@ function simulateMatch(me, rv) {
 const MT_BUILD = {
   pk:      ['🎯 페널티킥 선언!', '🎯 페널티 박스 안에서 파울! PK!'],
   counter: ['⚡ 빠른 역습 전개!', '⚡ 순식간에 역습 상황!'],
-  set:     ['🎪 프리킥 찬스', '🎪 코너킥 상황'],
+  set:     ['🎪 위험 지역 프리킥!', '🎪 프리킥 — 벽을 세웁니다'],
+  corner:  ['🚩 코너킥 — 박스로 올라옵니다', '🚩 코너킥 찬스'],
   header:  ['🙆 크로스 — 헤더 시도!', '🙆 공중볼 경합에서 헤더!'],
   open:    ['👟 {s} 돌파 후 슛!', '👟 {s} 페널티 박스 진입!', '👟 {s} 중거리 시도!']
 };
@@ -5926,8 +6276,14 @@ let mtPhase = 0;
      2. 선수끼리 겹치지 않는다 (분리력)
      3. 흔들림은 자기 자리 근처에서만
    공을 가진 한 명만 예외로 움직이고, 나머지 21명은 자기 자리를 지킨다. */
-function mtTarget(p, side) {
+function mtTarget(p, side, idx) {
   const dir = side === 'us' ? 1 : -1;
+
+  // 골 넣은 팀은 코너 쪽으로 몰려간다
+  if (mtCeleb === side && p.celX !== undefined) return { x: p.celX, y: p.celY };
+
+  // 세트피스 배치 중이면 지정된 자리로
+  if (mtSet && p.stX !== undefined) return { x: p.stX, y: p.stY };
 
   if (p.gk) {
     const own = side === 'us' ? 6 : 94;
@@ -5954,18 +6310,35 @@ function mtTarget(p, side) {
   // 측면 자원은 공격 시 한 발 더 (오버래핑)
   const overlap = (p.wide && att > 0) ? 12 * (0.3 + 0.7 * depth) * att : 0;
 
-  const x = p.hx + (shift + overlap) * dir;
+  let x = p.hx + (shift + overlap) * dir;
 
-  /* y 는 공의 좌우 위치를 따라 대형이 살짝 기운다.
-     폭이 무너지지 않게 아주 약하게만. */
-  const y = p.hy + (mtBallY - 50) * 0.10;
+  /* y — 공의 좌우 위치를 따라 대형 전체가 그쪽으로 기운다.
+     뒷선일수록 블록처럼 크게 미끄러지고, 앞선은 폭을 유지한다. */
+  const slide = [0, 0.26, 0.20, 0.13][p.line];
+  let y = p.hy + (mtBallY - 50) * slide;
+
+  /* 공 쪽으로 가로도 아주 살짝만 모인다.
+     크게 주면 22명이 공 주변에 뭉쳐서 누가 누군지 안 보인다. */
+  x += (mtBallX - x) * 0.03;
+
+  /* 개인 움직임 — 각자 다른 위상으로 천천히 배회한다.
+     이게 없으면 목표에 도달한 뒤 그냥 멈춰 서 있다. */
+  x += Math.sin(mtPhase * 2.1 + p.ph) * 1.8;
+  y += Math.cos(mtPhase * 1.7 + p.ph * 1.4) * 2.4;
+
+  // 압박 — 공에서 제일 가까운 한 명은 공 쪽으로 달려든다
+  if (mtPress[side] === idx) {
+    const hard = (mtPoss && mtPoss !== side) ? 0.55 : 0.25;   // 상대가 가졌으면 더 강하게
+    x += (mtBallX - x) * hard;
+    y += (mtBallY - y) * hard;
+  }
 
   return { x: Math.max(5, Math.min(95, x)), y: Math.max(9, Math.min(91, y)) };
 }
 
 /* 겹침 방지. 두 점이 가까우면 서로 밀어낸다.
    이게 없으면 대형이 뭉개졌을 때 점들이 한 자리에 쌓인다. */
-const MT_MINDIST = 5.5;
+const MT_MINDIST = 7.0;
 function mtSeparate() {
   const all = [];
   mtUs.forEach((p,i) => all.push({p, side:'us', i}));
@@ -5977,11 +6350,11 @@ function mtSeparate() {
       /* 같은 팀은 넓게 벌리고, 상대 팀과는 가깝게 붙어도 된다.
          양쪽을 같은 힘으로 밀면 두 팀이 벽처럼 갈려 교전이 사라진다. */
       const same = all[a].side === all[b].side;
-      const minD = same ? MT_MINDIST : 3.0;
+      const minD = same ? MT_MINDIST : 4.6;
       let dx = B.cx - A.cx, dy = B.cy - A.cy;
       const d = Math.hypot(dx, dy);
       if (d >= minD || d === 0) continue;
-      const push = (minD - d) * (same ? 0.5 : 0.3);
+      const push = (minD - d) * (same ? 0.55 : 0.4);
       dx /= d; dy /= d;
       A.cx -= dx * push; A.cy -= dy * push;
       B.cx += dx * push; B.cy += dy * push;
@@ -5993,6 +6366,10 @@ function mtSeparate() {
    실제 축구는 슛 사이에도 계속 패스가 오가는데, 가만히 두면
    선수들이 목표에 도달한 뒤 굳어서 '끊기는' 것처럼 보인다. */
 let mtIdle = 0, mtIdleOn = false;
+let mtCeleb = null;   // 세리머니 중인 팀 ('us'/'them')
+let mtPress = { us: -1, them: -1 };   // 공에 달려드는 선수 (팀별 1명)
+let mtSet = null;     // 세트피스 배치 중이면 {side}
+let mtSeq = 0;        // 진행 중인 공격 장면 번호. 새 장면이 시작되면 옛 타이머는 버린다
 
 function mtIdlePass() {
   if (!mtBallOwner) {
@@ -6025,17 +6402,39 @@ function mtTick() {
   mtCarryStep();
   mtBallStep();
 
+  /* 공에서 가장 가까운 선수 1명을 팀마다 골라 압박시킨다.
+     이게 없으면 22명이 각자 제 자리만 지켜서 전방만 움직이는 그림이 된다. */
+  [['us', mtUs], ['them', mtThem]].forEach(([side, arr]) => {
+    let best = -1, bd = 1e9;
+    arr.forEach((p, i) => {
+      if (p.gk) return;
+      if (mtBallOwner && mtBallOwner.side === side && mtBallOwner.idx === i) return;
+      const d = Math.hypot(p.cx - mtBallX, p.cy - mtBallY);
+      if (d < bd) { bd = d; best = i; }
+    });
+    // 너무 먼 선수가 공을 쫓아 대형을 무너뜨리지 않게 거리 제한
+    mtPress[side] = (bd < 26) ? best : -1;
+  });
+
   [['us', mtUs], ['them', mtThem]].forEach(([side, arr]) => {
     arr.forEach((p, i) => {
       if (mtBallOwner && mtBallOwner.side === side && mtBallOwner.idx === i) return;
-      const t = mtTarget(p, side);
+      const t = mtTarget(p, side, i);
       /* 흔들림(sway)은 넣지 않는다. 목표에 도달한 뒤에도 계속 미세하게
          움직여서 '제자리에서 떠는' 것처럼 보인다. */
       let dx = (t.x - p.cx) * 0.045, dy = (t.y - p.cy) * 0.045;
       // 속도 제한 — 사람이 뛰는 속도를 넘지 않는다 (초당 최대 18%)
       const v = Math.hypot(dx, dy);
-      if (v > 0.35) { dx = dx / v * 0.35; dy = dy / v * 0.35; }
-      p.cx += dx; p.cy += dy;
+      const cap = ((mtCeleb === side || (mtSet && mtSet.restart)) && !p.gk) ? 0.6 : 0.35;   // 세리머니·킥오프 복귀는 전력질주
+      if (v > cap) { dx = dx / v * cap; dy = dy / v * cap; }
+      /* 목표가 바뀌는 순간 최고 속도로 튀어나가면 '급발진'처럼 보인다.
+         원하는 속도까지 서서히 붙였다가 서서히 줄인다. */
+      if (p.vx === undefined) { p.vx = 0; p.vy = 0; }
+      p.vx += (dx - p.vx) * 0.10;
+      p.vy += (dy - p.vy) * 0.10;
+      if (Math.abs(p.vx) < 0.004) p.vx = 0;
+      if (Math.abs(p.vy) < 0.004) p.vy = 0;
+      p.cx += p.vx; p.cy += p.vy;
     });
   });
 
@@ -6103,11 +6502,15 @@ function mtCarryStep() {
   const el = mtDotEl(side, idx);
   if (!el || !p) { mtCarry = null; return; }
   // 목표까지 한 번에 가지 않고 조금씩. 남은 거리의 42%씩 좁힌다.
-  let dx = (tx - p.cx) * 0.05, dy = (ty - p.cy) * 0.05;
-  const MAXV = 0.45;                          // 드리블은 조금 빠르게
+  let dx = (tx - p.cx) * 0.07, dy = (ty - p.cy) * 0.07;
+  const MAXV = 0.5;                           // 드리블은 조금 빠르게
   const v = Math.hypot(dx, dy);
   if (v > MAXV) { dx = dx / v * MAXV; dy = dy / v * MAXV; }
-  const nx = p.cx + dx, ny = p.cy + dy;
+  // 공 잡은 선수도 가속을 거친다
+  if (p.vx === undefined) { p.vx = 0; p.vy = 0; }
+  p.vx += (dx - p.vx) * 0.14;
+  p.vy += (dy - p.vy) * 0.14;
+  const nx = p.cx + p.vx, ny = p.cy + p.vy;
   p.cx = nx; p.cy = ny;
   el.style.left = nx.toFixed(1) + '%';
   el.style.top  = ny.toFixed(1) + '%';
@@ -6153,6 +6556,9 @@ function mtPickIdx(arr, line) {
    빌드업 → 전진 패스 → 침투 → 슛. 각 단계마다 공 위치가 바뀌고
    그때마다 22명 전원이 반응한다. */
 function mtBuildPhase(ev) {
+  // 코너킥·프리킥·PK 는 중앙선부터 몰고 오지 않는다. 그 자리에서 시작한다.
+  if (ev.kind === 'corner' || ev.kind === 'set' || ev.kind === 'pk') return mtStagePiece(ev);
+  mtClearSet();
   mtIdleOn = false;   // 연출 중엔 자동 패스 정지
   const side = ev.mine ? 'us' : 'them';
   const arr  = ev.mine ? mtUs : mtThem;
@@ -6164,8 +6570,98 @@ function mtBuildPhase(ev) {
   mtTick();
 }
 
+/* 세트피스 배치 — 코너킥 / 프리킥 / PK.
+   공을 제자리에 놓고 양 팀을 그 상황에 맞게 세운다.
+   일반 공격처럼 중앙선부터 몰고 오면 다 똑같아 보인다. */
+function mtStagePiece(ev) {
+  mtIdleOn = false;
+  mtCarry = null;
+  mtBallOwner = null;
+  const side = ev.mine ? 'us' : 'them';
+  const foe  = ev.mine ? 'them' : 'us';
+  const atk  = ev.mine ? mtUs : mtThem;
+  const def  = ev.mine ? mtThem : mtUs;
+  ev._side = side;
+  mtPoss = side;
+  mtAttTarget = ev.mine ? 1 : -1;
+  document.querySelectorAll('.mt-dot.act').forEach(d => d.classList.remove('act'));
+
+  const gx = ev.mine ? 97 : 3;      // 골문 x
+  const dir = ev.mine ? 1 : -1;
+
+  let bx, by;
+  if (ev.kind === 'corner') {
+    bx = ev.mine ? 98.5 : 1.5;
+    by = Math.random() < 0.5 ? 6 : 94;        // 위/아래 코너
+  } else if (ev.kind === 'pk') {
+    bx = ev.mine ? 89 : 11; by = 50;
+  } else {                                     // 프리킥
+    bx = ev.mine ? 78 + Math.random() * 6 : 22 - Math.random() * 6;
+    by = 30 + Math.random() * 40;
+  }
+  ev._bx = bx; ev._by = by;
+
+  // 공격 팀 배치
+  atk.forEach((p, i) => {
+    if (p.gk) { p.stX = ev.mine ? 12 : 88; p.stY = 50; return; }
+    if (ev.kind === 'pk') {
+      // 박스 밖에 늘어선다
+      p.stX = ev.mine ? 72 - (i % 3) * 4 : 28 + (i % 3) * 4;
+      p.stY = 18 + (i * 7) % 64;
+    } else if (ev.kind === 'corner') {
+      // 박스 안에 몰린다
+      p.stX = gx - dir * (6 + Math.random() * 9);
+      p.stY = 34 + Math.random() * 32;
+    } else {
+      p.stX = gx - dir * (7 + Math.random() * 12);
+      p.stY = 28 + Math.random() * 44;
+    }
+  });
+
+  // 수비 팀 배치 — 프리킥이면 벽, 코너면 박스 안 맨마킹
+  let wall = 0;
+  def.forEach((p, i) => {
+    if (p.gk) { p.stX = gx - dir * 1.5; p.stY = 50; return; }   // 골라인
+    if (ev.kind === 'pk') {
+      p.stX = ev.mine ? 74 + (i % 3) * 3 : 26 - (i % 3) * 3;
+      p.stY = 20 + (i * 9) % 60;
+    } else if (ev.kind === 'set' && wall < 4 && p.line <= 2) {
+      // 공에서 골문 쪽으로 9% 떨어진 지점에 벽
+      const t = 0.30;
+      p.stX = bx + (gx - bx) * t;
+      p.stY = by + (50 - by) * t + (wall - 1.5) * 3.2;
+      wall++;
+    } else {
+      p.stX = gx - dir * (4 + Math.random() * 11);
+      p.stY = 32 + Math.random() * 36;
+    }
+  });
+
+  mtSet = { side, until: 0 };
+  mtBallTo(bx, by, false);
+  mtTick();
+}
+function mtClearSet() {
+  mtSet = null;
+  [mtUs, mtThem].forEach(arr => arr.forEach(p => { p.stX = undefined; p.stY = undefined; }));
+}
+
+/* 키커가 공 앞에 선다 (세트피스의 '전진' 단계 대체) */
+function mtPieceRunUp(ev) {
+  const arr = ev.mine ? mtUs : mtThem;
+  const idx = mtPickIdx(arr, ev.kind === 'corner' ? 2 : 3);
+  ev._shooter = idx;
+  const p = arr[idx];
+  if (!p) return;
+  p.stX = ev._bx - (ev.mine ? 1 : -1) * 3;
+  p.stY = ev._by + (ev._by > 50 ? -3 : 3);
+  const el = mtDotEl(ev._side, idx);
+  if (el) el.classList.add('act');
+}
+
 // 중간 패스 — 미드필더를 거쳐 전진
 function mtPassPhase(ev) {
+  if (mtSet) return;           // 세트피스는 중간 패스가 없다
   const side = ev._side;
   const arr  = ev.mine ? mtUs : mtThem;
   const idx  = mtPickIdx(arr, 2);
@@ -6174,6 +6670,7 @@ function mtPassPhase(ev) {
 }
 
 function mtAdvancePhase(ev) {
+  if (mtSet) return mtPieceRunUp(ev);    // 키커가 공 앞에 선다
   const side = ev._side;
   const arr  = ev.mine ? mtUs : mtThem;
   const shooter = mtPickIdx(arr, 3);
@@ -6190,7 +6687,20 @@ function mtAdvancePhase(ev) {
   setTimeout(() => mtCarryTo(sx, sy), 120);
 }
 
-function mtShootPhase(ev) {
+function mtShootPhase(ev, wait, onShot) {
+  if (mtSet) mtClearSet();     // 공이 떠나면 배치 해제, 다시 평소 대형으로
+  /* 슈터가 아직 침투 중이면 잠깐 기다린다.
+     기다리지 않으면 중원에서 공을 차는데 골이 들어가는 그림이 나온다. */
+  if (mtCarry) {
+    const arr = mtCarry.side === 'us' ? mtUs : mtThem;
+    const p = arr[mtCarry.idx];
+    const far = p && (Math.abs(mtCarry.tx - p.cx) > 4 || Math.abs(mtCarry.ty - p.cy) > 4);
+    if (far && (wait || 0) < 8) {
+      const seq = mtSeq;
+      setTimeout(() => { if (seq === mtSeq) mtShootPhase(ev, (wait || 0) + 1, onShot); }, 90);
+      return;
+    }
+  }
   mtCarry = null;
   const goalX = ev.mine ? 97 : 3;
   document.querySelectorAll('.mt-dot.act').forEach(d => d.classList.remove('act'));
@@ -6215,9 +6725,19 @@ function mtShootPhase(ev) {
     // 빗나감은 골문 밖으로 확실히
     default:        mtBallTo(ev.mine ? 99 : 1, Math.random()<0.5?26:74, true);
   }
+  if (onShot) onShot();
 }
 
 function mtKickoff() {
+  mtClearCeleb();
+  mtClearSet();
+  /* 골이 들어가면 양 팀은 자기 진영으로 물러나 중앙선에서 다시 시작한다.
+     좌표를 직접 찍으면 또 순간이동이 되므로 목표만 정하고 뛰어가게 둔다. */
+  mtUs.forEach(p   => { p.stX = Math.min(p.hx, 47); p.stY = p.hy; });
+  mtThem.forEach(p => { p.stX = Math.max(p.hx, 53); p.stY = p.hy; });
+  mtSet = { side: null, restart: true };
+  setTimeout(() => { if (mtSet && mtSet.restart) mtClearSet(); }, 1500);
+  mtPoss = null; mtAtt = 0; mtAttTarget = 0;
   mtBallOwner = null;
   mtBallX = 50; mtBallY = 50;
   document.querySelectorAll('.mt-dot.act').forEach(d => d.classList.remove('act'));
@@ -6229,22 +6749,24 @@ function mtKickoff() {
 /* 골 연출 — 넣은 줄 모르면 안 된다. */
 /* 골 세리머니 — 득점 선수가 코너 쪽으로 달려가고 동료가 몰려든다.
    골이 나도 화면이 그대로면 '공만 찼는데 골'처럼 보인다. */
+/* 세리머니.
+   전에는 좌표를 직접 찍어서 10명이 한 프레임에 순간이동했다.
+   목표만 정해두고 평소 이동 로직으로 달려가게 한다. */
 function mtCelebrate(mine) {
   const side = mine ? 'us' : 'them';
   const arr  = mine ? mtUs : mtThem;
   const cx = mine ? 88 : 12;
   const cy = 22;
-  arr.forEach((p, i) => {
+  mtCeleb = side;
+  arr.forEach(p => {
     if (p.gk) return;
-    const el = mtDotEl(side, i);
-    if (!el) return;
-    const jx = (Math.random() - 0.5) * 14;
-    const jy = (Math.random() - 0.5) * 14;
-    p.cx = Math.max(6, Math.min(94, cx + jx));
-    p.cy = Math.max(10, Math.min(90, cy + jy));
-    el.style.left = p.cx.toFixed(1) + '%';
-    el.style.top  = p.cy.toFixed(1) + '%';
+    p.celX = Math.max(6,  Math.min(94, cx + (Math.random() - 0.5) * 14));
+    p.celY = Math.max(10, Math.min(90, cy + (Math.random() - 0.5) * 14));
   });
+}
+function mtClearCeleb() {
+  mtCeleb = null;
+  [mtUs, mtThem].forEach(arr => arr.forEach(p => { p.celX = undefined; p.celY = undefined; }));
 }
 
 function mtGoalEffect(mine) {
@@ -6262,6 +6784,7 @@ function mtGoalEffect(mine) {
 }
 
 function renderMatch() {
+  if (matchMode === 'daily') return renderDailyList();
   if (matchMode !== 'world') return renderMatchList();
   return worldRegion ? renderWorldRegion() : renderWorldList();
 }
@@ -6271,7 +6794,8 @@ function matchTabsHTML() {
     + 'border-radius:8px;font-size:12px;font-weight:900;cursor:pointer;'
     + (matchMode===k ? 'background:linear-gradient(135deg,#d4af37,#b8912a);color:#1a1405'
                      : 'background:rgba(255,255,255,.06);color:#888') + '">'+lbl+'</button>';
-  return '<div style="display:flex;gap:8px;margin-bottom:12px">'+btn('rival','도장깨기')+btn('world','월드')+'</div>';
+  return '<div style="display:flex;gap:7px;margin-bottom:12px">'
+    + btn('rival','도장깨기') + btn('world','월드') + btn('daily','일일') + '</div>';
 }
 
 /* ══ 월드 ══
@@ -6408,6 +6932,61 @@ function renderWorldRegion() {
     + rows;
 }
 
+/* ══ 일일 매치 목록 ══ */
+function renderDailyList() {
+  matchMode = 'daily'; matchView = 'list';
+  refreshDaily();
+  const me = myTeamPower();
+  const myOvr = Math.round(me.ovr);
+  const done = dailyDone.length, total = DAILY_TEAMS.length;
+  const claimed = dailyClaimed();
+
+  const rows = DAILY_TEAMS.map(t => {
+    const played = dailyDone.indexOf(t.id) >= 0;
+    const click = played ? '' : ' onclick="openDailyPre(' + t.id + ')"';
+    return '<div class="mt-stage' + (played ? ' cleared' : '') + '"' + click + '>'
+      + '<div class="mt-badge" style="background:' + t.color + '">' + t.short + '</div>'
+      + '<div class="mt-info"><div class="mt-name">' + t.name + '</div>'
+      + '<div class="mt-desc">' + (played ? '오늘 참여 완료' : 'OVR ' + t.ovr) + '</div></div>'
+      + '<div class="mt-ovr" style="color:' + (played ? '#555' : '#f87171') + '">' + t.ovr + '</div>'
+      + (played ? '<div class="mt-chk">✔</div>' : '') + '</div>';
+  }).join('');
+
+  const pct = done / total * 100;
+  const bar = '<div style="padding:11px 13px;border-radius:10px;background:rgba(255,255,255,.05);margin-bottom:14px">'
+    + '<div style="display:flex;justify-content:space-between;font-size:10px;font-weight:800;color:#888;margin-bottom:5px">'
+    + '<span>오늘 완주 보상</span><span style="color:#60a5fa">' + fmtEok(DAILY_CP) + ' CP</span></div>'
+    + '<div style="height:7px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden">'
+    + '<i style="display:block;height:100%;width:' + pct + '%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></i></div>'
+    + '<div style="font-size:10px;font-weight:800;color:#aaa;margin-top:5px;text-align:right">' + done + ' / ' + total + '</div>'
+    + (claimed
+        ? '<div style="margin-top:8px;font-size:11px;font-weight:800;color:#4ade80;text-align:center">오늘 보상 수령 완료</div>'
+        : '<div style="margin-top:8px;font-size:10px;color:#777;text-align:center">'
+          + '매일 1% 확률로 ' + fmtEok(DAILY_JACKPOT_CP) + ' CP</div>')
+    + '</div>';
+
+  document.getElementById('matchView').innerHTML =
+      matchTabsHTML()
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+    + '<div style="font-size:16px;font-weight:900;letter-spacing:1px">일일 매치</div>'
+    + '<div style="font-size:11px;font-weight:800;color:#888">우리 팀 <span style="color:#d4af37;font-size:15px">'
+    + myOvr + '</span></div></div>'
+    + '<div style="font-size:11px;font-weight:700;color:#777;margin-bottom:12px">매일 자정에 초기화됩니다</div>'
+    + bar + rows;
+}
+
+function openDailyPre(id) {
+  refreshDaily();
+  if (dailyDone.indexOf(id) >= 0) return;
+  const me = myTeamPower();
+  if (me.filled < 11) {
+    showModal('선발 11명을 모두 채워야 경기할 수 있습니다. (현재 ' + me.filled + '명)', [{label:'확인', cls:'ok'}]);
+    return;
+  }
+  matchMode = 'daily';
+  openMatchPre(id);
+}
+
 function openWorldPre(id) {
   const t = WORLD_TEAMS.find(x => x.id === id);
   if (!t) return;
@@ -6456,7 +7035,8 @@ function renderMatchList() {
 }
 
 function openMatchPre(id) {
-  const t = (matchMode === 'world' ? WORLD_TEAMS : RIVAL_TEAMS).find(x => x.id === id);
+  const pool = matchMode === 'world' ? WORLD_TEAMS : matchMode === 'daily' ? DAILY_TEAMS : RIVAL_TEAMS;
+  const t = pool.find(x => x.id === id);
   if (!t) return;
   const me = myTeamPower();
   if (me.filled < 11) {
@@ -6492,6 +7072,13 @@ function openMatchPre(id) {
     + '<span style="color:#60a5fa">DF</span> '+t.players.DF.join(' · ')+'<br>'
     + '<span style="color:#d4af37">GK</span> '+t.players.GK+'</div></div>'
     + (function(){
+        if (matchMode === 'daily') {
+          return '<div style="padding:10px;border-radius:9px;background:rgba(96,165,250,.08);'
+            + 'border:1px solid rgba(96,165,250,.3);margin-bottom:12px">'
+            + '<div style="font-size:10px;font-weight:900;color:#60a5fa;margin-bottom:4px">일일 매치</div>'
+            + '<div style="font-size:11px;font-weight:800;color:#fff">승패 상관없이 참여만 하면 기록됩니다<br>'
+            + '오늘 6경기 완주 시 ' + fmtEok(DAILY_CP) + ' CP</div></div>';
+        }
         if (matchMode === 'world') {
           const done = worldCleared.indexOf(t.id) >= 0;
           return '<div style="padding:10px;border-radius:9px;background:rgba(74,222,128,.07);'
@@ -6518,6 +7105,9 @@ function openMatchPre(id) {
 function startMatch() {
   const t = matchStage;
   if (!t) return;
+  /* 앞 경기 타이머가 살아 있으면 두 경기의 장면이 섞여서 서로를 잘라먹는다. */
+  if (matchTimer) { clearInterval(matchTimer); matchTimer = null; }
+  mtSeq++; mtClearSet(); mtClearCeleb();
   matchView = 'live';
   const me = myTeamPower();
   const rv = rivalPower(t);
@@ -6568,31 +7158,36 @@ function playMatch(R) {
       return;
     }
 
-    while (idx < R.events.length && R.events[idx].min <= min) {
+    // 같은 분에 이벤트가 겹치면 장면이 동시에 시작돼 앞 장면이 잘린다. 한 틱에 하나만 처리한다.
+    if (idx < R.events.length && R.events[idx].min <= min) {
       const e = R.events[idx++];
       if (e.type === 'yellow' || e.type === 'red') {
         mtBallTo(30 + Math.random()*40, 20 + Math.random()*60);
         mtBallOwner = null;
         mtTick();
         mtPush('<div class="mt-ev-min">'+e.min+'</div><div class="mt-ev-txt">'+mtResultText(e)+'</div>');
-        continue;
+        return;
       }
       /* 1단계: 빌드업 — 공이 그 위치로 가고 선수들이 따라 움직인다.
          텍스트도 같이 띄워야 화면과 글이 어긋나지 않는다. */
+      const seq = ++mtSeq;   // 이 장면의 번호
       mtBuildPhase(e);
       const node = mtPush('<div class="mt-ev-min">'+e.min+'</div><div class="mt-ev-txt" style="color:#888">'
         + (e.mine ? '' : '<span style="color:#f87171">[상대] </span>') + mtBuildText(e) + '</div>', ' build');
 
       // 2단계: 중원으로 전진 패스
-      setTimeout(() => { if (node && node.parentNode) mtPassPhase(e); }, 900);
+      setTimeout(() => { if (seq === mtSeq && node && node.parentNode) mtPassPhase(e); }, 900);
       // 3단계: 슈터에게 연결 → 골문 앞까지 침투
-      setTimeout(() => { if (node && node.parentNode) mtAdvancePhase(e); }, 2000);
+      setTimeout(() => { if (seq === mtSeq && node && node.parentNode) mtAdvancePhase(e); }, 2000);
       // 4단계: 슛
       setTimeout(() => {
+        if (seq !== mtSeq) return;
         if (!node || !node.parentNode) return;
-        mtShootPhase(e);
         // 골이면 공이 골망에 닿는 순간 바로 연출. 기다리게 하면 김이 샌다.
-        if (e.type === 'goal') setTimeout(() => mtGoalEffect(e.mine), 380);
+        // 슈터 침투가 늦어지면 슛도 밀리므로, 실제로 슛이 나간 뒤에 맞춰 띄운다.
+        mtShootPhase(e, 0, () => {
+          if (e.type === 'goal') setTimeout(() => mtGoalEffect(e.mine), 380);
+        });
       }, 4000);
 
       /* 3단계: 공이 도착한 다음에 결과 텍스트.
@@ -6617,7 +7212,7 @@ function playMatch(R) {
           + mtResultText(e) + extra + '</div>';
 
         if (isGoal) {
-          waiting += 13;   // GOAL 연출을 볼 시간
+          waiting += 26;   // GOAL 연출 + 세리머니 + 킥오프 복귀까지 (약 3.4초)
           const s = score();
           if (s) { s.textContent = g1 + ' - ' + g2; s.classList.remove('pop'); void s.offsetWidth; s.classList.add('pop'); }
           const box = document.getElementById('mtScoreBox');
@@ -6625,7 +7220,7 @@ function playMatch(R) {
             box.classList.add(e.mine ? 'flashg' : 'flashr'); }
         }
       }, 4450);
-      waiting += 24;   // 공이 날아가고 결과가 뜰 때까지 시계를 멈춘다
+      waiting += 42;   // 연출이 끝날 때까지 시계를 멈춘다 (슛 대기 포함 최대 5.2초)
     }
 
     if (min >= 90) {
@@ -6659,13 +7254,19 @@ function showMatchResult() {
   const won = R.myG > R.rvG, drew = R.myG === R.rvG;
   achBump('matchPlay');
   if (won) achBump('matchWin');
+  const isDaily = (matchMode === 'daily');
   const isWorld = (matchMode === 'world');
   const first = won && (isWorld ? worldCleared.indexOf(t.id) < 0 : matchCleared.indexOf(t.id) < 0);
   const idx = RIVAL_TEAMS.indexOf(t);
 
   // 보상 지급. 승리해야만 준다 — 무승부·패배는 경기권만 소모.
-  let reward = null, milestones = [], regionClears = [];
-  if (won && isWorld) {
+  let reward = null, milestones = [], regionClears = [], dailyGot = 0;
+  if (isDaily) {
+    refreshDaily();
+    if (dailyDone.indexOf(t.id) < 0) dailyDone.push(t.id);   // 승패 무관, 참여로 기록
+    dailyGot = grantDailyReward();
+    saveGame();
+  } else if (won && isWorld) {
     reward = { cp: WORLD_WIN_CP };
     if (first) { worldCleared.push(t.id); addLevelPoints(50, 'match'); }
     grantMatchReward(reward);
@@ -6723,6 +7324,11 @@ function showMatchResult() {
     + '<button onclick="renderMatch()" style="flex:1;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#4ade80,#22a35a);color:#06210f;font-size:12px;font-weight:900;cursor:pointer">단계 선택</button></div>';
 
   worldMilestonePopup(milestones, regionClears);
+  if (dailyGot) {
+    const jack = dailyGot < 0, amt = Math.abs(dailyGot);
+    setTimeout(() => showModal((jack ? '🎰 대박!\n' : '📅 일일 매치 완주!\n')
+      + fmtEok(amt) + ' CP 획득' + (jack ? '\n(1% 확률 보상)' : ''), [{label:'확인', cls:'ok'}]), 400);
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -8583,6 +9189,7 @@ function saveGame() {
       pachTickets, pachBoard, pachOpened, pachHints, pachHinted,
       svTickets, svPoints, svActive, svBoostRuns, svRevived,
       scTickets, scCount, ulBlind, worldCleared, worldClaimed, worldRegionClaimed, transTokens, achClaimed, achStats, attDays, attLast, mailClaimed,
+      dailyDone, dailyDay, dailyClaim,
       clubName, playerLv, levelPts, mpSpentAcc, levelPending,
       matchCleared, scoutUsed, scoutDay,
       lineups, lineupIdx
@@ -8646,6 +9253,9 @@ function loadGame() {
   if (typeof s.attDays === 'number') attDays = s.attDays;
   if (typeof s.attLast === 'string') attLast = s.attLast;
   if (Array.isArray(s.mailClaimed)) mailClaimed = s.mailClaimed;
+  if (Array.isArray(s.dailyDone)) dailyDone = s.dailyDone;
+  if (typeof s.dailyDay === 'string') dailyDay = s.dailyDay;
+  if (typeof s.dailyClaim === 'string') dailyClaim = s.dailyClaim;
   if (typeof s.clubName === 'string') clubName = s.clubName;
   if (typeof s.playerLv === 'number') playerLv = s.playerLv;
   if (typeof s.levelPts === 'number') levelPts = s.levelPts;
