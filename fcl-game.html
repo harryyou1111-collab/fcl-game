@@ -5147,6 +5147,30 @@ function lvPitchCSS() {
     background:radial-gradient(ellipse,rgba(125,255,212,.16),transparent 70%)}
   .lvp.mate.hot::before{border-color:#7dffd4;border-style:solid;
     background:radial-gradient(ellipse,rgba(125,255,212,.4),transparent 72%)}
+  .lvout{position:absolute;left:0;right:0;background:#1f5a31}
+  .lvnet{position:absolute;z-index:3;border:2px solid rgba(255,255,255,.85);
+    background:repeating-linear-gradient(45deg,rgba(255,255,255,.35) 0 1px,transparent 1px 7px),
+               repeating-linear-gradient(-45deg,rgba(255,255,255,.35) 0 1px,transparent 1px 7px),rgba(0,0,0,.18)}
+  .lvpost{position:absolute;z-index:4;width:1.4%;aspect-ratio:1;border-radius:50%;background:#fff;
+    transform:translate(-50%,-50%);box-shadow:0 0 3px rgba(0,0,0,.6)}
+  .lvspot{position:absolute;width:1%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.7);transform:translate(-50%,-50%)}
+  .lvgoal{position:absolute;left:0;right:0;top:34%;z-index:60;text-align:center;pointer-events:none;
+    opacity:0;transform:scale(.6);transition:opacity .25s,transform .35s cubic-bezier(.2,1.6,.4,1)}
+  .lvgoal.on{opacity:1;transform:scale(1)}
+  .lvgoal b{display:block;font-size:46px;font-weight:900;letter-spacing:3px;color:#fff;
+    text-shadow:0 0 18px rgba(255,214,90,.9),0 4px 0 #b8870b,0 6px 12px rgba(0,0,0,.6)}
+  .lvgoal.opp b{text-shadow:0 0 18px rgba(255,90,90,.9),0 4px 0 #8b1d1d,0 6px 12px rgba(0,0,0,.6)}
+  .lvgoal span{display:inline-block;margin-top:6px;padding:4px 12px;border-radius:12px;
+    background:rgba(10,14,24,.85);color:#fff;font-size:13px;font-weight:900}
+  .lvset{position:absolute;left:50%;top:14%;z-index:55;transform:translateX(-50%);pointer-events:none;
+    padding:6px 14px;border-radius:14px;background:rgba(10,14,24,.85);color:#fff;font-size:14px;
+    font-weight:900;letter-spacing:1px;opacity:0;transition:opacity .2s}
+  .lvset.on{opacity:1}
+  .lvtag{position:absolute;z-index:25;transform:translate(-50%,-100%);pointer-events:none;
+    padding:2px 7px;border-radius:9px;font-size:10px;font-weight:900;white-space:nowrap;
+    background:rgba(10,14,24,.82);color:#fff;border:1px solid rgba(255,255,255,.25)}
+  .lvtag.us{border-color:#5b8def;color:#cfe0ff}
+  .lvtag.them{border-color:#e05252;color:#ffd4d4}
   .lvball{position:absolute;width:3%;aspect-ratio:1;border-radius:50%;z-index:20;
     transform:translate(-50%,-50%);
     background:radial-gradient(circle at 34% 30%,#fff 0%,#e4e4e4 58%,#b0b0b0 100%);
@@ -5168,22 +5192,33 @@ function lvPitchHTML() {
     dots += '<div class="lvp" id="lvt' + i + '"><i class="lg a"></i><i class="lg b"></i>'
           + '<i class="bd" style="background:#d63a3a"></i><i class="hd"></i></div>';
   }
+  const T = x => lvScrT(x, 50);                       // 내부 x → 화면 top %
+  const H = dx => dx * (100 - 2 * LV_NET) / 100;      // 길이 → 화면 높이 %
+  const hl = (x, extra) => '<div class="lvline" style="left:0;right:0;top:' + T(x) + '%;height:2px' + (extra || '') + '"></div>';
+  const box = (y0, y1, xa, xb) => '<div class="lvbox" style="left:' + y0 + '%;width:' + (y1 - y0)
+        + '%;top:' + T(Math.max(xa, xb)) + '%;height:' + H(Math.abs(xa - xb)) + '%"></div>';
+  // 골망 — 골라인 바깥
+  const net = (top) => '<div class="lvnet" style="left:38%;width:24%;top:' + (top ? 0 : (100 - LV_NET)) + '%;height:' + LV_NET + '%"></div>';
   return '<div class="lvcam" id="lvCam"><div class="lvfield" id="lvField">'
-    // 중앙선 · 센터서클
-    + '<div class="lvline" style="left:0;right:0;top:50%;height:2px"></div>'
-    + '<div class="lvbox" style="left:32%;top:calc(50% - 9%);width:36%;aspect-ratio:1;border-radius:50%"></div>'
-    // 상대 골문 (위)
-    + '<div class="lvbox" style="left:22%;top:0;width:56%;height:15%;border-top:none"></div>'
-    + '<div class="lvbox" style="left:36%;top:0;width:28%;height:6%;border-top:none"></div>'
-    + '<div class="lvline" style="left:38%;width:24%;top:0;height:4px;background:#fff"></div>'
-    // 우리 골문 (아래)
-    + '<div class="lvbox" style="left:22%;bottom:0;width:56%;height:15%;border-bottom:none"></div>'
-    + '<div class="lvbox" style="left:36%;bottom:0;width:28%;height:6%;border-bottom:none"></div>'
-    + '<div class="lvline" style="left:38%;width:24%;bottom:0;height:4px;background:#fff"></div>'
+    + '<div class="lvout" style="top:0;height:' + LV_NET + '%"></div>'
+    + '<div class="lvout" style="bottom:0;height:' + LV_NET + '%"></div>'
+    + hl(100) + hl(0) + hl(50)
+    + '<div class="lvbox" style="left:32%;top:calc(' + T(50) + '% - 5.6%);width:36%;aspect-ratio:1;border-radius:50%"></div>'
+    // 상대 진영 (위)
+    + box(22, 78, 100, 85) + box(36, 64, 100, 94)
+    + '<div class="lvspot" style="left:50%;top:' + T(89) + '%"></div>'
+    // 우리 진영 (아래)
+    + box(22, 78, 0, 15) + box(36, 64, 0, 6)
+    + '<div class="lvspot" style="left:50%;top:' + T(11) + '%"></div>'
+    + net(true) + net(false)
+    // 골대 기둥
+    + '<div class="lvpost" style="left:38%;top:' + T(100) + '%"></div><div class="lvpost" style="left:62%;top:' + T(100) + '%"></div>'
+    + '<div class="lvpost" style="left:38%;top:' + T(0) + '%"></div><div class="lvpost" style="left:62%;top:' + T(0) + '%"></div>'
     + dots
     + '<div class="lvball" id="lvBall"></div>'
-    + '<div class="lvaim" id="lvAim" style="display:none"></div>'
-    + '</div></div>';
+    + '<div class="lvtag" id="lvTag" style="display:none"></div>'
+    + '</div><div class="lvgoal" id="lvGoalBox"><b>GOAL!</b><span id="lvGoalWho"></span></div>'
+    + '<div class="lvset" id="lvSetBox"></div></div>';
 }
 
 /* 카메라 — 공을 화면 가운데에 두고 위아래로 따라간다.
@@ -5207,11 +5242,14 @@ function lvCamPaint() {
   f.style.transform = 'translate(' + tx.toFixed(2) + '%,' + ty.toFixed(2) + '%)';
 }
 
-/* 내부 좌표 → 화면 % (세로로 눕힌다) */
+/* 내부 좌표 → 화면 % (세로로 눕힌다)
+   위아래 LV_NET % 는 골라인 뒤 골망 공간이다. 전에는 경기장 끝이 곧 골라인이라
+   공이 들어갈 곳이 없어 벽에 차는 느낌이었다. */
+const LV_NET = 3;
 function lvScrL(x, y) { return y; }
-function lvScrT(x, y) { return 100 - x; }
+function lvScrT(x, y) { return LV_NET + (100 - x) * (100 - 2 * LV_NET) / 100; }
 /* 화면 % → 내부 좌표 */
-function lvFromScr(l, t) { return { x: 100 - t, y: l }; }
+function lvFromScr(l, t) { return { x: 100 - (t - LV_NET) * 100 / (100 - 2 * LV_NET), y: l }; }
 
 
 /* ══════════════════════════════════════════════════════════════
@@ -5232,18 +5270,18 @@ function lvPadCSS() {
   .lvpad{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;
     touch-action:none;user-select:none}
   .lvstick{position:relative;width:34vw;max-width:150px;aspect-ratio:1;border-radius:50%;
-    background:radial-gradient(circle,rgba(255,255,255,.07),rgba(255,255,255,.02));
-    border:1.5px solid rgba(255,255,255,.14);flex-shrink:0}
+    background:radial-gradient(circle,#eef1f6,#cfd6e1);
+    border:1.5px solid #aeb7c5;flex-shrink:0;box-shadow:inset 0 2px 6px rgba(0,0,0,.18)}
   .lvknob{position:absolute;left:50%;top:50%;width:42%;aspect-ratio:1;border-radius:50%;
-    transform:translate(-50%,-50%);background:linear-gradient(160deg,#eaeef6,#9aa6bb);
+    transform:translate(-50%,-50%);background:linear-gradient(160deg,#4b5566,#1e2530);
     box-shadow:0 3px 8px rgba(0,0,0,.5);pointer-events:none}
   .lvbtns{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;flex:1;max-width:190px}
-  .lvb{padding:13px 4px;border-radius:12px;border:1.5px solid rgba(255,255,255,.18);
-    background:rgba(255,255,255,.07);color:#eee;font-size:12px;font-weight:900;text-align:center;
-    position:relative;overflow:hidden;cursor:pointer}
-  .lvb small{display:block;font-size:8.5px;font-weight:700;color:#8b96a8;margin-top:2px}
-  .lvb.hit{background:rgba(212,175,55,.25);border-color:rgba(212,175,55,.7);color:#f5d67b}
-  .lvb.arm{background:rgba(125,255,212,.22);border-color:#7dffd4;color:#7dffd4}
+  .lvb{padding:13px 4px;border-radius:12px;border:1.5px solid #c9cfd9;
+    background:linear-gradient(180deg,#ffffff,#e6eaf0);color:#111;font-size:13px;font-weight:900;text-align:center;
+    position:relative;overflow:hidden;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.18)}
+  .lvb small{display:block;font-size:9px;font-weight:800;color:#444;margin-top:2px}
+  .lvb.hit{background:linear-gradient(180deg,#ffe28a,#f0c23b);border-color:#b8912a;color:#111}
+  .lvb.arm{background:linear-gradient(180deg,#b6ffe7,#62e3b8);border-color:#2aa37c;color:#111}
   .lvb.wide{grid-column:span 2}
   `;
   document.head.appendChild(st);
@@ -5413,7 +5451,7 @@ function lvDoShoot(curl) {
   let jit = (1 - acc) * (Math.random() - 0.5) * 0.9;
   if (curl) jit *= 0.25;                       // 감아차기는 더 정확하다
   lvBall.from = { side:'us', idx: own.idx }; lvBall.cool = 10;
-  lvBall.own = null; lvBall.to = -1; lvBall.air = 0;
+  lvBall.own = null; lvBall.to = -1; lvBall.air = 0; lvBall.last = 'us';
   lvBall.vx = dx * sp; lvBall.vy = (dy + jit) * sp;
   lvBall.curl = curl ? 1 : 0;
   // 화면용 호 — 바깥쪽으로 부풀었다가 목표로 들어온다
@@ -5467,7 +5505,7 @@ function lvDoPass(lob) {
   const airT = lob ? Math.max(14, Math.min(36, Math.round(dist * 0.85))) : 0;
   const sp = lob ? dist / airT : Math.max(0.35, Math.min(2.2, dist / 24));
   lvBall.from = { side:'us', idx: own.idx }; lvBall.cool = 12;
-  lvBall.own = null; lvBall.curl = 0; lvBall.arc = null;
+  lvBall.own = null; lvBall.curl = 0; lvBall.arc = null; lvBall.last = 'us';
   lvBall.vx = ax / dist * sp; lvBall.vy = ay / dist * sp;
   lvBall.passTo = { x: tx, y: ty };
   lvAnim('us', own.idx, lob ? 'kick' : 'pass');
@@ -5529,7 +5567,7 @@ function startLiveMatch() {
   if (matchTimer) { clearInterval(matchTimer); matchTimer = null; }
   try { mtStopLoop(); } catch (e) {}
   matchView = 'live';
-  lvScore = [0, 0]; lvMin = 0; lvFrame = 0; lvMsg = ''; lvOn = true; lvPaused = false; lvLock = false;
+  lvScore = [0, 0]; lvMin = 0; lvFrame = 0; lvMsg = ''; lvOn = true; lvPaused = false; lvLock = false; lvSet = null;
 
   document.getElementById('matchView').innerHTML =
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;font-size:11px;font-weight:900">'
@@ -5561,6 +5599,8 @@ function lvQuit() {
 }
 
 function lvKickoff(mine) {
+  lvSet = null;
+  { const b = document.getElementById('lvSetBox'); if (b) b.classList.remove('on'); }
   mtUs.forEach(p   => { p.cx = Math.min(p.hx, 47); p.cy = p.hy; p.vx = 0; p.vy = 0; p.tx = undefined; p.ty = undefined; });
   mtThem.forEach(p => { p.cx = Math.max(p.hx, 53); p.cy = p.hy; p.vx = 0; p.vy = 0; });
   lvBall = { x:50, y:50, vx:0, vy:0, own:null, to:-1, from:null, cool:0, air:0, curl:0 };
@@ -5724,7 +5764,17 @@ function lvAct(t) {
 /* ── 루프 ────────────────────────────────── */
 function lvTick() {
   if (!lvOn) return;
+  // 골이 들어가면 공은 골망 안쪽까지 날아가 그물에 걸려 멈춘다
+  if (lvBall.inNet) {
+    lvBall.x += lvBall.vx; lvBall.y += lvBall.vy;
+    lvBall.vx *= 0.82; lvBall.vy *= 0.82;
+    const lim = lvBall.inNet === 'top' ? 102.6 : -2.6;
+    if (lvBall.inNet === 'top' ? lvBall.x > lim : lvBall.x < lim) { lvBall.x = lim; lvBall.vx = 0; }
+    lvBall.y = Math.max(39, Math.min(61, lvBall.y));
+  }
   if (lvPaused) { lvPaint(); return; }
+  // 세트피스 준비 중
+  if (lvSet) lvSetStep();
 
   lvFrame++;
   if (lvFrame % 20 === 0) {
@@ -5748,7 +5798,12 @@ function lvTick() {
     if (lvBall.air > 1) { /* 공중 — 감속 없음 */ }
     else if (lvBall.air === 1) { lvBall.vx *= 0.25; lvBall.vy *= 0.25; }
     else { lvBall.vx *= 0.96; lvBall.vy *= 0.96; }
-    if (lvBall.y < 3 || lvBall.y > 97) { lvBall.vy *= -0.6; lvBall.y = Math.max(3, Math.min(97, lvBall.y)); }
+    // 사이드라인 아웃 → 스로인 (마지막으로 안 건드린 팀)
+    if (!lvLock && !lvSet && (lvBall.y < 0.5 || lvBall.y > 99.5)) {
+      const side = lvBall.last === 'us' ? 'them' : 'us';
+      lvRestart('throw', side, lvBall.x, lvBall.y < 50 ? 1.5 : 98.5);
+      lvPaint(); return;
+    }
     if (!lvLock) {
       /* 슛 순간 '선방' 으로 정해졌으면, 키퍼 다이빙이 늦더라도 골라인에서 반드시 막는다.
          안 그러면 정해놓은 확률과 실제 결과가 어긋난다. */
@@ -5767,10 +5822,20 @@ function lvTick() {
 
         }
       }
-      else if (lvBall.x > 98 && lvBall.y > 38 && lvBall.y < 62) { lvGoal(true);  return; }
-      else if (lvBall.x < 2  && lvBall.y > 38 && lvBall.y < 62) { lvGoal(false); return; }
+      else if (lvBall.x > 100 && lvBall.y > 38 && lvBall.y < 62) { lvGoal(true);  return; }
+      else if (lvBall.x < 0   && lvBall.y > 38 && lvBall.y < 62) { lvGoal(false); return; }
+      // 골라인 밖으로 — 골킥 또는 코너킥
+      else if (!lvSet && (lvBall.x > 100.5 || lvBall.x < -0.5)) {
+        const top = lvBall.x > 50;                 // 위(상대 골문) 쪽인가
+        const atkSide = top ? 'us' : 'them';       // 그 골문을 공격하는 팀
+        const defSide = top ? 'them' : 'us';
+        if (lvBall.last === atkSide) lvRestart('goalkick', defSide, top ? 94 : 6, 50);
+        else lvRestart('corner', atkSide, top ? 99.5 : 0.5, lvBall.y < 50 ? 1.5 : 98.5);
+        lvPaint(); return;
+      }
     }
-    if (lvBall.x > 99.5 || lvBall.x < 0.5) { lvBall.vx *= -0.4; lvBall.x = Math.max(1, Math.min(99, lvBall.x)); }
+
+    if (lvSet) { lvMove(); lvPaint(); return; }   // 세트피스 준비 중
     if (lvBall.cool > 0) lvBall.cool--;
     if (lvBall.air > 0) lvBall.air--;          // 로빙 패스 — 떠 있는 동안은 못 건드린다
     const fast = Math.hypot(lvBall.vx, lvBall.vy) > 1.0;
@@ -5801,13 +5866,14 @@ function lvTick() {
     });
     if (take) {
       lvBall.own = take;
+      lvBall.last = take.side;
       lvBall.saveBy = null; lvBall.aim = null; lvBall.passTo = null; lvBall.to = -1;
       if (take.side !== 'us') lvSay('상대에게 넘어갔습니다');
     }
   }
 
   if (lvTackleCd > 0) lvTackleCd--;
-  if (lvBall.own && lvTackleCd === 0) {
+  if (lvBall.own && lvTackleCd === 0 && !lvSet) {
     const mySide = lvBall.own.side;
     const foe = mySide === 'us' ? mtThem : mtUs;
     const holder = (mySide === 'us' ? mtUs : mtThem)[lvBall.own.idx];
@@ -5817,7 +5883,13 @@ function lvTick() {
       if (Math.hypot(q.cx - holder.cx, q.cy - holder.cy) > 2.8) continue;
       const win = lvTkl(q) / (lvTkl(q) + lvTkl(holder));
       const boost = q.slide ? 6 : 1;            // 슬라이딩 중이면 성공률이 확 오른다
-      if (Math.random() < win * 0.028 * boost) {
+      const ok = Math.random() < win * 0.028 * boost;
+      // 슬라이딩이 실패했는데 몸이 부딪혔으면 파울
+      if (!ok && q.slide && !q.slide.fouled && Math.hypot(q.cx - holder.cx, q.cy - holder.cy) < 2.2) {
+        q.slide.fouled = true;
+        if (Math.random() < 0.38) { lvFoul(mySide === 'us' ? 'them' : 'us', holder.cx, holder.cy); break; }
+      }
+      if (ok) {
         lvBall.own = { side: mySide === 'us' ? 'them' : 'us', idx: i };
         lvTackleCd = 25;          // 뺏자마자 도로 뺏기는 핑퐁 방지
         if (mySide === 'us') lvSay('태클을 당했습니다');
@@ -5828,6 +5900,7 @@ function lvTick() {
   }
 
   lvAiDecide();
+  lvAiTackle();
   lvMove();
 
   lvPaint();
@@ -5854,8 +5927,31 @@ function lvMove() {
     arr.forEach((p, i) => {
       let tx, ty, sp = lvSpd(p);
 
+      // 세트피스 준비 — 차는 선수는 공으로, 나머지는 상황에 맞게 자리 잡는다
+      if (lvSet) {
+        const st = lvSet;
+        const ownGoal = sd === 'us' ? 0 : 100;
+        if (sd === st.side && i === st.taker) {
+          tx = st.x; ty = st.y; sp *= 1.25;
+        } else if (p.gk) {
+          tx = ownGoal + dir * 2.5; ty = 50;
+        } else if (st.kind === 'pk') {
+          // PK 는 전원 박스 밖에서 기다린다
+          const boxX = st.side === 'us' ? 83 : 17;
+          tx = st.side === 'us' ? Math.min(p.hx + 10, boxX - 2) : Math.max(p.hx - 10, boxX + 2);
+          ty = 20 + (i * 6.5) % 60;
+        } else if (st.kind === 'corner' || st.kind === 'fk') {
+          // 공격팀은 박스로, 수비팀은 박스를 지킨다
+          const tgt = st.side === 'us' ? 100 : 0;
+          const inb = st.side === 'us' ? -1 : 1;
+          if (p.line >= 2) { tx = tgt + inb * (6 + (i % 4) * 3); ty = 36 + (i * 7) % 28; }
+          else { tx = p.hx; ty = p.hy; }
+        } else {
+          tx = p.hx; ty = p.hy + (st.y - 50) * 0.3;   // 스로인·골킥은 대형 유지
+        }
+      }
       // 압박 버튼 — 잠깐 공에 강하게 붙는다
-      if (p.press > 0) {
+      else if (p.press > 0) {
         p.press--;
         tx = lvBall.x; ty = lvBall.y; sp *= 1.45;
       }
@@ -6003,6 +6099,104 @@ function lvSeparate() {
   }
 }
 
+
+/* ══ 세트피스 ══
+   공을 제자리에 놓고, 차는 선수가 공까지 걸어간 뒤 시작한다.
+   준비 중에는 다른 선수가 공을 못 건드린다. */
+let lvSet = null;     // { kind, side, x, y, t, taker }
+const LV_SET_NAME = { throw:'스로인', corner:'코너킥', goalkick:'골킥', fk:'프리킥', pk:'페널티킥' };
+
+function lvRestart(kind, side, x, y) {
+  const arr = side === 'us' ? mtUs : mtThem;
+  let taker = -1;
+  if (kind === 'goalkick') taker = arr.findIndex(p => p.gk);
+  else if (kind === 'pk') {
+    // 가장 OVR 높은 필드 선수가 찬다
+    let best = -1, bo = -1;
+    arr.forEach((p, i) => { if (!p.gk && (p.ovr || 0) > bo) { bo = p.ovr || 0; best = i; } });
+    taker = best;
+  } else {
+    let bd = 1e9;
+    arr.forEach((p, i) => { if (p.gk) return;
+      const d = Math.hypot(p.cx - x, p.cy - y); if (d < bd) { bd = d; taker = i; } });
+  }
+  lvSet = { kind, side, x, y, t: 70, taker };
+  lvBall.own = null; lvBall.x = x; lvBall.y = y; lvBall.vx = 0; lvBall.vy = 0;
+  lvBall.air = 0; lvBall.to = -1; lvBall.passTo = null; lvBall.saveBy = null; lvBall.arc = null;
+  const b = document.getElementById('lvSetBox');
+  if (b) { b.textContent = (side === 'us' ? '' : '상대 ') + LV_SET_NAME[kind]; b.classList.add('on'); }
+  lvSay((side === 'us' ? '' : '상대 ') + LV_SET_NAME[kind]);
+}
+
+/* 매 틱 — 차는 선수가 공에 닿으면 시작 */
+function lvSetStep() {
+  const st = lvSet;
+  if (!st) return;
+  st.t--;
+  const arr = st.side === 'us' ? mtUs : mtThem;
+  const p = arr[st.taker];
+  lvBall.x = st.x; lvBall.y = st.y; lvBall.vx = 0; lvBall.vy = 0;
+  if (!p) { lvSet = null; return; }
+  const d = Math.hypot(p.cx - st.x, p.cy - st.y);
+  if (d < 1.6 || st.t <= 0) {
+    p.cx = st.x; p.cy = st.y;                 // 공 위치에 선다
+    lvBall.own = { side: st.side, idx: st.taker };
+    lvBall.last = st.side;
+    const b = document.getElementById('lvSetBox');
+    if (b) b.classList.remove('on');
+    const kind = st.kind;
+    lvSet = null;
+    // AI 는 준비되면 바로 처리한다
+    if (st.side === 'them') { const q = mtThem[st.taker]; if (q) q.hold = 99; }
+    if (kind === 'pk' && st.side === 'them') lvAiPenalty();
+  }
+}
+
+/* 상대 PK — 구석을 노려 찬다 */
+function lvAiPenalty() {
+  const own = lvBall.own;
+  if (!own || own.side !== 'them') return;
+  const p = mtThem[own.idx];
+  const aimY = 50 + (Math.random() < 0.5 ? -1 : 1) * (5 + Math.random() * 5);
+  const ax = 0 - p.cx, ay = aimY - p.cy, d = Math.hypot(ax, ay) || 1, sp = lvShot(p);
+  lvBall.from = { side:'them', idx: own.idx }; lvBall.cool = 10; lvBall.last = 'them';
+  lvBall.own = null; lvBall.to = -1;
+  lvBall.vx = ax / d * sp; lvBall.vy = ay / d * sp;
+  lvShotId++;
+  lvResolveShot(p, 'them');
+  lvAnim('them', own.idx, 'kick');
+}
+
+/* 상대 수비도 슬라이딩을 한다.
+   안 하면 우리 쪽은 프리킥·PK 를 절대 얻을 수 없다. */
+function lvAiTackle() {
+  if (lvSet || !lvBall.own || lvBall.own.side !== 'us') return;
+  const holder = mtUs[lvBall.own.idx];
+  if (!holder) return;
+  mtThem.forEach(q => {
+    if (q.gk || q.slide) return;
+    const d = Math.hypot(q.cx - holder.cx, q.cy - holder.cy);
+    if (d > 5 || d < 1.2) return;
+    // 뒤처졌을수록(자기 골문 쪽으로 밀릴수록) 무리하게 들어온다
+    const behind = q.cx - holder.cx > 0 ? 1 : 1.8;
+    if (Math.random() < 0.0075 * behind) {
+      q.slide = { tx: holder.cx + (holder.vx || 0) * 4, ty: holder.cy + (holder.vy || 0) * 4, t: 16 };
+      const idx = mtThem.indexOf(q);
+      lvAnim('them', idx, 'slide');
+    }
+  });
+}
+
+/* 파울 판정 — 박스 안이면 PK, 밖이면 프리킥 */
+function lvFoul(foulerSide, x, y) {
+  const victim = foulerSide === 'us' ? 'them' : 'us';
+  // 피해자 팀이 공격하는 골문 쪽 박스인가
+  const inBox = victim === 'us' ? (x > 85 && y > 22 && y < 78) : (x < 15 && y > 22 && y < 78);
+  if (inBox) lvRestart('pk', victim, victim === 'us' ? 89 : 11, 50);
+  else lvRestart('fk', victim, x, y);
+  lvSay('파울! ' + (inBox ? '페널티킥' : '프리킥'));
+}
+
 /* 슛을 찬 순간 결과를 정한다.
    전에는 공이 우연히 키퍼 3.2 안으로 올 때만 선방을 굴려서,
    키퍼 옆으로 차면 판정 자체가 안 일어나고 전부 들어갔다.
@@ -6064,7 +6258,7 @@ function lvAiDecide() {
     // 골문 안쪽 구석을 노린다 (정중앙으로 차면 키퍼 정면)
     const aimY = 50 + (Math.random() < 0.5 ? -1 : 1) * (4 + Math.random() * 7);
     const ax = 0 - p.cx, ay = aimY - p.cy, d = Math.hypot(ax, ay) || 1;
-    lvBall.from = { side:'them', idx: own.idx }; lvBall.cool = 10;
+    lvBall.from = { side:'them', idx: own.idx }; lvBall.cool = 10; lvBall.last = 'them';
     lvBall.own = null; lvBall.to = -1;
     lvBall.vx = ax / d * sp; lvBall.vy = ay / d * sp;
     lvShotId++;
@@ -6107,7 +6301,7 @@ function lvAiDecide() {
     const q = mtThem[best];
     const ax = q.cx - p.cx, ay = q.cy - p.cy, dist = Math.hypot(ax, ay) || 1;
     const sp = Math.max(0.35, Math.min(2.2, dist / 24));
-    lvBall.from = { side:'them', idx: own.idx }; lvBall.cool = 12;
+    lvBall.from = { side:'them', idx: own.idx }; lvBall.cool = 12; lvBall.last = 'them';
     lvBall.own = null; lvBall.to = best;
     lvBall.toSide = 'them';
     lvAnim('them', own.idx, 'pass');
@@ -6119,7 +6313,17 @@ function lvAiDecide() {
 function lvGoal(mine) {
   if (lvLock) return;
   lvLock = true;                 // 킥오프 전까지 다시 득점 판정되지 않게 잠근다
-  lvBall.vx = 0; lvBall.vy = 0;
+  lvBall.inNet = mine ? 'top' : 'bot';   // 속도는 살려서 골망으로 들어가게
+  // 득점자
+  const f = lvBall.from;
+  const scorer = f ? (f.side === 'us' ? mtUs : mtThem)[f.idx] : null;
+  const box = document.getElementById('lvGoalBox'), who = document.getElementById('lvGoalWho');
+  if (box && who) {
+    who.textContent = '⚽ ' + (scorer && scorer.nm ? scorer.nm : (mine ? '우리 팀' : '상대 팀'));
+    box.classList.toggle('opp', !mine);
+    box.classList.remove('on'); void box.offsetWidth; box.classList.add('on');
+    setTimeout(() => box.classList.remove('on'), 2000);
+  }
   lvScore[mine ? 0 : 1]++;
   const s = document.getElementById('lvScore');
   if (s) s.textContent = lvScore[0] + ' - ' + lvScore[1];
@@ -6128,11 +6332,12 @@ function lvGoal(mine) {
   lvPaused = true;
   setTimeout(() => {
     if (!lvOn) return;
+    lvBall.inNet = null;
     lvKickoff(!mine);
     lvLock = false;
-    lvPaused = !!(lvBall.own && lvBall.own.side === 'us');
+    lvPaused = false;
     lvHintPaint();
-  }, 1400);
+  }, 2200);
 }
 
 function lvPaint() {
@@ -6188,6 +6393,20 @@ function lvPaint() {
     if (touching !== lvBall._t) { lvBall._t = touching; b.classList.toggle('touch', touching); }
     const flying = !own && Math.hypot(lvBall.vx, lvBall.vy) > 1.6;
     if (flying !== lvBall._f) { lvBall._f = flying; b.classList.toggle('fly', flying); }
+  }
+  // 공 가진 선수 머리 위에 이름
+  const tag = document.getElementById('lvTag');
+  if (tag) {
+    const o = lvBall.own;
+    const q = o ? (o.side === 'us' ? mtUs : mtThem)[o.idx] : null;
+    if (q) {
+      tag.style.display = 'block';
+      tag.className = 'lvtag ' + o.side;
+      const nm = q.nm || '';
+      if (tag.textContent !== nm) tag.textContent = nm;
+      tag.style.left = lvScrL(q.cx, q.cy).toFixed(1) + '%';
+      tag.style.top  = (lvScrT(q.cx, q.cy) - 2.4).toFixed(1) + '%';
+    } else tag.style.display = 'none';
   }
   lvCamPaint();
   lvBtnsPaint();
