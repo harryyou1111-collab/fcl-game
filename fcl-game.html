@@ -5091,24 +5091,68 @@ function lvPitchCSS() {
     background:#1c5c31;touch-action:none;user-select:none}
   /* 경기장을 카메라보다 크게 그려두고 공을 따라 움직인다 (가로 2배, 세로 3.2배) */
   .lvfield{position:absolute;left:0;top:0;width:200%;height:320%;border-radius:0;overflow:hidden;
+    transition:width .3s,height .3s;
     will-change:transform;
     background:repeating-linear-gradient(0deg,#2f7d43 0 8.5%,#35894a 8.5% 17%);
     box-shadow:inset 0 0 40px rgba(0,0,0,.35)}
   .lvline{position:absolute;background:rgba(255,255,255,.5)}
   .lvbox{position:absolute;border:2px solid rgba(255,255,255,.5);border-radius:2px}
-  .lvp{position:absolute;width:5.2%;aspect-ratio:1/1.5;transform:translate(-50%,-72%);
-    will-change:left,top;pointer-events:none}
+  /* 선수 캐릭터 — 머리·얼굴·유니폼·양말·축구화.
+     색은 선수마다 CSS 변수로 넣는다 (--skin 피부 / --hair 머리 / --shirt 상의 / --shorts 하의 / --sock 양말) */
+  .lvp{position:absolute;width:var(--pw,5.2%);aspect-ratio:1/1.9;transform:translate(-50%,-78%);
+    will-change:left,top;pointer-events:none;filter:drop-shadow(0 2px 1.5px rgba(0,0,0,.45))}
   .lvp i{position:absolute;display:block}
-  .lvp .hd{left:28%;top:0;width:44%;aspect-ratio:1;border-radius:50%;background:#e8c9a8;
-    box-shadow:0 1px 2px rgba(0,0,0,.4)}
-  .lvp .bd{left:16%;top:36%;width:68%;height:40%;border-radius:4px 4px 3px 3px;
-    box-shadow:0 1px 3px rgba(0,0,0,.45)}
-  .lvp .lg{top:74%;width:22%;height:26%;border-radius:2px;background:#f0f0f0;transform-origin:top center}
-  .lvp .lg.a{left:22%}
-  .lvp .lg.b{left:56%}
+  /* 그림자 */
+  .lvp .sd{left:14%;top:93%;width:72%;height:9%;border-radius:50%;background:rgba(0,0,0,.28);filter:blur(1px)}
+  /* 다리 — 허벅지(피부) → 양말 → 축구화 */
+  .lvp .lg{top:60%;width:21%;height:36%;border-radius:3px 3px 4px 4px;transform-origin:top center;
+    background:linear-gradient(180deg,var(--skin) 0 26%,var(--sock) 26% 80%,#161616 80% 100%)}
+  .lvp .lg.a{left:25%}
+  .lvp .lg.b{left:54%}
+  /* 반바지 */
+  .lvp .sh{left:21%;top:52%;width:58%;height:15%;border-radius:2px 2px 5px 5px;background:var(--shorts)}
+  /* 팔 — 반팔 소매 + 피부 */
+  .lvp .ar{top:23%;width:15%;height:28%;border-radius:40% 40% 45% 45%;
+    background:linear-gradient(180deg,var(--shirt) 0 38%,var(--skin) 38% 100%)}
+  .lvp .ar.l{left:7%;transform:rotate(12deg)}
+  .lvp .ar.r{right:7%;transform:rotate(-12deg)}
+  /* 상의 — 목 카라 포함 */
+  .lvp .bd{left:19%;top:21%;width:62%;height:34%;border-radius:32% 32% 12% 12%;background:var(--shirt);
+    box-shadow:inset 0 -3px 0 rgba(0,0,0,.12)}
+  .lvp .bd::before{content:'';position:absolute;left:36%;top:0;width:28%;height:16%;
+    border-radius:0 0 50% 50%;background:var(--skin)}
+  .lvp .bd b{position:absolute;left:0;right:0;top:34%;text-align:center;font-size:clamp(5px,1.3vw,8px);
+    transform:scaleX(var(--fx,1));
+    font-weight:900;color:rgba(255,255,255,.92);font-style:normal;line-height:1;text-shadow:0 0 1px rgba(0,0,0,.6)}
+  /* 머리 */
+  .lvp .hd{left:27%;top:0;width:46%;aspect-ratio:1/1.08;border-radius:46% 46% 44% 44%;background:var(--skin);
+    box-shadow:inset -1px -2px 0 rgba(0,0,0,.12)}
+  .lvp .hr{left:-4%;top:-8%;width:108%;height:48%;border-radius:55% 55% 30% 30%;background:var(--hair)}
+  .lvp .ey{top:47%;width:13%;height:15%;border-radius:50%;background:#1a1a1a}
+  .lvp .ey.l{left:27%}
+  .lvp .ey.r{left:60%}
+  .lvp .ns{left:45%;top:60%;width:10%;height:11%;border-radius:40%;background:rgba(0,0,0,.18)}
+  .lvp .mo{left:36%;top:76%;width:28%;height:7%;border-radius:0 0 50% 50%;background:#7a2a2a}
+  .lvp .er{top:46%;width:10%;height:20%;border-radius:50%;background:var(--skin)}
+  .lvp .er.l{left:-6%}
+  .lvp .er.r{right:-6%}
   .lvp.run .lg.a{animation:lvStepA .34s linear infinite}
   .lvp.run .lg.b{animation:lvStepB .34s linear infinite}
   .lvp.run .bd{animation:lvBob .34s linear infinite}
+  .lvp.run .ar.l{animation:lvArmL .34s linear infinite}
+  .lvp.run .ar.r{animation:lvArmR .34s linear infinite}
+  @keyframes lvStepA{0%{transform:rotate(26deg)}50%{transform:rotate(-26deg)}100%{transform:rotate(26deg)}}
+  @keyframes lvStepB{0%{transform:rotate(-26deg)}50%{transform:rotate(26deg)}100%{transform:rotate(-26deg)}}
+  @keyframes lvArmL{0%,100%{transform:rotate(-22deg)}50%{transform:rotate(30deg)}}
+  @keyframes lvArmR{0%,100%{transform:rotate(22deg)}50%{transform:rotate(-30deg)}}
+  @keyframes lvBob{0%,100%{margin-top:0}50%{margin-top:-4%}}
+  .lvp.own::after{content:'';position:absolute;left:50%;top:95%;width:125%;aspect-ratio:2.4/1;
+    transform:translate(-50%,-50%);border-radius:50%;border:2px solid #ffe066;
+    box-shadow:0 0 8px rgba(255,224,102,.8)}
+  .lvp.mate::before{content:'';position:absolute;left:50%;top:95%;width:120%;aspect-ratio:2.4/1;
+    transform:translate(-50%,-50%);border-radius:50%;border:1.5px dashed rgba(125,255,212,.5)}
+  .lvp.mate.hot::before{border-color:#7dffd4;border-style:solid;
+    background:radial-gradient(ellipse,rgba(125,255,212,.4),transparent 72%)}
   /* 공 몰고 갈 땐 다리를 더 빠르게 */
   .lvp.drib .lg.a{animation:lvStepA .24s linear infinite}
   .lvp.drib .lg.b{animation:lvStepB .24s linear infinite}
@@ -5153,6 +5197,7 @@ function lvPitchCSS() {
                repeating-linear-gradient(-45deg,rgba(255,255,255,.35) 0 1px,transparent 1px 7px),rgba(0,0,0,.18)}
   .lvpost{position:absolute;z-index:4;width:1.4%;aspect-ratio:1;border-radius:50%;background:#fff;
     transform:translate(-50%,-50%);box-shadow:0 0 3px rgba(0,0,0,.6)}
+  .lvcirc{height:18%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%)}
   .lvspot{position:absolute;width:1%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.7);transform:translate(-50%,-50%)}
   .lvgoal{position:absolute;left:0;right:0;top:34%;z-index:60;text-align:center;pointer-events:none;
     opacity:0;transform:scale(.6);transition:opacity .25s,transform .35s cubic-bezier(.2,1.6,.4,1)}
@@ -5171,7 +5216,7 @@ function lvPitchCSS() {
     background:rgba(10,14,24,.82);color:#fff;border:1px solid rgba(255,255,255,.25)}
   .lvtag.us{border-color:#5b8def;color:#cfe0ff}
   .lvtag.them{border-color:#e05252;color:#ffd4d4}
-  .lvball{position:absolute;width:3%;aspect-ratio:1;border-radius:50%;z-index:20;
+  .lvball{position:absolute;width:var(--bw,2%);aspect-ratio:1;border-radius:50%;z-index:20;
     transform:translate(-50%,-50%);
     background:radial-gradient(circle at 34% 30%,#fff 0%,#e4e4e4 58%,#b0b0b0 100%);
     box-shadow:0 2px 5px rgba(0,0,0,.5),0 0 9px rgba(255,255,255,.35)}
@@ -5181,39 +5226,62 @@ function lvPitchCSS() {
   document.head.appendChild(st);
 }
 
+
+/* 선수 한 명의 그림. 피부·머리색은 선수 번호로 정해서 매 경기 같은 얼굴이 나온다. */
+const LV_SKIN = ['#f3d2b3','#e8bf98','#d9a57c','#b98158','#8d5b3a','#6b4428'];
+const LV_HAIR = ['#1b1512','#3a2718','#6b4a2b','#a07443','#d8b56b','#2b2b2b','#5a3a22'];
+const LV_KIT = {
+  us:   { shirt:'#2f6fe0', shorts:'#f4f6fa', sock:'#2f6fe0', gk:'#f2c230' },
+  them: { shirt:'#d63a3a', shorts:'#20242c', sock:'#d63a3a', gk:'#3fbf6a' },
+};
+function lvPlayerHTML(side, i) {
+  const arr = side === 'us' ? (typeof mtUs !== 'undefined' ? mtUs : []) : (typeof mtThem !== 'undefined' ? mtThem : []);
+  const p = arr[i] || {};
+  const kit = LV_KIT[side];
+  const seed = (side === 'us' ? 7 : 13) + i * 5;
+  const skin = LV_SKIN[seed % LV_SKIN.length];
+  const hair = LV_HAIR[(seed * 3) % LV_HAIR.length];
+  const shirt = p.gk ? kit.gk : kit.shirt;
+  const sock  = p.gk ? kit.gk : kit.sock;
+  const num = p.gk ? 1 : i + 1;
+  return '<div class="lvp" id="' + (side === 'us' ? 'lvu' : 'lvt') + i + '" style="--skin:' + skin
+    + ';--hair:' + hair + ';--shirt:' + shirt + ';--shorts:' + kit.shorts + ';--sock:' + sock + '">'
+    + '<i class="sd"></i>'
+    + '<i class="lg a"></i><i class="lg b"></i>'
+    + '<i class="sh"></i>'
+    + '<i class="ar l"></i><i class="ar r"></i>'
+    + '<i class="bd"><b>' + num + '</b></i>'
+    + '<i class="hd"><i class="er l"></i><i class="er r"></i><i class="hr"></i>'
+    + '<i class="ey l"></i><i class="ey r"></i><i class="ns"></i><i class="mo"></i></i>'
+    + '</div>';
+}
+
 function lvPitchHTML() {
   lvPitchCSS();
   let dots = '';
-  for (let i = 0; i < 11; i++) {
-    dots += '<div class="lvp" id="lvu' + i + '"><i class="lg a"></i><i class="lg b"></i>'
-          + '<i class="bd" style="background:#2f6fe0"></i><i class="hd"></i></div>';
-  }
-  for (let i = 0; i < 11; i++) {
-    dots += '<div class="lvp" id="lvt' + i + '"><i class="lg a"></i><i class="lg b"></i>'
-          + '<i class="bd" style="background:#d63a3a"></i><i class="hd"></i></div>';
-  }
-  const T = x => lvScrT(x, 50);                       // 내부 x → 화면 top %
-  const H = dx => dx * (100 - 2 * LV_NET) / 100;      // 길이 → 화면 높이 %
-  const hl = (x, extra) => '<div class="lvline" style="left:0;right:0;top:' + T(x) + '%;height:2px' + (extra || '') + '"></div>';
-  const box = (y0, y1, xa, xb) => '<div class="lvbox" style="left:' + y0 + '%;width:' + (y1 - y0)
-        + '%;top:' + T(Math.max(xa, xb)) + '%;height:' + H(Math.abs(xa - xb)) + '%"></div>';
-  // 골망 — 골라인 바깥
-  const net = (top) => '<div class="lvnet" style="left:38%;width:24%;top:' + (top ? 0 : (100 - LV_NET)) + '%;height:' + LV_NET + '%"></div>';
+  for (let i = 0; i < 11; i++) dots += lvPlayerHTML('us', i);
+  for (let i = 0; i < 11; i++) dots += lvPlayerHTML('them', i);
+  // 선은 전부 내부 좌표 사각형으로 그려서 가로/세로 어느 쪽이든 맞게 나온다
+  const line = (x0, x1, y0, y1) => '<div class="lvline" style="' + lvRectCSS(x0, x1, y0, y1) + '"></div>';
+  const box  = (x0, x1, y0, y1) => '<div class="lvbox" style="' + lvRectCSS(x0, x1, y0, y1) + '"></div>';
+  const t = 0.35;                                         // 선 두께 (내부 단위)
+  const gap = LV_NET * 100 / (100 - 2 * LV_NET);          // 골망 깊이 (내부 단위)
+  const netBox = (x0, x1) => '<div class="lvnet" style="' + lvRectCSS(x0, x1, 38, 62) + '"></div>';
+  const spot = (x, y) => '<div class="lvspot" style="left:' + lvScrL(x, y) + '%;top:' + lvScrT(x, y) + '%"></div>';
+  const post = (x, y) => '<div class="lvpost" style="left:' + lvScrL(x, y) + '%;top:' + lvScrT(x, y) + '%"></div>';
+  const cL = lvScrL(50, 50), cT = lvScrT(50, 50);
+  const circle = '<div class="lvbox lvcirc" style="left:' + cL + '%;top:' + cT + '%"></div>';
+  // 골라인 바깥 여백
+  const outA = '<div class="lvout" style="' + lvRectCSS(-gap, 0, 0, 100) + '"></div>';
+  const outB = '<div class="lvout" style="' + lvRectCSS(100, 100 + gap, 0, 100) + '"></div>';
   return '<div class="lvcam" id="lvCam"><div class="lvfield" id="lvField">'
-    + '<div class="lvout" style="top:0;height:' + LV_NET + '%"></div>'
-    + '<div class="lvout" style="bottom:0;height:' + LV_NET + '%"></div>'
-    + hl(100) + hl(0) + hl(50)
-    + '<div class="lvbox" style="left:32%;top:calc(' + T(50) + '% - 5.6%);width:36%;aspect-ratio:1;border-radius:50%"></div>'
-    // 상대 진영 (위)
-    + box(22, 78, 100, 85) + box(36, 64, 100, 94)
-    + '<div class="lvspot" style="left:50%;top:' + T(89) + '%"></div>'
-    // 우리 진영 (아래)
-    + box(22, 78, 0, 15) + box(36, 64, 0, 6)
-    + '<div class="lvspot" style="left:50%;top:' + T(11) + '%"></div>'
-    + net(true) + net(false)
-    // 골대 기둥
-    + '<div class="lvpost" style="left:38%;top:' + T(100) + '%"></div><div class="lvpost" style="left:62%;top:' + T(100) + '%"></div>'
-    + '<div class="lvpost" style="left:38%;top:' + T(0) + '%"></div><div class="lvpost" style="left:62%;top:' + T(0) + '%"></div>'
+    + outA + outB
+    + line(0, t, 0, 100) + line(100 - t, 100, 0, 100) + line(50 - t / 2, 50 + t / 2, 0, 100)
+    + circle
+    + box(85, 100, 22, 78) + box(94, 100, 36, 64) + spot(89, 50)
+    + box(0, 15, 22, 78)   + box(0, 6, 36, 64)    + spot(11, 50)
+    + netBox(100, 100 + gap) + netBox(-gap, 0)
+    + post(100, 38) + post(100, 62) + post(0, 38) + post(0, 62)
     + dots
     + '<div class="lvball" id="lvBall"></div>'
     + '<div class="lvtag" id="lvTag" style="display:none"></div>'
@@ -5224,8 +5292,55 @@ function lvPitchHTML() {
 /* 카메라 — 공을 화면 가운데에 두고 위아래로 따라간다.
    경기장 전체를 한 화면에 넣으면 선수가 너무 작아서 뭘 하는지 안 보인다. */
 let lvCamX = 50, lvCamY = 50;
-const LV_ZX = 2.0;              // 가로 배율 (lvfield width 200%)
-const LV_ZY = 3.2;              // 세로 배율 (lvfield height 320%)
+/* 카메라 — 가까이 / 멀리 (선택은 저장해서 다음 경기에도 유지) */
+const LV_ZOOMS = {
+  near: { zx:2.0, zy:3.2, pw:'4.3%', bw:'1.6%', label:'가까이' },
+  far:  { zx:1.0, zy:1.55, pw:'7.4%', bw:'2.6%', label:'멀리' },
+};
+let lvZoom = (function(){ try { return localStorage.getItem('fcl_cam') || 'near'; } catch (e) { return 'near'; } })();
+if (!LV_ZOOMS[lvZoom]) lvZoom = 'near';
+let LV_ZX = LV_ZOOMS[lvZoom].zx, LV_ZY = LV_ZOOMS[lvZoom].zy;
+const LV_FA = 1.62;               // 경기장 가로:세로 비 (골망 여백 포함)
+let lvSpriteH = 4.5;               // 선수 키 (필드 높이 기준 %) — 공 위치·이름표 계산용
+function lvApplyZoom() {
+  const f = document.getElementById('lvField');
+  const cam = document.getElementById('lvCam');
+  const b = document.getElementById('lvCamBtn');
+  const near = lvZoom !== 'far';
+  if (b) b.textContent = '📷 ' + (near ? '가까이' : '멀리');
+  if (!f || !cam) return;
+  const r = cam.getBoundingClientRect();
+  // 돌려 그린 무대면 화면상 가로세로가 뒤바뀌어 있다
+  let cw = r.width, ch = r.height;
+  if (lvRot) { const t = cw; cw = ch; ch = t; }
+  if (!cw || !ch) return;
+  const ca = cw / ch;
+  let zx, zy;
+  if (lvLand) {
+    if (near) { zx = 1.75; zy = zx * ca / LV_FA; }
+    else { zy = 1; zx = LV_FA / ca; if (zx > 1) { zx = 1; zy = ca / LV_FA; } }
+  } else {
+    zx = near ? 2.0 : 1.0; zy = near ? 3.2 : 1.55;
+  }
+  LV_ZX = zx; LV_ZY = zy;
+  f.style.width = (zx * 100) + '%';
+  f.style.height = (zy * 100) + '%';
+  // 선수 키를 카메라 높이의 일정 비율로 — 배율이 바뀌어도 화면상 크기가 적당하게
+  const k = near ? 0.165 : 0.12;                    // 카메라 높이 대비 선수 키
+  const fieldW = zx * cw, fieldH = zy * ch;
+  const pwPx = k * ch / 1.9;
+  f.style.setProperty('--pw', (pwPx / fieldW * 100).toFixed(2) + '%');
+  f.style.setProperty('--bw', ((near ? 0.045 : 0.032) * ch / fieldW * 100).toFixed(2) + '%');
+  lvSpriteH = (k * ch) / fieldH * 100;
+  lvCamX = lvScrL(lvBall.x, lvBall.y); lvCamY = lvScrT(lvBall.x, lvBall.y);
+  lvCamPaint();
+}
+
+function lvToggleZoom() {
+  lvZoom = lvZoom === 'near' ? 'far' : 'near';
+  try { localStorage.setItem('fcl_cam', lvZoom); } catch (e) {}
+  lvApplyZoom();
+}
 function lvCamPaint() {
   const f = document.getElementById('lvField');
   if (!f) return;
@@ -5237,8 +5352,9 @@ function lvCamPaint() {
      transform 의 % 는 필드 자기 크기 기준이라 배율로 나눠준다. */
   let tx = (50 / LV_ZX) - lvCamX;
   let ty = (50 / LV_ZY) - lvCamY;
-  tx = Math.max(-(100 - 100 / LV_ZX), Math.min(0, tx));
-  ty = Math.max(-(100 - 100 / LV_ZY), Math.min(0, ty));
+  // 경기장이 카메라보다 좁은 축은 가운데 고정 (멀리 보기에서 양옆 여백)
+  tx = LV_ZX <= 1 ? (100 / LV_ZX - 100) / 2 : Math.max(-(100 - 100 / LV_ZX), Math.min(0, tx));
+  ty = LV_ZY <= 1 ? (100 / LV_ZY - 100) / 2 : Math.max(-(100 - 100 / LV_ZY), Math.min(0, ty));
   f.style.transform = 'translate(' + tx.toFixed(2) + '%,' + ty.toFixed(2) + '%)';
 }
 
@@ -5246,10 +5362,23 @@ function lvCamPaint() {
    위아래 LV_NET % 는 골라인 뒤 골망 공간이다. 전에는 경기장 끝이 곧 골라인이라
    공이 들어갈 곳이 없어 벽에 차는 느낌이었다. */
 const LV_NET = 3;
-function lvScrL(x, y) { return y; }
-function lvScrT(x, y) { return LV_NET + (100 - x) * (100 - 2 * LV_NET) / 100; }
+/* lvLand = 가로 모드. 가로에선 왼쪽이 우리 골문, 오른쪽이 상대 골문이다. */
+let lvLand = true;
+function lvLen(x) { return LV_NET + x * (100 - 2 * LV_NET) / 100; }          // 길이 방향 (골망 여백 포함)
+function lvScrL(x, y) { return lvLand ? lvLen(x) : y; }
+function lvScrT(x, y) { return lvLand ? y : LV_NET + (100 - x) * (100 - 2 * LV_NET) / 100; }
 /* 화면 % → 내부 좌표 */
-function lvFromScr(l, t) { return { x: 100 - (t - LV_NET) * 100 / (100 - 2 * LV_NET), y: l }; }
+function lvFromScr(l, t) {
+  if (lvLand) return { x: (l - LV_NET) * 100 / (100 - 2 * LV_NET), y: t };
+  return { x: 100 - (t - LV_NET) * 100 / (100 - 2 * LV_NET), y: l };
+}
+/* 내부 사각형(x0~x1, y0~y1)을 화면 사각형 style 로 */
+function lvRectCSS(x0, x1, y0, y1) {
+  const a = [lvScrL(x0, y0), lvScrL(x1, y1)], b = [lvScrT(x0, y0), lvScrT(x1, y1)];
+  const L = Math.min(a[0], a[1]), T = Math.min(b[0], b[1]);
+  return 'left:' + L.toFixed(2) + '%;top:' + T.toFixed(2) + '%;width:' + Math.abs(a[0] - a[1]).toFixed(2)
+       + '%;height:' + Math.abs(b[0] - b[1]).toFixed(2) + '%';
+}
 
 
 /* ══════════════════════════════════════════════════════════════
@@ -5345,8 +5474,9 @@ function lvBindStick() {
   const set = (e) => {
     const r = el.getBoundingClientRect();
     const t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e;
-    let dx = (t.clientX - (r.left + r.width / 2)) / (r.width / 2);
-    let dy = (t.clientY - (r.top + r.height / 2)) / (r.height / 2);
+    const raw = lvLocalDelta((t.clientX - (r.left + r.width / 2)) / (r.width / 2),
+                             (t.clientY - (r.top + r.height / 2)) / (r.height / 2));
+    let dx = raw.x, dy = raw.y;
     const m = Math.hypot(dx, dy);
     if (m > 1) { dx /= m; dy /= m; }
     lvStick.dx = dx; lvStick.dy = dy; lvStick.on = true;
@@ -5356,7 +5486,13 @@ function lvBindStick() {
     lvStick.on = false; lvStick.dx = 0; lvStick.dy = 0;
     if (knob) knob.style.transform = 'translate(-50%,-50%)';
   };
-  const down = e => { if (e.preventDefault) e.preventDefault(); set(e); };
+  /* 손가락이 스틱 원 밖으로 나가도 계속 따라가야 한다 (포인터 캡처).
+     안 그러면 세게 밀다가 원을 벗어나는 순간 조작이 끊긴다. */
+  const down = e => {
+    if (e.preventDefault) e.preventDefault();
+    if (e.pointerId !== undefined && el.setPointerCapture) { try { el.setPointerCapture(e.pointerId); } catch (x) {} }
+    set(e);
+  };
   const move = e => { if (!lvStick.on) return; if (e.preventDefault) e.preventDefault(); set(e); };
   const up = e => { if (e.preventDefault) e.preventDefault(); clear(); };
   if (window.PointerEvent) {
@@ -5376,18 +5512,20 @@ function lvBindBtns() {
   const wire = (id, fn) => {
     const b = document.getElementById(id);
     if (!b) return;
-    let sx = 0, armed = false;
+    let sx = 0, sy = 0, armed = false;
     const down = e => {
       if (e.preventDefault) e.preventDefault();
       const t = (e.touches && e.touches[0]) || e;
-      sx = t.clientX; armed = false;
+      sx = t.clientX; sy = t.clientY; armed = false;
+      // 오른쪽으로 끌다 버튼 밖으로 나가도 손 뗄 때 실행되도록 포인터를 잡아둔다
+      if (e.pointerId !== undefined && b.setPointerCapture) { try { b.setPointerCapture(e.pointerId); } catch (x) {} }
       b.classList.add('hit');
       if (id === 'bDrib') lvSprint = true;
     };
     const move = e => {
       if (!b.classList.contains('hit')) return;
       const t = (e.touches && e.touches[0]) || e;
-      const on = (t.clientX - sx) > LV_DRAGX;
+      const on = lvLocalDelta(t.clientX - sx, t.clientY - sy).x > LV_DRAGX;   // 무대 기준 '오른쪽'
       if (on !== armed) { armed = on; b.classList.toggle('arm', on); }
     };
     const up = e => {
@@ -5421,8 +5559,8 @@ function lvBindBtns() {
 function lvAimDir() {
   // 스틱을 잡고 있으면 그 방향, 아니면 골문 방향
   if (lvStick.on && Math.hypot(lvStick.dx, lvStick.dy) > 0.25) {
-    // 화면(세로) → 내부 좌표: 위로 밀면 x 증가
-    const ix = -lvStick.dy, iy = lvStick.dx;
+    // 화면 → 내부 좌표. 가로면 오른쪽이 상대 골문, 세로면 위쪽이 상대 골문
+    const ix = lvLand ? lvStick.dx : -lvStick.dy, iy = lvLand ? lvStick.dy : lvStick.dx;
     const m = Math.hypot(ix, iy) || 1;
     return { x: ix / m, y: iy / m };
   }
@@ -5538,6 +5676,59 @@ function lvDoSwap() {
   lvSay('선수 변경 → ' + (mtUs[lvSel].nm || ''));
 }
 
+
+/* ══ 가로 경기 무대 ══
+   경기 중에만 화면 전체를 덮는 무대를 띄운다.
+   폰이 세로면 무대를 90도 돌려서 그린다 — 폰을 눕히면 가로 화면이 된다.
+   (앱이 세로 고정이어도 되도록 OS 회전에 기대지 않는다) */
+let lvRot = false;           // 무대를 90도 돌렸는가
+function lvStageCSS() {
+  if (document.getElementById('lvStageStyle')) return;
+  const st = document.createElement('style');
+  st.id = 'lvStageStyle';
+  st.textContent = `
+  .lvstage{position:fixed;z-index:900;background:#0b0f17;overflow:hidden;display:flex;flex-direction:column;
+    transform-origin:top left;touch-action:none;user-select:none;-webkit-user-select:none}
+  .lvtop{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:6px 12px;
+    background:linear-gradient(180deg,#1b2233,#10151f);color:#fff;font-weight:900}
+  .lvtop .tm{font-size:12px;max-width:26%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lvtop .sc{font-size:22px;letter-spacing:2px;min-width:74px;text-align:center}
+  .lvtop .ck{font-size:12px;color:#4ade80;min-width:34px}
+  .lvtop .sp{flex:1}
+  .lvtop button{padding:5px 10px;border:1.5px solid #c9cfd9;border-radius:9px;
+    background:linear-gradient(180deg,#fff,#e6eaf0);color:#111;font-size:11px;font-weight:900;cursor:pointer}
+  .lvarena{position:relative;flex:1 1 auto;min-height:0}
+  .lvarena .lvcam{position:absolute;inset:0;width:auto;aspect-ratio:auto;border-radius:0}
+  .lvpadL{position:absolute;left:14px;bottom:12px;z-index:70}
+  .lvpadR{position:absolute;right:12px;bottom:12px;z-index:70}
+  .lvpadL .lvstick{width:min(30vmin,140px);max-width:none;opacity:.88}
+  .lvpadR .lvbtns{width:min(46vmin,210px);max-width:none}
+  .lvpadR .lvb{opacity:.93}
+  .lvhintL{position:absolute;left:50%;top:8px;transform:translateX(-50%);z-index:70;pointer-events:none;
+    padding:4px 12px;border-radius:10px;background:rgba(11,15,23,.72);color:#fff;font-size:12px;font-weight:900;white-space:nowrap}
+  `;
+  document.head.appendChild(st);
+}
+/* 무대 크기와 회전을 화면에 맞춘다 */
+function lvStageFit() {
+  const g = document.getElementById('lvStage');
+  if (!g) return;
+  const W = window.innerWidth, H = window.innerHeight;
+  lvRot = H > W;                                   // 세로 폰이면 돌린다
+  if (lvRot) {
+    g.style.left = W + 'px'; g.style.top = '0px';
+    g.style.width = H + 'px'; g.style.height = W + 'px';
+    g.style.transform = 'rotate(90deg)';
+  } else {
+    g.style.left = '0px'; g.style.top = '0px';
+    g.style.width = W + 'px'; g.style.height = H + 'px';
+    g.style.transform = 'none';
+  }
+  lvApplyZoom();
+}
+/* 화면(물리) 이동량 → 무대 안 이동량. 90도 돌렸으면 축이 바뀐다 */
+function lvLocalDelta(dx, dy) { return lvRot ? { x: dy, y: -dx } : { x: dx, y: dy }; }
+
 let lvOn = false, lvPaused = false, lvTimer = null;
 let lvBall = { x:50, y:50, vx:0, vy:0, own:null, to:-1, from:null, cool:0, air:0, curl:0 };   // own = {side, idx}
 let lvScore = [0, 0], lvMin = 0, lvFrame = 0, lvMsg = '', lvMsgT = 0;
@@ -5567,23 +5758,38 @@ function startLiveMatch() {
   if (matchTimer) { clearInterval(matchTimer); matchTimer = null; }
   try { mtStopLoop(); } catch (e) {}
   matchView = 'live';
+  mtInitPitch();                    // 그림보다 먼저 — 골키퍼 유니폼 색을 알아야 한다
   lvScore = [0, 0]; lvMin = 0; lvFrame = 0; lvMsg = ''; lvOn = true; lvPaused = false; lvLock = false; lvSet = null;
 
-  document.getElementById('matchView').innerHTML =
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;font-size:11px;font-weight:900">'
-    + '<span style="color:#60a5fa">우리 팀</span><span style="color:' + t.color + '">' + t.name + '</span></div>'
-    + '<div class="mt-score"><div class="mt-score-num" id="lvScore">0 - 0</div>'
-    + '<div class="mt-clock" id="lvClock">0분</div></div>'
+  lvStageCSS();
+  lvLand = true;
+  const old = document.getElementById('lvStage'); if (old) old.remove();
+  const g = document.createElement('div');
+  g.id = 'lvStage'; g.className = 'lvstage';
+  g.innerHTML =
+      '<div class="lvtop">'
+    + '<span class="tm" style="color:#93b4ff">우리 팀</span>'
+    + '<span class="sc" id="lvScore">0 - 0</span>'
+    + '<span class="tm" style="color:#ff9b9b">' + t.name + '</span>'
+    + '<span class="ck" id="lvClock">0분</span>'
+    + '<span class="sp"></span>'
+    + '<button id="lvCamBtn" onclick="lvToggleZoom()">📷</button>'
+    + '<button onclick="lvQuit()">✕ 종료</button>'
+    + '</div>'
+    + '<div class="lvarena" id="lvArena">'
     + lvPitchHTML()
-    + '<div id="lvHint" style="margin-top:6px;padding:7px;border-radius:9px;background:rgba(96,165,250,.1);'
-    + 'border:1px solid rgba(96,165,250,.3);font-size:11px;font-weight:800;color:#93c5fd;text-align:center;min-height:15px"></div>'
-    + lvPadHTML()
-    + '<button onclick="lvQuit()" style="width:100%;margin-top:10px;padding:11px;border:none;border-radius:10px;'
-    + 'background:rgba(255,255,255,.07);color:#ccc;font-size:12px;font-weight:800;cursor:pointer">경기 종료</button>';
+    + '<div class="lvhintL" id="lvHint"></div>'
+    + '<div class="lvpadL"><div class="lvstick" id="lvStickEl"><div class="lvknob" id="lvKnob"></div></div></div>'
+    + '<div class="lvpadR"><div class="lvbtns" id="lvBtns"></div></div>'
+    + '</div>';
+  document.body.appendChild(g);
+  lvPadCSS();
+  lvStageFit();
+  window.addEventListener('resize', lvStageFit);
 
-  mtInitPitch();
   lvKickoff(true);
   lvPaused = false;                 // 실시간 조작 — 멈추지 않는다
+  lvApplyZoom();
   lvSel = -1; lvSprint = false;
   lvStick = { on:false, dx:0, dy:0, id:null };
   lvBtnsPaint();
@@ -5595,6 +5801,8 @@ function lvQuit() {
   lvOn = false;
   if (lvTimer) { clearInterval(lvTimer); lvTimer = null; }
   if (lvHoldTimer) { clearTimeout(lvHoldTimer); lvHoldTimer = null; }
+  window.removeEventListener('resize', lvStageFit);
+  const g = document.getElementById('lvStage'); if (g) g.remove();
   showModal('경기 종료\n' + lvScore[0] + ' - ' + lvScore[1], [{label:'확인', cls:'ok', fn: renderMatch}]);
 }
 
@@ -5983,8 +6191,9 @@ function lvMove() {
                && Math.hypot(lvStick.dx, lvStick.dy) > 0.15) {
         /* 화면은 세로로 눕혀 그리므로 스틱 위(-dy) = 내부 x 증가(상대 골문) */
         const m = Math.hypot(lvStick.dx, lvStick.dy);
-        tx = p.cx + (-lvStick.dy / m) * 14;
-        ty = p.cy + ( lvStick.dx / m) * 14;
+        const ix = lvLand ? lvStick.dx : -lvStick.dy, iy = lvLand ? lvStick.dy : lvStick.dx;
+        tx = p.cx + (ix / m) * 14;
+        ty = p.cy + (iy / m) * 14;
         sp *= (lvSprint ? 1.35 : 1) * Math.min(1, m * 1.3);
       }
       // 공을 가진 선수
@@ -6356,9 +6565,11 @@ function lvPaint() {
       const drib = hasB && run;
       if (drib !== p._drib) { p._drib = drib; el.classList.toggle('drib', drib); }
       // 좌우 이동 방향으로 몸을 돌린다
-      const face = (p.vy || 0) < -0.02 ? -1 : (p.vy || 0) > 0.02 ? 1 : (p._face || 1);
+      const hv = lvLand ? (p.vx || 0) : (p.vy || 0);            // 화면 가로 방향 속도
+      const face = hv < -0.02 ? -1 : hv > 0.02 ? 1 : (p._face || (sd === 'us' ? 1 : -1));
       if (face !== p._face) { p._face = face; }
-      el.style.transform = 'translate(-50%,-72%) scaleX(' + p._face + ')';
+      el.style.transform = 'translate(-50%,-78%) scaleX(' + p._face + ')';
+      el.style.setProperty('--fx', p._face);   // 등번호는 다시 뒤집어 제대로 읽히게
       const own = (sd === 'us') ? (i === lvCtrlIdx())
                 : (lvBall.own && lvBall.own.side === sd && lvBall.own.idx === i);
       if (own !== p._own) { p._own = own; el.classList.toggle('own', !!own); }
@@ -6378,17 +6589,28 @@ function lvPaint() {
     } else if (lvBall.own) { lvBall.arc = null; }
     /* 드리블 중엔 공을 몸 한가운데가 아니라 진행 방향 발끝에 둔다 */
     let bx = lvBall.x, by = lvBall.y + dy;
+    let feet = 0;
     const own = lvBall.own;
     if (own) {
       const q = (own.side === 'us' ? mtUs : mtThem)[own.idx];
       if (q) {
+        /* 공은 발끝에. 세로 화면에서 '앞' 은 '위' 라서 앞쪽 오프셋을 크게 주면
+           공이 가슴 높이로 올라가 보인다. 앞뒤는 조금, 좌우는 넉넉하게. */
         const v = Math.hypot(q.vx || 0, q.vy || 0);
-        if (v > 0.03) { bx += (q.vx / v) * 1.6; by += (q.vy / v) * 1.6; }
-        else { bx += (own.side === 'us' ? 1 : -1) * 1.2; }
+        // 화면 가로 방향으로는 넉넉히, 세로(깊이) 방향으로는 조금만 앞에 둔다
+        const hk = 1.3, vk = 0.45;
+        if (v > 0.03) {
+          if (lvLand) { bx += (q.vx / v) * hk; by += (q.vy / v) * vk; }
+          else        { bx += (q.vx / v) * vk; by += (q.vy / v) * hk; }
+        } else {
+          const f = q._face || 1;
+          if (lvLand) bx += f * 0.9; else by += f * 0.9;
+        }
+        feet = lvSpriteH * 0.17;                    // 발 높이만큼 내린다
       }
     }
     b.style.left = lvScrL(bx, by).toFixed(1) + '%';
-    b.style.top  = lvScrT(bx, by).toFixed(1) + '%';
+    b.style.top  = (lvScrT(bx, by) + feet).toFixed(2) + '%';
     const touching = !!own;
     if (touching !== lvBall._t) { lvBall._t = touching; b.classList.toggle('touch', touching); }
     const flying = !own && Math.hypot(lvBall.vx, lvBall.vy) > 1.6;
@@ -6405,7 +6627,7 @@ function lvPaint() {
       const nm = q.nm || '';
       if (tag.textContent !== nm) tag.textContent = nm;
       tag.style.left = lvScrL(q.cx, q.cy).toFixed(1) + '%';
-      tag.style.top  = (lvScrT(q.cx, q.cy) - 2.4).toFixed(1) + '%';
+      tag.style.top  = (lvScrT(q.cx, q.cy) - lvSpriteH * 0.82).toFixed(2) + '%';
     } else tag.style.display = 'none';
   }
   lvCamPaint();
@@ -7587,8 +7809,19 @@ function mtInitPitch() {
   const rf = (RIVAL_TEAMS.find(t => t === matchStage) || {}).form || '4-3-3';
   const rs = FORMATIONS[rf] || slots;
   const rOvr = (matchStage && matchStage.ovr) || 100;
+  /* 상대 선수 이름 — 팀 데이터의 GK/DF/MF/FW 명단을 포지션 순서대로 붙인다.
+     전에는 포지션명(ST 등)을 이름 대신 넣어서 이름표·득점자에 'ST' 가 떴다. */
+  const rp = (matchStage && matchStage.players) || {};
+  const pool = { GK:(rp.GK ? [rp.GK] : []).slice(), DF:(rp.DF||[]).slice(), MF:(rp.MF||[]).slice(), FW:(rp.FW||[]).slice() };
+  const grp = lb => lb === 'GK' ? 'GK' : /CB|LB|RB|LWB|RWB/.test(lb) ? 'DF' : /CDM|CM|CAM|LM|RM/.test(lb) ? 'MF' : 'FW';
+  const pickName = lb => {
+    const g = grp(lb);
+    if (pool[g] && pool[g].length) return pool[g].shift();
+    for (const k of ['FW','MF','DF','GK']) if (pool[k].length) return pool[k].shift();
+    return lb;
+  };
   mtThem = rs.map(sl => ({
-    ovr: rOvr, nm: sl.label,
+    ovr: rOvr, nm: pickName(sl.label),
     hx: 94 - (100 - sl.y) * 0.52, hy: 14 + (100 - sl.x) * 0.72,
     line: mtLineOf(sl.label), gk: sl.label === 'GK',
     wide: /LB|RB|LWB|RWB|LM|RM|LW|RW/.test(sl.label),
