@@ -5157,9 +5157,17 @@ function lvPitchCSS() {
   @keyframes lvStepB{0%,100%{transform:translateY(-12%) scaleY(.8) rotate(-5deg)}
     50%{transform:translateY(0) scaleY(1) rotate(0)}}
   @keyframes lvBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3%)}}
-  .lvp.own::after{content:'';position:absolute;left:50%;top:95%;width:125%;aspect-ratio:2.4/1;
-    transform:translate(-50%,-50%);border-radius:50%;border:2px solid #ffe066;
-    box-shadow:0 0 8px rgba(255,224,102,.8)}
+  /* 조작 중인 선수 — 땅에 까는 노란 원 (카메라 기울기 따라 타원으로 보인다) */
+  .lvctrl{position:absolute;z-index:9;width:calc(var(--pm,4px) * 2.4);aspect-ratio:1;border-radius:50%;
+    border:3px solid #ffe066;box-shadow:0 0 10px rgba(255,224,102,.95),inset 0 0 8px rgba(255,224,102,.55);
+    transform:translate(-50%,-50%) translateZ(.3px);pointer-events:none}   /* 깜빡임은 뺐다 — 입체 화면에서 프레임이 절반으로 떨어졌다 */
+  @keyframes lvPulse{0%,100%{opacity:1}50%{opacity:.55}}
+  /* 상대 공 가진 선수 — 작은 빨간 원 */
+  .lvfoe{position:absolute;z-index:9;width:calc(var(--pm,4px) * 1.8);aspect-ratio:1;border-radius:50%;
+    border:2px solid rgba(255,90,90,.9);transform:translate(-50%,-50%) translateZ(.3px);pointer-events:none}
+  /* 수비 땐 조작 선수 머리 위 화살표 */
+  .lvarrow{position:absolute;z-index:26;pointer-events:none;transform-origin:50% 100%;
+    width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:11px solid #ffe066}
   .lvp.mate::before{content:'';position:absolute;left:50%;top:95%;width:120%;aspect-ratio:2.4/1;
     transform:translate(-50%,-50%);border-radius:50%;border:1.5px dashed rgba(125,255,212,.5)}
   .lvp.mate.hot::before{border-color:#7dffd4;border-style:solid;
@@ -5171,9 +5179,12 @@ function lvPitchCSS() {
   .lvp.dive .ar.l,.lvp.dive .ar.r{animation:lvDiveArm .55s ease-out forwards}
   .lvp.dive .lg.a{animation:lvDiveLegA .55s ease-out forwards}
   .lvp.dive .lg.b{animation:lvDiveLegB .55s ease-out forwards}
+  /* 입체 화면에선 몸이 발밑보다 내려가면 잔디 아래로 잘린다(전엔 112° 까지 돌아서 얇은 선처럼 보였다).
+     몸을 공중으로 띄우고 75° 까지만 눕힌다. */
+  .lvp.dive .bx{transform-origin:50% 90%}
   @keyframes lvDive{0%{transform:translateY(0) rotate(0)}
-    45%{transform:translateY(calc(var(--dv,1) * 26%)) rotate(var(--dr,90deg)) scale(1.08)}
-    100%{transform:translateY(calc(var(--dv,1) * 32%)) rotate(var(--dr,90deg))}}
+    40%{transform:translateY(-34%) rotate(var(--dr,70deg)) scale(1.06)}
+    100%{transform:translateY(-22%) rotate(var(--dr,70deg))}}
   @keyframes lvDiveArm{0%{transform:rotate(0)}100%{transform:rotate(172deg) translateY(-30%)}}
   @keyframes lvDiveLegA{0%{transform:rotate(0)}100%{transform:rotate(-24deg)}}
   @keyframes lvDiveLegB{0%{transform:rotate(0)}100%{transform:rotate(20deg)}}
@@ -5185,15 +5196,44 @@ function lvPitchCSS() {
   .lvp.cele .ar.l{transform:rotate(155deg)}
   .lvp.cele .ar.r{transform:rotate(-155deg)}
   @keyframes lvJump{0%,100%{transform:translateY(0)}45%{transform:translateY(-22%)}}
+  /* ── 드리블 볼터치: 발걸음 중 한 박자에 주발로 공을 톡 민다 ── */
+  .lvp.drib.tchR .lg.b{transform:rotate(-30deg) translateY(-6%)}
+  .lvp.drib.tchL .lg.a{transform:rotate(-30deg) translateY(-6%)}
+  /* ── 트래핑: 발을 들어 공을 받아 죽인다 ── */
+  .lvp.trap .lg.b{animation:lvTrap .32s ease-out}
+  .lvp.trap .bx{animation:lvTrapB .32s ease-out}
+  @keyframes lvTrap{0%,100%{transform:rotate(0)}40%{transform:rotate(-24deg) translateY(-16%)}}
+  @keyframes lvTrapB{0%,100%{transform:rotate(0)}40%{transform:rotate(-5deg)}}
+  /* ── 스로인·키퍼 던지기: 두 팔을 머리 위로 들었다가 앞으로 ── */
+  .lvp.throw .ar.l,.lvp.throw .ar.r{animation:lvThrowA .5s ease-out}
+  .lvp.throw .bx{animation:lvThrowB .5s ease-out}
+  @keyframes lvThrowA{0%{transform:rotate(0)}35%{transform:rotate(175deg) translateY(-20%)}100%{transform:rotate(110deg) translateY(-10%)}}
+  @keyframes lvThrowB{0%,100%{transform:rotate(0)}35%{transform:rotate(-10deg)}70%{transform:rotate(8deg)}}
+  /* ── 압박(따라붙기) 자세: 무릎 굽히고 팔 벌려 버틴다 (움직임 없는 고정 자세라 가볍다) ── */
+  .lvp.jock .bx{transform:translateY(7%) scaleY(.93)}
+  .lvp.jock .ar.l{transform:rotate(28deg)}
+  .lvp.jock .ar.r{transform:rotate(-28deg)}
+  .lvp.jock .lg.a{transform:rotate(12deg)}
+  .lvp.jock .lg.b{transform:rotate(-12deg)}
   /* 공 몰고 갈 땐 다리를 더 빠르게 */
 
   /* 패스 — 오른발을 가볍게 휘두른다 */
   .lvp.pass .lg.b{animation:lvPassK .28s ease-out}
   .lvp.pass .bd{animation:lvLeanS .28s ease-out}
   /* 슛 — 크게 휘두르고 몸을 젖힌다 */
+  .lvp.kickL .lg.a{animation:lvKickK .36s cubic-bezier(.2,.8,.3,1)}
+  .lvp.kickL .lg.b{animation:lvPlant .36s ease-out}
+  .lvp.kickL .bd{animation:lvLeanB .36s ease-out}
+  .lvp.passL .lg.a{animation:lvPassK .28s ease-out}
   .lvp.kick .lg.b{animation:lvKickK .36s cubic-bezier(.2,.8,.3,1)}
   .lvp.kick .lg.a{animation:lvPlant .36s ease-out}
   .lvp.kick .bd{animation:lvLeanB .36s ease-out}
+  .lvp.stepover .lg.a{animation:lvSOa .46s ease-in-out}
+  .lvp.stepover .lg.b{animation:lvSOb .46s ease-in-out}
+  .lvp.stepover .bx{animation:lvSObody .46s ease-in-out}
+  @keyframes lvSOa{0%,100%{transform:rotate(0)}20%{transform:rotate(-38deg) translateY(-10%)}40%{transform:rotate(0)}}
+  @keyframes lvSOb{0%,45%,100%{transform:rotate(0)}65%{transform:rotate(38deg) translateY(-10%)}85%{transform:rotate(0)}}
+  @keyframes lvSObody{0%,100%{transform:rotate(0)}25%{transform:rotate(-7deg)}70%{transform:rotate(7deg)}}
   /* 태클 — 몸을 숙이며 한쪽 발을 쭉 뻗어 공을 긁어낸다 */
   .lvp.tackle .bx{animation:lvTklB .38s ease-out}
   .lvp.tackle .lg.b{animation:lvTklL .38s ease-out}
@@ -5206,8 +5246,9 @@ function lvPitchCSS() {
   .lvp.slide .bx{animation:lvSlideX .55s ease-out}
   .lvp.slide .lg.b{animation:lvSlideL .55s ease-out}
   .lvp.slide .lg.a{animation:lvSlideA .55s ease-out}
-  @keyframes lvSlideX{0%{transform:rotate(0)}25%{transform:rotate(68deg) translate(8%,14%)}
-    70%{transform:rotate(72deg) translate(18%,16%)}100%{transform:rotate(0)}}
+  /* 발부터 들어간다 — 전엔 앞으로 68° 기울여서 머리로 들이받는 모양이었다 */
+  @keyframes lvSlideX{0%{transform:rotate(0)}25%{transform:rotate(-62deg) translate(-4%,-6%)}
+    70%{transform:rotate(-66deg) translate(-2%,-4%)}100%{transform:rotate(0)}}
   @keyframes lvSlideA{0%,100%{transform:rotate(0)}30%{transform:rotate(-40deg)}}
   @keyframes lvPassK{0%{transform:rotate(0)}45%{transform:rotate(-48deg)}100%{transform:rotate(0)}}
   @keyframes lvLeanS{0%,100%{transform:rotate(0)}45%{transform:rotate(-7deg)}}
@@ -5231,15 +5272,11 @@ function lvPitchCSS() {
     background:radial-gradient(ellipse,rgba(125,255,212,.16),transparent 70%)}
   .lvp.mate.hot::before{border-color:#7dffd4;border-style:solid;
     background:radial-gradient(ellipse,rgba(125,255,212,.4),transparent 72%)}
-  /* 관중석 — 필드 배경 전체. 머리 점(여러 색) + 계단식 좌석 줄 */
+  /* 경기장 바닥 여백 — 육상 트랙. 관중은 바닥에 깔지 않고 세워진 관중석에만 둔다
+     (전엔 사방 바닥에 관중 무늬가 깔려 벽처럼 보였다) */
   .lvfield{background:
-     radial-gradient(circle at 30% 35%,#e9c9a6 0 17%,transparent 19%) 0 0/9px 8px,
-     radial-gradient(circle at 70% 60%,#2f6fe0 0 20%,transparent 22%) 2px 1px/11px 9px,
-     radial-gradient(circle at 45% 75%,#d63a3a 0 19%,transparent 21%) 4px 3px/13px 11px,
-     radial-gradient(circle at 60% 30%,#f2d15c 0 16%,transparent 18%) 6px 5px/10px 12px,
-     radial-gradient(circle at 20% 70%,#f4f4f4 0 15%,transparent 17%) 1px 6px/12px 10px,
-     repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 2px,transparent 2px 10px),
-     linear-gradient(180deg,#303746,#1b1f29) !important}
+     repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 2px,transparent 2px 46px),
+     linear-gradient(180deg,#8f4a3a,#7a3e31) !important}
   /* 잔디 — 결(가로 줄무늬) + 잔 무늬 + 가장자리 어둡게 */
   .lvgrass{position:absolute;z-index:1;border-radius:2px;
     background:
@@ -5285,13 +5322,31 @@ function lvPitchCSS() {
     border-radius:2px !important;background:linear-gradient(90deg,#fff,#dfe3ea) !important;
     transform:translate(-50%,-100%) rotateX(calc(-1 * var(--tilt,36deg))) translateZ(.5px) !important;transform-origin:50% 100% !important;
     box-shadow:0 0 2px rgba(0,0,0,.4) !important;z-index:30 !important}
-  .lvbar{position:absolute;z-index:30;background:#fff;box-shadow:0 0 2px rgba(0,0,0,.5);
-    transform:translateZ(calc(var(--pm,4px) * 2.44))}
-  .lvnettop{transform:translateZ(calc(var(--pm,4px) * 2.44));opacity:.75}
-  .lvnetside{transform-origin:50% 0;transform:rotateX(-90deg);height:calc(var(--pm,4px) * 2.44) !important;opacity:.7}
+  /* 골대 3D — 세로축(y) 기준으로 세우는 판은 rotateY(-90deg): 판의 가로(x)가 위(높이)로 선다 */
+  .lvg3{position:absolute;z-index:5;pointer-events:none;box-sizing:border-box}
+  .lvgframe,.lvgback{width:calc(var(--pm,4px) * 2.44);transform-origin:0 50%;transform:rotateY(-90deg)}
+  .lvgframe{border:calc(var(--pm,4px) * .22) solid #fff;border-left:none;box-shadow:0 0 3px rgba(0,0,0,.45)}
+  .lvgback,.lvgtop,.lvgside{
+    background:repeating-linear-gradient(45deg,rgba(255,255,255,.5) 0 1px,transparent 1px 6px),
+               repeating-linear-gradient(-45deg,rgba(255,255,255,.5) 0 1px,transparent 1px 6px),rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.6)}
+  .lvgtop{transform:translateZ(calc(var(--pm,4px) * 2.44))}
+  /* 옆그물 — 가로축(x) 기준으로 세운다. 위쪽 모서리를 축으로 +90° (땅 위로) */
+  .lvgside{height:calc(var(--pm,4px) * 2.44) !important;transform-origin:50% 0;transform:rotateX(90deg)}
   .lvad{transform-origin:50% 100%;transform:rotateX(-90deg);height:calc(var(--pm,4px) * 1.0) !important}
-  .lvwall{position:absolute;z-index:2;transform-origin:50% 100%;transform:rotateX(-78deg);
-    height:calc(var(--pm,4px) * 11) !important;
+  .lvcrowd{position:absolute;z-index:2;
+    background:
+      radial-gradient(circle at 30% 35%,#e9c9a6 0 17%,transparent 19%) 0 0/9px 8px,
+      radial-gradient(circle at 70% 60%,#2f6fe0 0 20%,transparent 22%) 2px 1px/11px 9px,
+      radial-gradient(circle at 45% 75%,#d63a3a 0 19%,transparent 21%) 4px 3px/13px 11px,
+      radial-gradient(circle at 60% 30%,#f2d15c 0 16%,transparent 18%) 6px 5px/10px 12px,
+      repeating-linear-gradient(90deg,rgba(0,0,0,.3) 0 2px,transparent 2px 9px),
+      linear-gradient(90deg,#1e2430,#343c4d)}
+  /* 건너편 관중석 — 전엔 11m 높이에 거의 수직(78°)이라 벽에 갇힌 느낌이었다. 낮고 완만하게. */
+  .lvwall{position:absolute;z-index:2;transform-origin:50% 100%;transform:rotateX(-58deg);
+    height:calc(var(--pm,4px) * 6) !important;
+    -webkit-mask-image:linear-gradient(0deg,#000 55%,rgba(0,0,0,.25) 100%);
+    mask-image:linear-gradient(0deg,#000 55%,rgba(0,0,0,.25) 100%);
     background:
       radial-gradient(circle at 30% 35%,#e9c9a6 0 17%,transparent 19%) 0 0/9px 8px,
       radial-gradient(circle at 70% 60%,#2f6fe0 0 20%,transparent 22%) 2px 1px/11px 9px,
@@ -5317,6 +5372,8 @@ function lvPitchCSS() {
     background:rgba(10,14,24,.82);color:#fff;border:1px solid rgba(255,255,255,.25)}
   .lvtag.us{border-color:#5b8def;color:#cfe0ff}
   .lvtag.them{border-color:#e05252;color:#ffd4d4}
+  .lvtag i{display:block;height:3px;margin-top:2px;border-radius:2px;background:rgba(255,255,255,.2);overflow:hidden}
+  .lvtag i b{display:block;height:100%;width:100%;background:#4ade80}
   .lvbsh{position:absolute;width:var(--bw,2%);aspect-ratio:2/1;border-radius:50%;z-index:8;
     background:rgba(0,0,0,.42);transform:translate(-50%,-50%);filter:blur(.6px);pointer-events:none}
   .lvghost{position:absolute;width:var(--bw,2%);aspect-ratio:1;border-radius:50%;z-index:19;
@@ -5377,6 +5434,25 @@ function lvPlayerHTML(side, i) {
     + '</i></div>';
 }
 
+
+/* 골대 하나 — 골문 면(포스트 2 + 크로스바), 뒷그물, 윗그물, 옆그물 2장.
+   골라인(x) 위에 폭 방향(y)으로 놓인 판을 세로축 기준 90° 세우면 골문 면이 된다.
+   전엔 포스트는 카메라를 향해 서고 크로스바·그물은 제각각 기울어서 서로 안 맞았다. */
+function lvGoalHTML(x, dir) {
+  const ND = lvMx(2);
+  const L = v => lvScrL(v, 50), T = v => lvScrT(x, v);
+  const top = T(LV_GOAL0), h = T(LV_GOAL1) - T(LV_GOAL0);
+  const x2 = x + dir * ND;
+  // 골문 면: 폭(y) = 골대 폭, 가로(x → 세우면 높이) = 2.44m
+  const face = (cx, cls) => '<div class="' + cls + '" style="left:' + L(cx).toFixed(3) + '%;top:' + top.toFixed(3) + '%;height:' + h.toFixed(3) + '%"></div>';
+  const x0 = Math.min(x, x2), x1 = Math.max(x, x2);
+  return face(x2, 'lvg3 lvgback')                                                    // 뒷그물
+    + '<div class="lvg3 lvgtop" style="' + lvRectCSS(x0, x1, LV_GOAL0, LV_GOAL1) + '"></div>'   // 윗그물
+    + '<div class="lvg3 lvgside" style="' + lvRectCSS(x0, x1, LV_GOAL0, LV_GOAL0 + 0.001) + '"></div>'
+    + '<div class="lvg3 lvgside" style="' + lvRectCSS(x0, x1, LV_GOAL1, LV_GOAL1 + 0.001) + '"></div>'
+    + face(x, 'lvg3 lvgframe');                                                      // 골문 (맨 앞)
+}
+
 function lvPitchHTML() {
   lvPitchCSS();
   let dots = '';
@@ -5403,13 +5479,16 @@ function lvPitchHTML() {
   const adTxt = '<span>FOOTBALL CARD LEAGUE</span><span>FCL</span><span>UCL LEGACY</span><span>FCL</span>'
               + '<span>TOTAL LEGENDS</span><span>FCL</span><span>BARÇA</span><span>FCL</span>';
   // 광고판 — 터치라인 바깥에 1m 높이로 세운다 (y0 쪽 모서리를 축으로)
-  const board = (y0, y1) => '<div class="lvad" style="' + lvRectCSS(-6, 106, y0, y1) + '">' + adTxt + adTxt + '</div>';
+  const board = (y0, y1) => '<div class="lvad" style="' + lvRectCSS(-9, 109, y0, y1) + '">' + adTxt + adTxt + '</div>';
   return '<div class="lvcam" id="lvCam"><div class="lvtilt" id="lvTilt"><div class="lvfield" id="lvField">'
     // 관중석 (필드 전체 배경) + 잔디 (터치라인 조금 밖까지)
     + R('lvgrass', -4.5, 104.5, -4.5, 104.5)
-    + board(-9.5, -6.2) + board(106.2, 109.5)
-    // 건너편 관중석 벽 — 광고판 뒤로 세워서 경기장을 내려다보게
-    + '<div class="lvwall" style="' + lvRectCSS(-7, 107, -14.5, -9.6) + '"></div>'
+    + board(-11, -8.5) + board(108.5, 111)
+    // 관중석 — 건너편(위)과 양쪽 골대 뒤에 세운다
+    + '<div class="lvwall" style="' + lvRectCSS(-10, 110, -17, -11.5) + '"></div>'
+    // 골대 뒤 관중석 — 위에서 내려다보이는 자리라 바닥에 깐다 (세우면 옆에서 보여 선처럼 얇아진다)
+    + '<div class="lvcrowd" style="' + lvRectCSS(-10.5, -6, -12, 112) + '"></div>'
+    + '<div class="lvcrowd" style="' + lvRectCSS(106, 110.5, -12, 112) + '"></div>'
     // 경기장 선
     + R('lvline', 0, 100, 0, 0 + t * 1.5) + R('lvline', 0, 100, 100 - t * 1.5, 100)
     + R('lvline', 0, t, 0, 100) + R('lvline', 100 - t, 100, 0, 100) + R('lvline', 50 - t / 2, 50 + t / 2, 0, 100)
@@ -5422,13 +5501,8 @@ function lvPitchHTML() {
     + R('lvbox', 0, lvMx(5.5), 50 - lvMy(9.16), 50 + lvMy(9.16)) + spot(lvMx(11), 50)
     + arc(lvMx(11), lvMx(16.5), false)
     + spot(50, 50)
-    // 골대 7.32m × 2.44m + 골망 2m — 바닥 그물 + 위 그물(높이 2.44m) + 옆 그물(세움) + 골대(세움) + 크로스바
-    + R('lvnet', 100, 100 + ND, LV_GOAL0, LV_GOAL1) + R('lvnet', -ND, 0, LV_GOAL0, LV_GOAL1)
-    + R('lvnet lvnettop', 100, 100 + ND, LV_GOAL0, LV_GOAL1) + R('lvnet lvnettop', -ND, 0, LV_GOAL0, LV_GOAL1)
-    + R('lvnet lvnetside', 100, 100 + ND, LV_GOAL0, LV_GOAL0 + 0.01) + R('lvnet lvnetside', 100, 100 + ND, LV_GOAL1, LV_GOAL1 + 0.01)
-    + R('lvnet lvnetside', -ND, 0, LV_GOAL0, LV_GOAL0 + 0.01) + R('lvnet lvnetside', -ND, 0, LV_GOAL1, LV_GOAL1 + 0.01)
-    + R('lvbar', 99.9, 100.1, LV_GOAL0, LV_GOAL1) + R('lvbar', -0.1, 0.1, LV_GOAL0, LV_GOAL1)
-    + post(100, LV_GOAL0) + post(100, LV_GOAL1) + post(0, LV_GOAL0) + post(0, LV_GOAL1)
+    // 골대 7.32m × 2.44m + 골망 깊이 2m — 전부 같은 3D 좌표계로 세운다
+    + lvGoalHTML(100, 1) + lvGoalHTML(0, -1)
     // 코너 깃발
     + '<div class="lvflag" style="left:' + lvScrL(0, 0) + '%;top:' + lvScrT(0, 0) + '%"></div>'
     + '<div class="lvflag" style="left:' + lvScrL(100, 0) + '%;top:' + lvScrT(100, 0) + '%"></div>'
@@ -5439,7 +5513,9 @@ function lvPitchHTML() {
     + '<div class="lvghost" id="lvG0"></div><div class="lvghost" id="lvG1"></div>'
     + '<div class="lvghost" id="lvG2"></div><div class="lvghost" id="lvG3"></div>'
     + '<div class="lvball" id="lvBall"></div>'
-    + '<div class="lvtag" id="lvTag" style="display:none"></div>'
+    + '<div class="lvtag" id="lvTag" style="display:none"><span id="lvTagN"></span><i><b id="lvTagS"></b></i></div>'
+    + '<div class="lvctrl" id="lvCtrlRing"></div><div class="lvfoe" id="lvFoeRing" style="display:none"></div>'
+    + '<div class="lvarrow" id="lvCtrlArrow" style="display:none"></div>'
     + '</div></div><div class="lvlight"></div><div class="lvgoal" id="lvGoalBox"><b>GOAL!</b><span id="lvGoalWho"></span></div>'
     + '<div class="lvset" id="lvSetBox"></div></div>';
 }
@@ -5508,8 +5584,25 @@ function lvToggleZoom() {
 function lvCamPaint() {
   const f = document.getElementById('lvField');
   if (!f) return;
-  const bl = lvScrL(lvBall.x, lvBall.y);         // 공의 가로 위치 (필드 기준 0~100)
-  const bt = lvScrT(lvBall.x, lvBall.y);         // 공의 세로 위치
+  /* 공이 골대 30m 안으로 들어오면 카메라를 골대 쪽으로 당겨 키퍼·골대가 화면에 들어오게.
+     전엔 공만 정중앙에 둬서, 공이 골대에서 17m 만 떨어져도 키퍼가 화면 밖으로 나갔다 들어왔다 했다. */
+  // 화면 반폭(내부 단위). 골대와 공이 둘 다 들어갈 수 있으면 골라인을 화면 가장자리 안쪽에 붙잡아 둔다.
+  let camX = lvBall.x;
+  if (LV_ZX > 1) {
+    const hw = (50 / LV_ZX) / ((100 - 2 * LV_END) / 100), m = hw - 7;   // 골라인이 화면 가장자리(스틱 자리)에서 7m 안쪽
+    const fit = (d) => d < 2 * m ? Math.max(m, Math.min(d, m)) + (d > m ? 0 : 0)      // 둘 다 보이는 구간 → 골라인 고정
+                     : d < 2 * m + 12 ? (d - m) + (d - (d - m)) * ((d - 2 * m) / 12)   // 서서히 공 중심으로
+                     : d;
+    if (lvBall.x < 50) camX = fit(lvBall.x);
+    else camX = 100 - fit(100 - lvBall.x);
+  }
+  let camY = lvBall.y;
+  if (lvCamLock) {                               // 세리머니 중엔 득점자를 따라간다
+    const q = (lvCamLock.side === 'us' ? mtUs : mtThem)[lvCamLock.idx];
+    if (q) { camX = q.cx; camY = q.cy; }
+  }
+  const bl = lvScrL(camX, camY);                 // 카메라가 볼 가로 위치 (필드 기준 0~100)
+  const bt = lvScrT(camX, camY);                 // 세로 위치
   lvCamX += (bl - lvCamX) * 0.055;      // 60번/초 기준 (전엔 30번/초에 0.10)
   lvCamY += (bt - lvCamY) * 0.055;
   /* 공이 카메라 한가운데 오도록 필드를 민다.
@@ -5527,8 +5620,8 @@ function lvCamPaint() {
    공이 들어갈 곳이 없어 벽에 차는 느낌이었다. */
 /* 경기장 바깥 여백 — 골라인 뒤(골망·관중석), 터치라인 밖(광고판·관중석).
    전에는 경기장 끝이 곧 화면 끝이라 초록 판때기처럼 보였다. */
-const LV_END  = 6;           // 길이 방향 여백 (필드 기준 %)
-const LV_SIDE = 11;          // 폭 방향 여백
+const LV_END  = 9;           // 길이 방향 여백 (골라인 뒤 약 11m)
+const LV_SIDE = 15;          // 폭 방향 여백 (터치라인 밖 약 14m)
 const LV_NET  = LV_END;      // (예전 이름 호환)
 /* lvLand = 가로 모드. 가로에선 왼쪽이 우리 골문, 오른쪽이 상대 골문이다. */
 let lvLand = true;
@@ -5581,6 +5674,10 @@ function lvPadCSS() {
     position:relative;overflow:hidden;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.18)}
   .lvb small{display:block;font-size:9px;font-weight:800;color:#444;margin-top:2px}
   .lvb.hit{background:linear-gradient(180deg,#ffe28a,#f0c23b);border-color:#b8912a;color:#111}
+  /* 누르는 동안 차오르는 세기 게이지 */
+  .lvb::after{content:'';position:absolute;left:0;bottom:0;height:4px;width:0;background:#e0452f;border-radius:0 3px 3px 0}
+  .lvb.hit::after{animation:lvPow .6s linear forwards}
+  @keyframes lvPow{from{width:16%}to{width:100%}}
   .lvb.arm{background:linear-gradient(180deg,#b6ffe7,#62e3b8);border-color:#2aa37c;color:#111}
   .lvb.wide{grid-column:span 2}
   `;
@@ -5598,7 +5695,10 @@ function lvPadHTML() {
 function lvBtnsPaint() {
   const el = document.getElementById('lvBtns');
   if (!el) return;
-  const mine = !!(lvBall.own && lvBall.own.side === 'us');
+  // 우리가 차는 세트피스(프리킥·코너·스로인…)·킥오프 준비 중에도 공격 버튼을 보여준다
+  const theirs = !!(lvBall.own && lvBall.own.side === 'them');      // 상대가 공을 가졌으면 무조건 수비
+  const setMine = !theirs && ((lvSet && lvSet.side === 'us') || (lvKick && lvKick.side === 'us'));
+  const mine = !!(lvBall.own && lvBall.own.side === 'us') || !!setMine;
   const key = mine ? 'atk' : 'def';
   if (el.dataset.mode !== key) {
     el.dataset.mode = key;
@@ -5606,8 +5706,8 @@ function lvBtnsPaint() {
     el.innerHTML = mine
       ? '<div class="lvb" id="bShoot">슛<small>→ 끌면 감아차기</small></div>'
         + '<div class="lvb" id="bPass">패스<small>→ 끌면 로빙</small></div>'
-        + '<div class="lvb" id="bThru">스루패스<small>빈 공간으로</small></div>'
-        + '<div class="lvb" id="bDrib">질주<small>누르는 동안</small></div>'
+        + '<div class="lvb" id="bThru">스루패스<small>→ 끌면 로빙</small></div>'
+        + '<div class="lvb" id="bDrib">질주<small>톡 = 스텝오버</small></div>'
       : '<div class="lvb" id="bTkl">태클</div>'
         + '<div class="lvb" id="bSld">슬라이딩</div>'
         + '<div class="lvb" id="bSwap">선수 변경</div>'
@@ -5618,20 +5718,61 @@ function lvBtnsPaint() {
 
 /* 선수에게 잠깐 동작을 입힌다 (kick / pass / slide) */
 function lvAnim(side, idx, cls) {
+  if (cls === 'kick' || cls === 'kickL') LvSnd.kick(1);
+  else if (cls === 'pass' || cls === 'passL') LvSnd.kick(0.35);
+  else if (cls === 'tackle' || cls === 'slide') LvSnd.kick(0.2);
   const el = document.getElementById((side === 'us' ? 'lvu' : 'lvt') + idx);
   if (!el) return;
-  el.classList.remove('kick', 'pass', 'slide', 'dive', 'catch', 'cele', 'tackle');
+  el.classList.remove('kick', 'kickL', 'pass', 'passL', 'slide', 'dive', 'catch', 'cele', 'tackle', 'stepover', 'trap', 'throw');
   void el.offsetWidth;                 // 같은 동작을 연달아 해도 다시 재생되게
   el.classList.add(cls);
-  const ms = { kick:380, slide:600, pass:300, dive:950, catch:700, cele:2100, tackle:400 }[cls] || 300;
+  const ms = { kick:380, kickL:380, slide:600, pass:300, passL:300, dive:950, catch:700, cele:2100, tackle:400, stepover:480, trap:340, throw:520 }[cls] || 300;
   setTimeout(() => el.classList.remove(cls), ms);
 }
 
-/* 조작 중인 선수 index */
+/* 조작 중인 선수 index — 매 틱 lvCtrlUpdate() 에서 한 번만 정한다.
+   전엔 부를 때마다 '공에 제일 가까운 선수' 를 새로 골라서, 공이 선수들 사이를 지나가면
+   조작 선수가 계속 바뀌고 스틱이 이 선수 저 선수로 넘어가며 둘 다 멈칫했다. */
+let lvCtrlCur = -1, lvCtrlT = 0;
 function lvCtrlIdx() {
   if (lvBall.own && lvBall.own.side === 'us') return lvBall.own.idx;
   if (lvSel >= 0 && mtUs[lvSel] && !mtUs[lvSel].gk) return lvSel;
+  if (lvCtrlCur >= 0 && mtUs[lvCtrlCur] && !mtUs[lvCtrlCur].gk) return lvCtrlCur;
   return lvNearestToBall();
+}
+function lvCtrlUpdate() {
+  lvCtrlT++;
+  const o = lvBall.own;
+  if (o && o.side === 'us') { if (lvCtrlCur !== o.idx) { lvCtrlCur = o.idx; lvCtrlT = 0; } lvSel = -1; return; }
+  if (lvSel >= 0) return;                                  // 선수 변경 버튼으로 고른 선수 유지
+  // 내 패스가 굴러가는 중 → 받을 선수를 조작
+  if (!o && lvBall.to >= 0 && (lvBall.toSide || 'us') === 'us' && mtUs[lvBall.to] && !mtUs[lvBall.to].gk) {
+    if (lvCtrlCur !== lvBall.to) { lvCtrlCur = lvBall.to; lvCtrlT = 0; }
+    return;
+  }
+  const pt = o ? { x: lvBall.x, y: lvBall.y } : lvChasePoint(mtUs[Math.max(0, lvCtrlCur)] || mtUs[0]);
+  let best = -1, bd = 1e9;
+  mtUs.forEach((p, i) => { if (p.gk) return; const d = Math.hypot(p.cx - pt.x, p.cy - pt.y); if (d < bd) { bd = d; best = i; } });
+  if (lvCtrlCur < 0 || !mtUs[lvCtrlCur] || mtUs[lvCtrlCur].gk) { lvCtrlCur = best; lvCtrlT = 0; return; }
+  if (best !== lvCtrlCur && lvCtrlT > 20) {
+    const dc = Math.hypot(mtUs[lvCtrlCur].cx - pt.x, mtUs[lvCtrlCur].cy - pt.y);
+    if (bd < dc - 4) { lvCtrlCur = best; lvCtrlT = 0; }   // 확실히 더 가까울 때만 바꾼다
+  }
+}
+/* 굴러가는 공을 p 가 가장 빨리 만날 지점 (공은 틱마다 0.96 배로 느려진다) */
+function lvChasePoint(p) {
+  if (!p) return { x: lvBall.x, y: lvBall.y };
+  if (lvBall.air > 0 && lvBall.passTo) return { x: lvBall.passTo.x, y: lvBall.passTo.y };
+  const bv = Math.hypot(lvBall.vx, lvBall.vy);
+  if (bv < 0.04) return { x: lvBall.x, y: lvBall.y };
+  const spd = Math.max(0.15, lvSpd(p) * 1.05);
+  let k = Math.min(40, Math.hypot(lvBall.x - p.cx, lvBall.y - p.cy) / spd), bx = lvBall.x, by = lvBall.y;
+  for (let it = 0; it < 3; it++) {
+    const f = (1 - Math.pow(0.96, k)) / 0.04;
+    bx = lvBall.x + lvBall.vx * f; by = lvBall.y + lvBall.vy * f;
+    k = Math.min(40, Math.hypot(bx - p.cx, by - p.cy) / spd);
+  }
+  return { x: Math.max(1, Math.min(99, bx)), y: Math.max(1, Math.min(99, by)) };
 }
 function lvNearestToBall() {
   let b = -1, bd = 1e9;
@@ -5653,11 +5794,11 @@ function lvBindStick() {
     let dx = raw.x, dy = raw.y;
     const m = Math.hypot(dx, dy);
     if (m > 1) { dx /= m; dy /= m; }
-    lvStick.dx = dx; lvStick.dy = dy; lvStick.on = true;
+    lvStick.dx = dx; lvStick.dy = dy; lvStick.on = true; el.classList.add('on');
     if (knob) knob.style.transform = 'translate(-50%,-50%) translate(' + (dx * 40) + '%,' + (dy * 40) + '%)';
   };
   const clear = () => {
-    lvStick.on = false; lvStick.dx = 0; lvStick.dy = 0;
+    lvStick.on = false; lvStick.dx = 0; lvStick.dy = 0; el.classList.remove('on');
     if (knob) knob.style.transform = 'translate(-50%,-50%)';
   };
   /* 손가락이 스틱 원 밖으로 나가도 계속 따라가야 한다 (포인터 캡처).
@@ -5686,11 +5827,11 @@ function lvBindBtns() {
   const wire = (id, fn) => {
     const b = document.getElementById(id);
     if (!b) return;
-    let sx = 0, sy = 0, armed = false;
+    let sx = 0, sy = 0, armed = false, t0 = 0;
     const down = e => {
       if (e.preventDefault) e.preventDefault();
       const t = (e.touches && e.touches[0]) || e;
-      sx = t.clientX; sy = t.clientY; armed = false;
+      sx = t.clientX; sy = t.clientY; armed = false; t0 = Date.now();
       // 오른쪽으로 끌다 버튼 밖으로 나가도 손 뗄 때 실행되도록 포인터를 잡아둔다
       if (e.pointerId !== undefined && b.setPointerCapture) { try { b.setPointerCapture(e.pointerId); } catch (x) {} }
       b.classList.add('hit');
@@ -5706,10 +5847,16 @@ function lvBindBtns() {
     const up = e => {
       if (!b.classList.contains('hit')) return;
       if (e.preventDefault) e.preventDefault();
+      // 누른 시간 = 세기 (0.06초 이하 살짝 ~ 0.6초 이상 최대)
+      const pw = Math.max(0, Math.min(1, (Date.now() - t0 - 60) / 540));
       b.classList.remove('hit', 'arm');
-      if (id === 'bDrib') { lvSprint = false; return; }
+      if (id === 'bDrib') {
+        lvSprint = false;
+        if (Date.now() - t0 < 200) lvDoStepover();      // 짧게 톡 → 스텝오버
+        return;
+      }
       if (id === 'bJock') { lvJockey = false; return; }
-      fn(armed);
+      fn(armed, pw);
       armed = false;
     };
     if (window.PointerEvent) {
@@ -5723,10 +5870,10 @@ function lvBindBtns() {
       b.addEventListener('touchend', up, {passive:false});
     }
   };
-  wire('bShoot', curl => lvDoShoot(curl));
-  wire('bPass',  lob  => lvDoPass(lob));
+  wire('bShoot', (curl, pw) => lvDoShoot(curl, pw));
+  wire('bPass',  (lob, pw)  => lvDoPass(lob, pw));
   wire('bDrib',  () => {});
-  wire('bThru',  () => lvDoThrough());
+  wire('bThru',  (lob, pw) => lvDoThrough(lob, pw));
   wire('bJock',  () => {});
   wire('bTkl',   () => lvDoTackle(false));
   wire('bSld',   () => lvDoTackle(true));
@@ -5745,18 +5892,25 @@ function lvAimDir() {
   return null;
 }
 
-function lvDoShoot(curl) {
+function lvDoShoot(curl, pw) {
   const own = lvBall.own;
   if (!own || own.side !== 'us') return;
   const p = mtUs[own.idx];
   if (!p) return;
   let dx, dy;
   const aim = lvAimDir();
-  if (aim && aim.x > -0.2) {
+  const kf = lvKickFoot(p, 'us');                          // 이번에 차는 발
+  const weak = kf !== lvFoot(p);
+  const wfPen = weak ? (5 - lvWf(p)) : 0;                  // 약발 벌점 0~4
+  // 감아차기에서 스틱 좌우 입력이 없으면 발에 맞는 먼 쪽 구석 (파포스트)
+  const naturalSide = p.cy >= 50 ? -1 : 1;
+  const inBox = p.cx > 100 - lvMx(16.5) && Math.abs(p.cy - 50) < lvMy(20.16);
+  if (aim && (aim.x > -0.2 || inBox)) {         // 박스 안에선 스틱을 뒤로 해도 골대로 찬다
     /* 슛 보정 — 스틱은 '어느 쪽 구석' 을 고르는 용도로 쓰고, 실제 방향은 골문 안으로 당긴다.
        전에는 스틱 방향 그대로 차서 조금만 틀어도 골문 밖으로 막 나갔다.
        스틱을 위로 기울이면 위쪽 구석, 아래로 기울이면 아래쪽 구석, 가운데면 골문 중앙 근처. */
-    const side = Math.max(-1, Math.min(1, aim.y * 2.2));        // -1(위 구석) ~ 1(아래 구석)
+    let side = Math.max(-1, Math.min(1, aim.y * 2.2));          // -1(위 구석) ~ 1(아래 구석)
+    if (curl && Math.abs(aim.y) < 0.15) side = naturalSide;
     // 골대가 실제 7.32m 라 좁다. 구석은 골포스트 안쪽 약 1.5m 를 노린다.
     const ty = 50 + side * (curl ? 3.9 : 3.3) + (Math.random() - 0.5) * 0.8;
     const ax = 100 - p.cx, ay = ty - p.cy, d = Math.hypot(ax, ay) || 1;
@@ -5767,38 +5921,64 @@ function lvDoShoot(curl) {
     dx = gx * k + aim.x * (1 - k); dy = gy * k + aim.y * (1 - k);
     const m = Math.hypot(dx, dy) || 1; dx /= m; dy /= m;
   }
-  else if (aim) { dx = aim.x; dy = aim.y; }          // 뒤로 차는 건 걷어내기 — 그대로 둔다
+  else if (aim) { dx = aim.x; dy = aim.y; }          // 박스 밖에서 뒤로 차는 건 걷어내기 — 그대로 둔다
   else {
     // 골문 안쪽을 노린다. 감아차기는 구석 + 바깥쪽으로 벌려 찬다 (휘어서 들어온다)
-    const side = Math.random() < 0.5 ? -1 : 1;
+    // 감아차기는 파포스트(공 반대쪽 구석), 일반 슛은 아무 구석
+    const side = curl ? naturalSide : (Math.random() < 0.5 ? -1 : 1);
     const ty = curl ? 50 + side * (3.6 + Math.random() * 1.3)     // 감아차기는 구석을 정확히
                     : 50 + side * (1.2 + Math.random() * 3.4);
     const ax = 100 - p.cx, ay = ty - p.cy;
     const d = Math.hypot(ax, ay) || 1;
     dx = ax / d; dy = ay / d;
   }
-  const sp = lvShot(p);
+  /* 버튼을 누른 시간만큼 세게 찬다 (살짝 0.72배 ~ 꾹 1.15배).
+     약하면 느려서 막히기 쉽고, 세게 차면 빠른 대신 조준이 조금 흔들린다. */
+  const pwr = 0.72 + 0.43 * (pw === undefined ? 0.75 : pw);
+  const sp = lvShot(p) * pwr;
   const acc = 1 - Math.min(0.5, (125 - (p.ovr || 100)) * 0.012);
   let jit = (1 - acc) * (Math.random() - 0.5) * 0.9;
   if (curl) jit *= 0.25;                       // 감아차기는 더 정확하다
+  // 약발로 차면 흔들린다 (약발 5 = 양발이라 차이 없음)
+  if (wfPen) jit += (Math.random() - 0.5) * 0.028 * wfPen;
+  jit += (Math.random() - 0.5) * 0.2 * Math.max(0, pwr - 1);            // 세게 찰수록 조금 흔들린다
   lvBall.from = { side:'us', idx: own.idx }; lvBall.cool = 10;
   lvBall.own = null; lvBall.to = -1; lvBall.air = 0; lvBall.last = 'us';
   lvBall.vx = dx * sp; lvBall.vy = (dy + jit) * sp;
   lvBall.curl = curl ? 1 : 0;
-  // 화면용 호 — 바깥쪽으로 부풀었다가 목표로 들어온다
-  lvBall.arc = curl ? { x0: p.cx, span: Math.max(8, 100 - p.cx), amp: (dy >= 0 ? -1 : 1) * Math.min(7, (100 - p.cx) * 0.22) } : null;
+  /* 휘는 궤적 — 인사이드로 감으면 왼발은 왼쪽→오른쪽, 오른발은 오른쪽→왼쪽으로 휜다.
+     그래서 날아가는 도중엔 차는 사람 기준 왼발이면 왼쪽(오른발이면 오른쪽)으로 부풀었다가 목표 구석으로 들어온다.
+     (메시가 오른쪽에서 안으로 치고 들어와 왼발로 감으면 파포스트 바깥으로 나갔다 안으로 들어온다)
+     실제 판정 경로는 직선 — 화면에만 이 호를 얹는다. */
+  if (curl) {
+    const len = Math.hypot(dx, dy) || 1;
+    const lx = dy / len, ly = -dx / len;                   // 진행 방향 기준 왼쪽 수직
+    const s2 = kf === 'L' ? 1 : -1;
+    const amp = Math.min(lvMx(1.8), (100 - p.cx) * 0.11);   // 너무 감긴다는 의견 — 최대 3.2m → 1.8m
+    lvBall.arc = { x0: p.cx, span: Math.max(8, 100 - p.cx), nx: lx * s2, ny: ly * s2, amp };
+  } else lvBall.arc = null;
+  // 약발은 힘도 조금 빠진다
+  if (wfPen) { lvBall.vx *= 1 - wfPen * 0.04; lvBall.vy *= 1 - wfPen * 0.04; }
   lvShotId++;
+  lvBall.shot = true; lvBall.shotT = 0; lvBall.homeK = 0;
+  lvStamCost(p, 0.7 + 0.8 * (pw === undefined ? 0.75 : pw));   // 세게 찰수록 체력 소모
   lvResolveShot(p, 'us');
   lvBall.lift = { t0: lvFrame, dur: Math.max(10, Math.min(30, (100 - p.cx) / Math.max(0.5, sp))), peak: curl ? 1.5 : 0.9 };
-  lvAnim('us', own.idx, 'kick');
-  lvSay(curl ? '🌀 감아차기!' : (lvBall.aim === 'wide' ? '빗나갔다!' : '슛!'));
+  lvAnim('us', own.idx, kf === 'L' ? 'kickL' : 'kick');
+  lvSay((curl ? '🌀 감아차기!' : (lvBall.aim === 'wide' ? '빗나갔다!' : '슛!')) + (weak ? ' (약발)' : ''));
 }
 
-function lvDoPass(lob) {
+function lvDoPass(lob, pw) {
   const own = lvBall.own;
   if (!own || own.side !== 'us') return;
   const p = mtUs[own.idx];
   if (!p) return;
+  // 코너킥·골문 근처 프리킥은 패스 버튼으로 박스 중앙에 크로스
+  if (p.setKick) {
+    const kk = p.setKick; p.setKick = null;
+    const gd = Math.hypot((p.cx - 100) * 1.05, (p.cy - 50) * 0.68);
+    if (kk === 'corner' || gd < 35) { if (lvCross(p, own.idx, 'us')) return; }        // 먼 프리킥은 그냥 패스
+  }
   const aim = lvAimDir();
   // 스틱 방향에 있는 동료, 없으면 가장 앞선 동료
   let best = -1, bs = -1e9;
@@ -5829,23 +6009,27 @@ function lvDoPass(lob) {
   for (let k = 0; k < 3; k++) {                         // 도착 시간 ↔ 위치를 몇 번 맞춰본다
     const d0 = Math.hypot(tx - p.cx, ty - p.cy) || 1;
     const T = lob ? Math.max(14, Math.min(36, Math.round(d0 * 0.85)))                    // 로빙 체공 시간
-                  : Math.min(40, d0 / Math.max(0.3, Math.max(0.45, Math.min(2.2, d0 / 20)) * 0.7));
+                  : Math.min(40, d0 / Math.max(0.3, Math.max(0.45, Math.min(2.2, d0 / 17)) * 0.7));
     tx = q.cx + (q.vx || 0) * T * 0.8;
     ty = q.cy + (q.vy || 0) * T * 0.8;
   }
   tx = Math.max(3, Math.min(97, tx)); ty = Math.max(5, Math.min(95, ty));
   const ax = tx - p.cx, ay = ty - p.cy, dist = Math.hypot(ax, ay) || 1;
   // 로빙은 체공 시간을 정하고, 그 시간 동안 정확히 목표에 떨어지게 속도를 맞춘다
-  const airT = lob ? Math.max(14, Math.min(36, Math.round(dist * 0.85))) : 0;
-  const sp = lob ? dist / airT : Math.max(0.45, Math.min(2.2, dist / 20));
-  lvBall.from = { side:'us', idx: own.idx }; lvBall.cool = 12;
+  // 누른 시간만큼 세게 (살짝 0.8배 = 짧고 느린 패스 ~ 꾹 1.28배 = 빠르고 멀리)
+  const ppw = 0.78 + 0.47 * (pw === undefined ? 0.6 : pw);
+  const airT = lob ? Math.max(14, Math.min(36, Math.round(dist * 0.85 / ppw))) : 0;
+  const sp = lob ? dist / airT : Math.max(0.45, Math.min(2.0, dist / 21 * ppw));
+  lvBall.from = { side:'us', idx: own.idx }; lvBall.cool = 12; lvBall.thru = false;
   lvBall.own = null; lvBall.curl = 0; lvBall.arc = null; lvBall.last = 'us';
   lvBall.vx = ax / dist * sp; lvBall.vy = ay / dist * sp;
   lvBall.passTo = { x: tx, y: ty };
-  lvAnim('us', own.idx, lob ? 'kick' : 'pass');
+  if (p.throwIn || p.gk) { lvAnim('us', own.idx, 'throw'); p.throwIn = false; }       // 스로인·키퍼는 손으로
+  else { const kf = lvKickFoot(p, 'us'); lvAnim('us', own.idx, lob ? (kf === 'L' ? 'kickL' : 'kick') : (kf === 'L' ? 'passL' : 'pass')); }
   lvBall.air = airT;
   // 로빙은 멀수록 높이 뜬다
   lvBall.lift = lob ? { t0: lvFrame, dur: airT, peak: Math.max(2.4, Math.min(6.5, dist * 0.17)) } : null;
+  lvBall.homeK = lob ? 0.015 : 0.04;                     // 일반 패스도 받을 선수 쪽으로 살짝 휜다
   lvBall.to = best; lvBall.toSide = 'us';
   lvSay((lob ? '🪁 로빙 → ' : '패스 → ') + (q.nm || ''));
 }
@@ -5853,7 +6037,7 @@ function lvDoPass(lob) {
 
 /* 스루패스 — 동료 발밑이 아니라 그 선수가 뛰어갈 앞 공간으로 찔러준다.
    골문 쪽으로 앞서 있는 동료를 고르고(스틱을 기울이면 그 방향), 수비 뒷공간에 떨어뜨린다. */
-function lvDoThrough() {
+function lvDoThrough(lob, pw) {
   const own = lvBall.own;
   if (!own || own.side !== 'us') return;
   const p = mtUs[own.idx];
@@ -5881,14 +6065,52 @@ function lvDoThrough() {
   let tx = Math.min(96, q.cx + lead);
   let ty = q.cy + (50 - q.cy) * 0.18;
   const ax = tx - p.cx, ay = ty - p.cy, dist = Math.hypot(ax, ay) || 1;
-  const sp = Math.max(0.5, Math.min(2.3, dist / 19));
+  // 로빙 스루패스 — 수비 뒤 공간으로 띄워 넘긴다 (떠 있는 동안 아무도 못 건드린다)
+  const tpw = 0.82 + 0.45 * (pw === undefined ? 0.65 : pw);
+  const airT = lob ? Math.max(14, Math.min(36, Math.round(dist * 0.85 / tpw))) : 0;
+  const sp = lob ? dist / airT : Math.max(0.5, Math.min(2.1, dist / 21 * tpw));
   lvBall.from = { side:'us', idx: own.idx }; lvBall.cool = 12; lvBall.last = 'us';
-  lvBall.own = null; lvBall.curl = 0; lvBall.arc = null; lvBall.air = 0; lvBall.lift = null;
+  lvBall.own = null; lvBall.curl = 0; lvBall.arc = null; lvBall.shot = false;
+  lvBall.air = airT;
+  lvBall.lift = lob ? { t0: lvFrame, dur: airT, peak: Math.max(2.2, Math.min(5.5, dist * 0.15)) } : null;
   lvBall.vx = ax / dist * sp; lvBall.vy = ay / dist * sp;
   lvBall.passTo = { x: tx, y: ty };
   lvBall.to = best; lvBall.toSide = 'us';
-  lvAnim('us', own.idx, 'pass');
-  lvSay('⚡ 스루패스 → ' + (q.nm || ''));
+  lvBall.thru = !lob; lvBall.homeK = lob ? 0.02 : 0.07;  // 굴러가는 동안 받을 선수 쪽으로 보정
+  { const kf = lvKickFoot(p, 'us'); lvAnim('us', own.idx, lob ? (kf === 'L' ? 'kickL' : 'kick') : (kf === 'L' ? 'passL' : 'pass')); }
+  lvSay((lob ? '🪁 로빙 스루패스 → ' : '⚡ 스루패스 → ') + (q.nm || ''));
+}
+
+
+/* 스텝오버 — 발로 공 위를 휘저어 수비를 속이고 옆으로 빠진다.
+   가까운 수비수는 OVR 차이에 따라 속을 확률이 정해지고, 속으면 잠깐 반대쪽으로 움찔한다. */
+let lvSkillCd = 0;
+function lvDoStepover() {
+  const own = lvBall.own;
+  if (!own || own.side !== 'us' || lvSkillCd > 0 || lvSet || lvKick) return;
+  const p = mtUs[own.idx];
+  if (!p || p.gk) return;
+  // 가장 가까운 수비수 반대쪽으로 빠진다
+  let foe = null, fd = 1e9;
+  mtThem.forEach(q => { if (q.gk) return; const d = Math.hypot(q.cx - p.cx, q.cy - p.cy); if (d < fd) { fd = d; foe = q; } });
+  const side = foe ? (p.cy >= foe.cy ? 1 : -1) : (Math.random() < 0.5 ? -1 : 1);
+  p.skill = { tx: p.cx + lvMx(2.2), ty: p.cy + side * lvMy(3.2), t: 14 };
+  // 순간적으로 옆으로 튀어 나간다 — 속도가 서서히 붙으면 발재간이 안 산다
+  { const ax = p.skill.tx - p.cx, ay = p.skill.ty - p.cy, d = Math.hypot(ax, ay) || 1, v = lvSpd(p) * 1.5;
+    p.vx = ax / d * v; p.vy = ay / d * v; }
+  lvStamCost(p, 0.6);
+  lvSkillCd = 45;                                    // 1.5초에 한 번
+  lvTackleCd = Math.max(lvTackleCd, 18);             // 발재간 부리는 동안엔 안 뺏긴다
+  lvAnim('us', own.idx, 'stepover');
+  let fooled = 0;
+  mtThem.forEach(q => {
+    if (q.gk) return;
+    if (Math.hypot(q.cx - p.cx, q.cy - p.cy) > 5) return;
+    const chance = Math.max(0.25, Math.min(0.9, 0.58 + ((p.ovr || 100) - (q.ovr || 100)) * 0.012));
+    if (Math.random() < chance) { q.fooled = { t: 22, dir: -side }; q.slide = null; q.lunge = 0; fooled++; }
+    else { q.fooled = { t: 6, dir: 0 }; }             // 안 속아도 잠깐 멈칫한다
+  });
+  lvSay(fooled ? '🌀 스텝오버! 수비 ' + fooled + '명 속음' : '🌀 스텝오버');
 }
 
 function lvDoTackle(slide) {
@@ -5897,6 +6119,7 @@ function lvDoTackle(slide) {
   if (!p) return;
   if (slide) {
     p.slide = { tx: lvBall.x, ty: lvBall.y, t: 18 };
+    lvStamCost(p, 0.8);
     lvAnim('us', i, 'slide');
     lvSay('슬라이딩!');
   } else {
@@ -5941,9 +6164,10 @@ function lvStageCSS() {
   .lvarena .lvcam{position:absolute;inset:0;width:auto;aspect-ratio:auto;border-radius:0}
   .lvpadL{position:absolute;left:14px;bottom:12px;z-index:70}
   .lvpadR{position:absolute;right:12px;bottom:12px;z-index:70}
-  .lvpadL .lvstick{width:min(30vmin,140px);max-width:none;opacity:.88}
+  .lvpadL .lvstick{width:min(30vmin,140px);max-width:none;opacity:.42;transition:opacity .15s}
+  .lvpadL .lvstick.on{opacity:.9}   /* 안 만질 땐 반투명 — 우리 골문(왼쪽) 장면을 가리지 않게 */
   .lvpadR .lvbtns{width:min(46vmin,210px);max-width:none}
-  .lvpadR .lvb{opacity:.93}
+  .lvpadR .lvb{opacity:.9}
   .lvmini{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);z-index:70;pointer-events:none;
     width:min(26vmin,128px);aspect-ratio:1.544;border-radius:6px;border:1.5px solid rgba(255,255,255,.55);
     background:linear-gradient(90deg,transparent 49.5%,rgba(255,255,255,.4) 49.5% 50.5%,transparent 50.5%),rgba(34,110,56,.78);
@@ -5954,6 +6178,30 @@ function lvStageCSS() {
   .lvmini i.b{width:5%;background:#fff;box-shadow:0 0 3px #fff;z-index:2}
   .lvmini i.me{width:8%;background:#ffe066;box-shadow:0 0 0 1.5px #111;z-index:3}
   .lvmini b{position:absolute;border:1px solid rgba(255,255,255,.75);background:rgba(255,255,255,.08)}
+  .lvrep{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:80;opacity:0;pointer-events:none;
+    padding:6px 16px;border-radius:12px;background:rgba(190,30,30,.9);color:#fff;font-size:13px;font-weight:900;
+    letter-spacing:1px;transition:opacity .2s;text-align:center;white-space:nowrap}
+  .lvrep.on{opacity:1;pointer-events:auto;cursor:pointer}
+  .lvrep small{display:block;font-size:11px;color:#ffe9e9;font-weight:800;margin-top:1px}
+  .lvsubbox{position:absolute;inset:0;z-index:90;background:rgba(6,9,15,.82);display:flex;
+    align-items:center;justify-content:center;padding:10px}
+  .lvsub-panel{position:relative;display:flex;gap:10px;width:100%;max-width:640px;max-height:100%;
+    background:#141a26;border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:10px 10px 40px}
+  .lvsub-col{flex:1;min-width:0;overflow-y:auto;max-height:100%}
+  .lvsub-col h4{margin:0 0 6px;color:#fff;font-size:12px;font-weight:900}
+  .lvsub-col h4 small{color:#9aa6bb;font-weight:700;margin-left:4px}
+  .lvsub-row{display:flex;align-items:center;gap:6px;padding:5px 7px;margin-bottom:4px;border-radius:8px;
+    background:rgba(255,255,255,.06);color:#e7ecf5;font-size:11px;font-weight:800;cursor:pointer}
+  .lvsub-row.pick{background:rgba(212,175,55,.3);border:1px solid #d4af37}
+  .lvsub-row.gk b::before{content:'GK ';color:#f2c230}
+  .lvsub-row b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lvsub-row span{color:#ffe066;font-size:11px}
+  .lvsub-row em{font-style:normal;color:#8b96a8;font-size:10px;min-width:26px;text-align:right}
+  .lvsub-bar{width:42px;height:6px;border-radius:3px;background:rgba(255,255,255,.15);overflow:hidden}
+  .lvsub-bar i{display:block;height:100%}
+  .lvsub-empty{color:#8b96a8;font-size:11px;padding:8px}
+  .lvsub-x{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);padding:7px 22px;border-radius:9px;
+    border:1.5px solid #c9cfd9;background:linear-gradient(180deg,#fff,#e6eaf0);color:#111;font-size:12px;font-weight:900}
   .lvhintL{position:absolute;left:50%;top:8px;transform:translateX(-50%);z-index:70;pointer-events:none;
     padding:4px 12px;border-radius:10px;background:rgba(11,15,23,.72);color:#fff;font-size:12px;font-weight:900;white-space:nowrap}
   `;
@@ -5979,7 +6227,199 @@ function lvStageFit() {
 /* 화면(물리) 이동량 → 무대 안 이동량. 90도 돌렸으면 축이 바뀐다 */
 function lvLocalDelta(dx, dy) { return lvRot ? { x: dy, y: -dx } : { x: dx, y: dy }; }
 
+
+
+
+/* ══ 골 장면 기록 · 리플레이 ══
+   매 틱 22명 + 공 위치를 고리 버퍼에 담아두고, 골이 나면 세리머니 뒤에 그대로 다시 틀어준다. */
+const LV_REC_MAX = 130;                 // 약 4.3초
+let lvRec = [], lvReplay = null, lvCamLock = null, lvCele = 0, lvCeleWho = null;
+function lvRecPush() {
+  const f = new Float32Array(48);
+  f[0] = lvBall.x; f[1] = lvBall.y; f[2] = lvBall.inNet ? 1 : 0;
+  for (let i = 0; i < 11; i++) { f[3 + i * 2] = mtUs[i] ? mtUs[i].cx : 0; f[4 + i * 2] = mtUs[i] ? mtUs[i].cy : 0; }
+  for (let i = 0; i < 11; i++) { f[25 + i * 2] = mtThem[i] ? mtThem[i].cx : 0; f[26 + i * 2] = mtThem[i] ? mtThem[i].cy : 0; }
+  f[47] = lvBall.own ? (lvBall.own.side === 'us' ? 1 + lvBall.own.idx : -1 - lvBall.own.idx) : 0;
+  lvRec.push(f); if (lvRec.length > LV_REC_MAX) lvRec.shift();
+}
+function lvRecApply(f) {
+  lvBall.px = lvBall.x; lvBall.py = lvBall.y;
+  lvBall.x = f[0]; lvBall.y = f[1];
+  for (let i = 0; i < 11; i++) { const p = mtUs[i]; if (p) { p.px = p.cx; p.py = p.cy; p.cx = f[3 + i * 2]; p.cy = f[4 + i * 2];
+    p.vx = p.cx - p.px; p.vy = p.cy - p.py; } }
+  for (let i = 0; i < 11; i++) { const p = mtThem[i]; if (p) { p.px = p.cx; p.py = p.cy; p.cx = f[25 + i * 2]; p.cy = f[26 + i * 2];
+    p.vx = p.cx - p.px; p.vy = p.cy - p.py; } }
+  const o = f[47];
+  lvBall.own = o > 0 ? { side:'us', idx: o - 1 } : o < 0 ? { side:'them', idx: -o - 1 } : null;
+}
+function lvReplayStart(who) {
+  if (lvRec.length < 20) return false;
+  lvReplay = { frames: lvRec.slice(), i: 0, who: who || '' };
+  const b = document.getElementById('lvRepBox');
+  if (b) { b.innerHTML = '🔁 리플레이<small>' + (who || '') + '</small>'; b.classList.add('on'); }
+  return true;
+}
+function lvReplayEnd() {
+  lvReplay = null;
+  const b = document.getElementById('lvRepBox'); if (b) b.classList.remove('on');
+  lvCamLock = null; lvRec = [];
+}
+
+/* ══ 교체 ══ 뛰는 선수와 벤치(스쿼드 밖 보유 카드)를 맞바꾼다. 한 경기 5명까지.
+   교체창을 열면 경기가 멈추고, 닫으면 이어진다. 들어온 선수는 체력 100. */
+let lvSubs = 0, lvSubPick = -1;
+const LV_SUB_MAX = 5;
+function lvSubBench() {
+  const inSquad = new Set(squadSlots.filter(u => u));
+  return (collection || []).filter(c => !inSquad.has(c.uid) && !lvSubUsed.has(c.uid))
+    .map(c => { const p = PLAYERS.find(x => x.id === c.id); const sl = { label: (p && p.pos) || 'CM' };
+      return { uid: c.uid, id: c.id, nm: p ? p.name : c.id, pos: (p && p.pos) || '', ovr: effectiveOvr(c, (p && p.pos) || 'CM').eff }; })
+    .sort((a, b) => b.ovr - a.ovr).slice(0, 12);
+}
+let lvSubUsed = new Set();
+function lvSubOpen() {
+  if (!lvOn) return;
+  lvPaused = true; lvSubPick = -1;
+  const box = document.getElementById('lvSubBox');
+  if (box) { box.style.display = 'flex'; lvSubPaint(); }
+}
+function lvSubClose() {
+  const box = document.getElementById('lvSubBox');
+  if (box) box.style.display = 'none';
+  lvPaused = false; lvLast = 0; lvAcc = 0;
+}
+function lvSubPaint() {
+  const box = document.getElementById('lvSubBox');
+  if (!box) return;
+  const bar = st => '<i style="width:' + Math.round(Math.max(0, Math.min(100, st))) + '%;background:'
+    + (st > 60 ? '#4ade80' : st > 30 ? '#fbbf24' : '#f87171') + '"></i>';
+  let L = '<div class="lvsub-col"><h4>뛰는 선수</h4>';
+  mtUs.forEach((p, i) => {
+    L += '<div class="lvsub-row' + (lvSubPick === i ? ' pick' : '') + (p.gk ? ' gk' : '') + '" onclick="lvSubSel(' + i + ')">'
+      + '<b>' + (p.nm || '') + '</b><span>' + Math.round(p.ovr) + '</span>'
+      + '<div class="lvsub-bar">' + bar(p.stam === undefined ? 100 : p.stam) + '</div></div>';
+  });
+  L += '</div>';
+  let R = '<div class="lvsub-col"><h4>벤치 <small>' + lvSubs + '/' + LV_SUB_MAX + ' 교체</small></h4>';
+  const bench = lvSubBench();
+  if (!bench.length) R += '<div class="lvsub-empty">벤치에 넣을 선수가 없습니다</div>';
+  bench.forEach(b => {
+    R += '<div class="lvsub-row" onclick="lvSubIn(' + b.uid + ')"><b>' + b.nm + '</b><span>' + Math.round(b.ovr) + '</span>'
+      + '<em>' + b.pos + '</em></div>';
+  });
+  R += '</div>';
+  box.innerHTML = '<div class="lvsub-panel">' + L + R
+    + '<button class="lvsub-x" onclick="lvSubClose()">닫기</button></div>';
+}
+function lvSubSel(i) { lvSubPick = (lvSubPick === i ? -1 : i); lvSubPaint(); }
+function lvSubIn(uid) {
+  if (lvSubPick < 0) { lvSay('나갈 선수를 먼저 고르세요'); lvSubPaint(); return; }
+  if (lvSubs >= LV_SUB_MAX) { lvSay('교체는 ' + LV_SUB_MAX + '명까지입니다'); return; }
+  const c = (collection || []).find(x => x.uid === uid);
+  if (!c) return;
+  const p = mtUs[lvSubPick], ply = PLAYERS.find(x => x.id === c.id);
+  const slot = (FORMATIONS[currentFormation] || [])[lvSubPick] || { label: 'CM' };
+  lvSubUsed.add(uid);
+  p.pid = c.id; p.nm = ply ? ply.name : c.id;
+  p.ovr = effectiveOvr(c, slot.label).eff;
+  p.stam = 100; p.vx = 0; p.vy = 0; p.slide = null; p.lunge = 0; p.skill = null; p.fooled = null;
+  lvSubs++;
+  // 그림(얼굴·등번호)도 새로 그린다
+  const el = document.getElementById('lvu' + lvSubPick);
+  if (el) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = lvPlayerHTML('us', lvSubPick);
+    const fresh = tmp.firstChild;
+    fresh.style.left = el.style.left; fresh.style.top = el.style.top; fresh.style.transform = el.style.transform;
+    el.parentNode.replaceChild(fresh, el);
+  }
+  lvSay('🔁 ' + p.nm + ' 교체 투입');
+  lvSubPick = -1; lvSubPaint();
+}
+
+/* ══ 경기 소리 — 파일 없이 브라우저에서 합성 (Web Audio) ══
+   휘슬 · 관중 웅성임(계속) · 골 환호 · 아쉬운 탄성 · 킥.  🔊 버튼으로 끄고 켠다(저장). */
+const LvSnd = {
+  ctx: null, out: null, crowd: null, crowdG: null, lfo: null, buf: null,
+  on: (function(){ try { const v = localStorage.getItem('fcl_msnd'); return v === null ? true : v === '1'; } catch (e) { return true; } })(),
+  init() {
+    if (!this.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      try { this.ctx = new AC(); } catch (e) { return false; }
+      this.out = this.ctx.createGain(); this.out.gain.value = this.on ? 0.9 : 0; this.out.connect(this.ctx.destination);
+      // 갈색 잡음 4초 — 관중 소리의 재료
+      const sr = this.ctx.sampleRate, n = sr * 4, b = this.ctx.createBuffer(1, n, sr), d = b.getChannelData(0);
+      let last = 0; for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1; last = (last + 0.02 * w) / 1.02; d[i] = last * 3.2; }
+      this.buf = b;
+    }
+    if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    return true;
+  },
+  setOn(v) {
+    this.on = v; try { localStorage.setItem('fcl_msnd', v ? '1' : '0'); } catch (e) {}
+    if (this.out) this.out.gain.setTargetAtTime(v ? 0.9 : 0, this.ctx.currentTime, 0.05);
+    const b = document.getElementById('lvSndBtn'); if (b) b.textContent = v ? '🔊' : '🔇';
+  },
+  noise(dur, f0, f1, q, peak, attack) {                 // 잡음을 대역통과 필터로 걸러 함성·탄성을 만든다
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime, src = this.ctx.createBufferSource(); src.buffer = this.buf; src.loop = true;
+    const bp = this.ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = q;
+    bp.frequency.setValueAtTime(f0, t); bp.frequency.linearRampToValueAtTime(f1, t + dur * 0.6);
+    const g = this.ctx.createGain(); g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(peak, t + (attack || 0.15)); g.gain.linearRampToValueAtTime(peak * 0.7, t + dur * 0.6);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(bp); bp.connect(g); g.connect(this.out); src.start(t, Math.random() * 3); src.stop(t + dur + 0.05);
+  },
+  whistle(pattern) {                                     // pattern: 각 소리 길이(초) 배열
+    if (!this.ctx) return;
+    let t = this.ctx.currentTime + 0.02;
+    for (const dur of pattern) {
+      const o = this.ctx.createOscillator(), o2 = this.ctx.createOscillator(), lfo = this.ctx.createOscillator(), lg = this.ctx.createGain(), g = this.ctx.createGain();
+      o.type = 'sine'; o.frequency.value = 2950; o2.type = 'sine'; o2.frequency.value = 5900;
+      lfo.frequency.value = 34; lg.gain.value = 70;           // 휘슬 속 구슬이 떠는 소리
+      lfo.connect(lg); lg.connect(o.frequency); lg.connect(o2.frequency);
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.21, t + 0.015);
+      g.gain.setValueAtTime(0.21, t + dur - 0.04); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      const g2 = this.ctx.createGain(); g2.gain.value = 0.18;
+      o.connect(g); o2.connect(g2); g2.connect(g); g.connect(this.out);
+      [o, o2, lfo].forEach(x => { x.start(t); x.stop(t + dur + 0.02); });
+      t += dur + 0.12;
+    }
+  },
+  kick(power) {                                          // 공 차는 '퍽' 소리
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime, o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(55, t + 0.11);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.1 + power * 0.16, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
+    o.connect(g); g.connect(this.out); o.start(t); o.stop(t + 0.15);
+    this.noise(0.05, 2500, 2500, 0.8, 0.04 + power * 0.06, 0.002);
+  },
+  crowdStart() {                                         // 경기 내내 깔리는 관중 웅성임
+    if (!this.ctx || this.crowd) return;
+    const src = this.ctx.createBufferSource(); src.buffer = this.buf; src.loop = true;
+    const bp = this.ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 650; bp.Q.value = 0.55;
+    const g = this.ctx.createGain(); g.gain.value = 0.0001;
+    g.gain.linearRampToValueAtTime(0.38, this.ctx.currentTime + 1.2);
+    const lfo = this.ctx.createOscillator(), lg = this.ctx.createGain(); lfo.frequency.value = 0.13; lg.gain.value = 0.11;
+    lfo.connect(lg); lg.connect(g.gain);                  // 천천히 커졌다 작아졌다
+    src.connect(bp); bp.connect(g); g.connect(this.out); src.start(); lfo.start();
+    this.crowd = src; this.crowdG = g; this.lfo = lfo;
+  },
+  crowdStop() {
+    if (!this.crowd) return;
+    const t = this.ctx.currentTime;
+    this.crowdG.gain.cancelScheduledValues(t); this.crowdG.gain.setTargetAtTime(0.0001, t, 0.3);
+    const c = this.crowd, l = this.lfo; setTimeout(() => { try { c.stop(); l.stop(); } catch (e) {} }, 1200);
+    this.crowd = null;
+  },
+  cheer(big) { this.noise(big ? 3.4 : 1.6, 500, big ? 1500 : 1000, 0.7, big ? 2.2 : 0.9, 0.12); },
+  ooh()      { this.noise(1.3, 380, 560, 1.4, 1.3, 0.25); },
+};
+function lvToggleSnd() { LvSnd.init(); LvSnd.setOn(!LvSnd.on); }
+
 let lvOn = false, lvPaused = false, lvTimer = null;
+let lvBgmVol = null;
 let lvBall = { x:50, y:50, vx:0, vy:0, own:null, to:-1, from:null, cool:0, air:0, curl:0 };   // own = {side, idx}
 let lvScore = [0, 0], lvMin = 0, lvFrame = 0, lvMsg = '', lvMsgT = 0;
 let lvTouch = null;
@@ -5995,8 +6435,18 @@ const LV_DRAG_MIN = 5;          // 이만큼 끌어야 드래그로 본다 (%)
 const LV_TAP_R = 10;            // 동료 터치 인식 반경 (넉넉하게 — 안 씹히게)
 /* OVR 에 따른 속도 차 — 전에는 105 와 130 이 55% 차이라 약팀은 아예 못 따라잡았다(4경기 0-30).
    실제 빠른 선수와 느린 선수 차이 정도(약 28%)로 좁혔다. 동급(120) 속도는 그대로. */
+/* 체력 — 모두 같은 최대치(100). 60 아래부터 느려지고, 바닥나면 78% 속도. */
+const LV_STAM_RUN = 0.062;             // 한 칸 움직일 때 닳는 양 (90분에 절반쯤 남게 맞춘 값)
+function lvStamF(p) {
+  const st = p.stam === undefined ? 100 : p.stam;
+  return st >= 60 ? 1 : 0.78 + 0.22 * (st / 60);
+}
+function lvStamCost(p, v) { if (p) p.stam = Math.max(0, (p.stam === undefined ? 100 : p.stam) - v); }
+
 function lvSpd(p)  { return 0.225 + ((p.ovr || 100) - 95) * 0.0012; }   // 105↔130 차이 약 13% (전엔 29%)
-function lvShot(p) { return 1.5 + ((p.ovr || 100) - 95) * 0.035; }
+/* 슛 속도 — 전엔 초속 58~86m (실제 강슛 25~35m 의 2~3배) 라 키퍼가 반응할 틈이 없었다.
+   OVR 105 → 33m/s, 120 → 37m/s, 130 → 40m/s. 대신 슛은 날아가는 동안 감속을 적게 받는다(lvBall.shot). */
+function lvShot(p) { return 0.95 + ((p.ovr || 100) - 95) * 0.009; }
 function lvTkl(p)  { return 0.30 + ((p.ovr || 100) - 95) * 0.011; }
 
 function startLiveMatch() {
@@ -6011,7 +6461,9 @@ function startLiveMatch() {
   try { mtStopLoop(); } catch (e) {}
   matchView = 'live';
   mtInitPitch();                    // 그림보다 먼저 — 골키퍼 유니폼 색을 알아야 한다
-  lvScore = [0, 0]; lvMin = 0; lvFrame = 0; lvMsg = ''; lvOn = true; lvPaused = false; lvLock = false; lvSet = null; lvHalf = 1; lvFirstKick = 'us';
+  lvScore = [0, 0]; lvMin = 0; lvFrame = 0; lvMsg = ''; lvOn = true; lvPaused = false; lvLock = false; lvSet = null; lvKick = null; lvHalf = 1; lvFirstKick = 'us'; lvAdv = false; lvAdvT = 0;
+  mtUs.forEach(p => p.stam = 100); mtThem.forEach(p => p.stam = 100);
+  lvSubs = 0; lvSubPick = -1; lvSubUsed = new Set();
 
   lvStageCSS();
   lvLand = true;
@@ -6025,6 +6477,8 @@ function startLiveMatch() {
     + '<span class="tm" style="color:#ff9b9b">' + t.name + '</span>'
     + '<span class="ck" id="lvClock">전반 0\'</span>'
     + '<span class="sp"></span>'
+    + '<button onclick="lvSubOpen()">🔁 교체</button>'
+    + '<button id="lvSndBtn" onclick="lvToggleSnd()">' + (LvSnd.on ? '🔊' : '🔇') + '</button>'
     + '<button id="lvCamBtn" onclick="lvToggleZoom()">📷</button>'
     + '<button onclick="lvQuit()">✕ 종료</button>'
     + '</div>'
@@ -6034,6 +6488,8 @@ function startLiveMatch() {
     + '<div class="lvmini" id="lvMini">' + (function(){ let h=''; for (let k=0;k<11;k++) h += '<i class="u" id="lvMu'+k+'"></i>'; for (let k=0;k<11;k++) h += '<i class="t" id="lvMt'+k+'"></i>'; return h + '<i class="b" id="lvMb"></i><b id="lvMv"></b>'; })() + '</div>'
     + '<div class="lvpadL"><div class="lvstick" id="lvStickEl"><div class="lvknob" id="lvKnob"></div></div></div>'
     + '<div class="lvpadR"><div class="lvbtns" id="lvBtns"></div></div>'
+    + '<div class="lvrep" id="lvRepBox" onclick="lvReplayEnd()"><b>🔁 리플레이</b></div>'
+    + '<div class="lvsubbox" id="lvSubBox" style="display:none"></div>'
     + '</div>';
   document.body.appendChild(g);
   lvPadCSS();
@@ -6042,6 +6498,9 @@ function startLiveMatch() {
 
   lvKickoff(true);
   lvPaused = false;                 // 실시간 조작 — 멈추지 않는다
+  // 소리 — '경기 시작' 터치 안에서 켜야 폰이 막지 않는다. 배경음악은 관중 소리에 묻히지 않게 작게.
+  if (LvSnd.init()) LvSnd.crowdStart();
+  { const a = document.getElementById('bgm'); if (a) { lvBgmVol = a.volume; a.volume = Math.min(a.volume, 0.1); } }
   lvApplyZoom();
   lvSel = -1; lvSprint = false;
   lvStick = { on:false, dx:0, dy:0, id:null };
@@ -6079,8 +6538,20 @@ function lvBanner(txt, ms) {
   clearTimeout(lvBanner._t);
   lvBanner._t = setTimeout(() => { if (!lvSet) b.classList.remove('on'); }, ms || 1500);
 }
+
+/* 우리 팀 공격이 살아 있나 — 상대 진영에서 공을 갖고 있거나, 우리가 찬 공(패스·슛)이 상대 진영에서 굴러가는 중.
+   공을 뺏기거나, 공이 나가거나(세트피스), 골이 들어가거나, 우리 진영으로 돌아오면 끝. */
+let lvAdv = false, lvAdvT = 0;
+function lvOurAttack() {
+  if (lvSet || lvLock) return false;
+  const o = lvBall.own;
+  if (o) return o.side === 'us' && lvBall.x > 50;
+  return lvBall.last === 'us' && lvBall.x > 50;
+}
+
 function lvHalfTime() {
   lvPaused = true;
+  LvSnd.whistle([0.3, 0.5]);
   lvBanner('하프타임  ' + lvScore[0] + ' - ' + lvScore[1], 2200);
   setTimeout(() => {
     if (!lvOn) return;
@@ -6092,6 +6563,7 @@ function lvHalfTime() {
 }
 function lvFullTime() {
   lvPaused = true;
+  LvSnd.whistle([0.28, 0.28, 0.9]);
   lvBanner('경기 종료  ' + lvScore[0] + ' - ' + lvScore[1], 2000);
   setTimeout(() => { if (lvOn) lvQuit(); }, 2100);
 }
@@ -6109,6 +6581,15 @@ function lvLoop(now) {
   let dt = now - lvLast; lvLast = now;
   if (dt > 250) dt = 33;                             // 앱 전환 등으로 멈췄다 돌아온 경우
   lvAcc += dt;
+  if (lvReplay) {                                   // 리플레이 재생 중 — 계산은 멈추고 기록만 튼다
+    while (lvAcc >= 33) {
+      lvAcc -= 33;
+      if (lvReplay.i >= lvReplay.frames.length) { lvReplayEnd(); break; }
+      lvRecApply(lvReplay.frames[lvReplay.i++]);
+    }
+    lvAlpha = 1; lvPaint();
+    return;
+  }
   let n = 0;
   while (lvAcc >= 33 && n < 4) {
     lvSnap();
@@ -6136,21 +6617,85 @@ function lvQuit() {
   if (lvHoldTimer) { clearTimeout(lvHoldTimer); lvHoldTimer = null; }
   window.removeEventListener('resize', lvStageFit);
   const g = document.getElementById('lvStage'); if (g) g.remove();
+  LvSnd.crowdStop();
+  { const a = document.getElementById('bgm'); if (a && lvBgmVol !== null) { a.volume = lvBgmVol; lvBgmVol = null; } }
   showModal('경기 종료\n' + lvScore[0] + ' - ' + lvScore[1], [{label:'확인', cls:'ok', fn: renderMatch}]);
+}
+
+/* 킥오프 — 실제 규칙대로.
+   · 양 팀 모두 자기 진영에
+   · 킥오프 안 하는 팀은 센터서클(반지름 9.15m) 밖
+   · 공이 처음 움직이기 전까지는 안으로 못 들어오고 태클도 못 한다
+   전엔 서클 규칙이 없어 상대 공격수가 공 바로 앞에 서 있었고, 차기도 전에 뺏을 수 있었다. */
+let lvKick = null;           // { side, t } — 킥오프 보호 중
+function lvInCircle(x, y) { const dx = (x - 50) / lvMx(9.15), dy = (y - 50) / lvMy(9.15); return dx * dx + dy * dy < 1; }
+function lvOutCircle(p) {    // 서클 안이면 바깥 테두리로 밀어낸다
+  const dx = (p.cx - 50) / lvMx(9.15), dy = (p.cy - 50) / lvMy(9.15);
+  const r = Math.hypot(dx, dy);
+  if (r >= 1.04) return;
+  const k = 1.06 / Math.max(r, 0.05);
+  const ux = r < 0.05 ? (p.cx < 50 ? -1 : 1) : dx, uy = r < 0.05 ? 0 : dy;
+  p.cx = 50 + ux * k * lvMx(9.15) * (r < 0.05 ? 1 / 1 : 1);
+  p.cy = 50 + uy * k * lvMy(9.15);
+}
+
+
+/* 세트피스 준비 완료? — 수비벽이 규정 거리에 서고, 코너는 박스에 사람이 찼는지 본다 */
+function lvSetReady(st) {
+  if (st.kind === 'fk' && st.wall && st.wall.length) {
+    const dArr = st.side === 'us' ? mtThem : mtUs;
+    const ok = st.wall.every(i => {
+      const q = dArr[i]; if (!q) return true;
+      const d = Math.hypot((q.cx - st.x) * 1.05, (q.cy - st.y) * 0.68);
+      return d > 8.0 && d < 12.0;
+    });
+    if (!ok) return false;
+  }
+  if (st.kind === 'corner' || st.kind === 'fk') {
+    const aArr = st.side === 'us' ? mtUs : mtThem;
+    const gl = st.side === 'us' ? 100 : 0;
+    const inBox = aArr.filter(q => !q.gk && Math.abs(q.cx - gl) < lvMx(16.5) && Math.abs(q.cy - 50) < lvMy(20.16)).length;
+    if (inBox < 3) return false;              // 박스에 최소 3명은 들어가야 올린다
+  }
+  return true;
+}
+
+/* 킥오프 시작 패스 — 중앙의 선수가 옆 동료에게 짧게 내준다 */
+function lvKickoffPass() {
+  if (!lvKick) return;
+  const arr = lvKick.side === 'us' ? mtUs : mtThem;
+  const p = arr[lvKick.idx], q = arr[lvKick.mate >= 0 ? lvKick.mate : lvKick.idx];
+  if (!p || !q || q === p) { lvKick = null; return; }
+  const ax = q.cx - p.cx, ay = q.cy - p.cy, d = Math.hypot(ax, ay) || 1;
+  const sp = Math.max(0.45, Math.min(2.2, d / 17));
+  lvBall.from = { side: lvKick.side, idx: lvKick.idx }; lvBall.cool = 10; lvBall.last = lvKick.side;
+  lvBall.own = null; lvBall.to = lvKick.mate; lvBall.toSide = lvKick.side; lvBall.homeK = 0.04;
+  lvBall.passTo = { x: q.cx, y: q.cy };
+  lvBall.vx = ax / d * sp; lvBall.vy = ay / d * sp;
+  lvAnim(lvKick.side, lvKick.idx, 'pass');
+  lvSay('킥오프');
 }
 
 function lvKickoff(mine) {
   lvSet = null;
   { const b = document.getElementById('lvSetBox'); if (b) b.classList.remove('on'); }
-  mtUs.forEach(p   => { p.cx = Math.min(p.hx, 47); p.cy = p.hy; p.vx = 0; p.vy = 0; p.tx = undefined; p.ty = undefined; });
-  mtThem.forEach(p => { p.cx = Math.max(p.hx, 53); p.cy = p.hy; p.vx = 0; p.vy = 0; });
+  mtUs.forEach(p   => { p.cx = Math.min(p.hx, 48); p.cy = p.hy; p.vx = 0; p.vy = 0; p.tx = undefined; p.ty = undefined; });
+  mtThem.forEach(p => { p.cx = Math.max(p.hx, 52); p.cy = p.hy; p.vx = 0; p.vy = 0; });
   lvBall = { x:50, y:50, vx:0, vy:0, own:null, to:-1, from:null, cool:0, air:0, curl:0 };
-  const arr = mine ? mtUs : mtThem;
-  let best = 0, bd = 1e9;
-  arr.forEach((p, i) => { if (p.gk) return;
-    const d = Math.abs(p.cx - 50) + Math.abs(p.cy - 50); if (d < bd) { bd = d; best = i; } });
-  arr[best].cx = mine ? 47 : 53; arr[best].cy = 50;
-  lvBall.own = { side: mine ? 'us' : 'them', idx: best };
+  const kickArr = mine ? mtUs : mtThem, waitArr = mine ? mtThem : mtUs;
+  // 기다리는 팀은 센터서클 밖으로
+  waitArr.forEach(p => { if (!p.gk) lvOutCircle(p); });
+  // 차는 팀 — 가운데에 가장 가까운 선수가 공 앞에, 두 번째 선수는 옆에서 받을 준비
+  const order = kickArr.map((p, i) => ({ i, d: Math.abs(p.cx - 50) + Math.abs(p.cy - 50) }))
+                       .filter(o => !kickArr[o.i].gk).sort((a, b) => a.d - b.d);
+  const k1 = order[0].i, k2 = order[1] ? order[1].i : -1;
+  kickArr[k1].cx = mine ? 49.3 : 50.7; kickArr[k1].cy = 50;
+  if (k2 >= 0) { kickArr[k2].cx = mine ? 47 : 53; kickArr[k2].cy = 44; }
+  mtUs.forEach(p => { p.px = p.cx; p.py = p.cy; }); mtThem.forEach(p => { p.px = p.cx; p.py = p.cy; });
+  lvBall.own = { side: mine ? 'us' : 'them', idx: k1 };
+  lvBall.px = 50; lvBall.py = 50;
+  lvKick = { side: mine ? 'us' : 'them', idx: k1, mate: k2, t: 150, hold: 26 };   // 26틱(약 0.9초) 쉬고 패스로 시작
+  lvTackleCd = 0;
 }
 
 function lvSay(msg) { lvMsg = msg; lvMsgT = 45; }
@@ -6217,6 +6762,8 @@ function lvBindInput() {
 function lvHintPaint() {
   const h = document.getElementById('lvHint');
   if (!h) return;
+  h.style.display = lvReplay ? 'none' : '';      // 리플레이 문구와 겹치지 않게
+  if (lvReplay) return;
   if (lvMsg) { h.textContent = lvMsg; return; }
   const mine = !!(lvBall.own && lvBall.own.side === 'us');
   const p = mtUs[lvCtrlIdx()];
@@ -6272,7 +6819,7 @@ function lvAct(t) {
       /* 로빙 패스 — 같은 동료를 두 번 두드리면 띄워 보낸다.
          떠 있는 동안 상대가 못 건드려서 수비를 넘길 수 있다. 대신 느리다. */
       const sp = isLob ? Math.max(0.30, Math.min(1.7, dist / 32))
-                       : Math.max(0.45, Math.min(2.2, dist / 20));
+                       : Math.max(0.45, Math.min(2.2, dist / 17));
       lvBall.from = { side:'us', idx: own.idx }; lvBall.cool = 12;
       lvBall.own = null;
       lvBall.vx = ax / dist * sp; lvBall.vy = ay / dist * sp;
@@ -6313,20 +6860,40 @@ function lvTick() {
     if (lvBall.inNet === 'top' ? lvBall.x > lim : lvBall.x < lim) { lvBall.x = lim; lvBall.vx = 0; }
     lvBall.y = Math.max(LV_GOAL0 + 0.5, Math.min(LV_GOAL1 - 0.5, lvBall.y));
   }
+  // 세리머니 — 득점자만 움직인다
+  if (lvCele > 0) {
+    lvCele--;
+    const q = lvCeleWho ? (lvCeleWho.side === 'us' ? mtUs : mtThem)[lvCeleWho.idx] : null;
+    if (q && q.skill) {
+      const dx = q.skill.tx - q.cx, dy = q.skill.ty - q.cy, d = Math.hypot(dx, dy) || 1, sp = lvSpd(q) * 1.25;
+      if (d > 1) { q.vx = dx / d * sp; q.vy = dy / d * sp; q.cx += q.vx; q.cy += q.vy; }
+      else { q.vx = 0; q.vy = 0; }
+      if (--q.skill.t <= 0) q.skill = null;
+    }
+    return;
+  }
   if (lvPaused) { lvPaint(); return; }
   // 세트피스 준비 중
   if (lvSet) lvSetStep();
 
   lvFrame++;
+  // 시간이 다 됐는데 우리가 상대 진영에서 공격 중이면, 그 공격이 끝날 때까지 기다린다
+  if (lvAdv) {
+    lvAdvT++;
+    if (!lvOurAttack() || lvAdvT > 600) { lvAdv = false; lvFullTime(); return; }
+  }
   // 1분 = 50틱(약 1.65초) → 90분 약 2분 30초 + 추가시간 3분 약 5초
-  if (lvFrame % 50 === 0 && !lvSet) {
+  if (lvFrame % 50 === 0 && !lvSet && !lvAdv) {
     lvMin++;
     lvClockPaint();
     // 전반 45분 → 하프타임
     if (lvHalf === 1 && lvMin >= 45) { lvHalfTime(); return; }
     // 후반 90분 → 추가시간 3분 (고정)
     if (lvHalf === 2 && lvMin === 90) lvBanner('추가시간 +' + LV_ADDED + '분', 1600);
-    if (lvHalf === 2 && lvMin >= 90 + LV_ADDED) { lvFullTime(); return; }
+    if (lvHalf === 2 && lvMin >= 90 + LV_ADDED) {
+      if (lvOurAttack()) { lvAdv = true; lvAdvT = 0; lvBanner('마지막 공격!', 1400); }
+      else { lvFullTime(); return; }
+    }
   }
   if (lvMsgT > 0 && --lvMsgT === 0) lvMsg = '';
 
@@ -6337,11 +6904,31 @@ function lvTick() {
   } else {
     /* 감아차기는 물리로 휘지 않는다 — 궤적이 흔들려 판정이 어긋났다(일반 슛보다 성공률이 낮았음).
        실제 경로는 직선, 화면에서만 호를 그린다 (lvPaint 참고). */
+    /* 패스 보정 — 받을 선수 쪽으로 매 틱 조금씩 방향을 튼다.
+       스루패스는 세게, 일반 패스는 약하게, 로빙은 공중이라 거의 없다. */
+    if ((lvBall.homeK || 0) > 0 && lvBall.to >= 0) {
+      const r = (lvBall.toSide === 'them' ? mtThem : mtUs)[lvBall.to];
+      const v = Math.hypot(lvBall.vx, lvBall.vy);
+      if (r && v > 0.12) {
+        const lead = Math.min(4, Math.hypot(r.cx - lvBall.x, r.cy - lvBall.y) * 0.3);
+        const gx = r.cx + (r.vx || 0) * lead * 3, gy = r.cy + (r.vy || 0) * lead * 3;
+        const want = Math.atan2(gy - lvBall.y, gx - lvBall.x), cur = Math.atan2(lvBall.vy, lvBall.vx);
+        let dA = want - cur; while (dA > Math.PI) dA -= 2 * Math.PI; while (dA < -Math.PI) dA += 2 * Math.PI;
+        const turn = Math.max(-lvBall.homeK, Math.min(lvBall.homeK, dA));
+        const na = cur + turn;
+        lvBall.vx = Math.cos(na) * v; lvBall.vy = Math.sin(na) * v;
+        lvBall.passTo = { x: gx, y: gy };
+      }
+    }
     lvBall.x += lvBall.vx; lvBall.y += lvBall.vy;
     /* 로빙은 떠 있는 동안 땅에 끌리지 않는다. 전에는 공중에서도 굴러가듯 감속해서
        목표까지 못 가고 중간에 떨어졌다. 착지하는 순간 툭 멈춘다. */
     if (lvBall.air > 1) { /* 공중 — 감속 없음 */ }
     else if (lvBall.air === 1) { lvBall.vx *= 0.25; lvBall.vy *= 0.25; }
+    else if (lvBall.shot) {                        // 슛은 공중으로 날아가니 조금만 느려진다
+      lvBall.vx *= 0.99; lvBall.vy *= 0.99;
+      if (Math.hypot(lvBall.vx, lvBall.vy) < 0.45) lvBall.shot = false;   // 힘이 다하면 구르는 공
+    }
     else { lvBall.vx *= 0.96; lvBall.vy *= 0.96; }
     // 사이드라인 아웃 → 스로인 (마지막으로 안 건드린 팀)
     if (!lvLock && !lvSet && (lvBall.y < 0.5 || lvBall.y > 99.5)) {
@@ -6362,7 +6949,7 @@ function lvTick() {
           arr[gi].cx = lvBall.x; arr[gi].cy = lvBall.y;      // 몸 날려 잡은 자리
           lvBall.own = { side, idx: gi };
           lvBall.vx = 0; lvBall.vy = 0; lvBall.lift = null;
-          lvAnim(side, gi, 'catch');
+          lvAnim(side, gi, 'catch'); LvSnd.ooh();
           lvBall.saveBy = null; lvBall.aim = null;
           lvSay('선방!');
 
@@ -6376,7 +6963,7 @@ function lvTick() {
         const atkSide = top ? 'us' : 'them';       // 그 골문을 공격하는 팀
         const defSide = top ? 'them' : 'us';
         if (lvBall.last === atkSide) lvRestart('goalkick', defSide, top ? 94 : 6, 50);
-        else lvRestart('corner', atkSide, top ? 99.5 : 0.5, lvBall.y < 50 ? 1.5 : 98.5);
+        else lvRestart('corner', atkSide, top ? 98.6 : 1.4, lvBall.y < 50 ? 2.6 : 97.4);
         lvPaint(); return;
       }
     }
@@ -6384,6 +6971,7 @@ function lvTick() {
     if (lvSet) { lvMove(); lvPaint(); return; }   // 세트피스 준비 중
     if (lvBall.cool > 0) lvBall.cool--;
     if (lvBall.air > 0) lvBall.air--;          // 로빙 패스 — 떠 있는 동안은 못 건드린다
+    if (lvBall.shot) lvBall.shotT = (lvBall.shotT || 0) + 1;   // 슛이 발을 떠난 뒤 지난 시간
     const fast = Math.hypot(lvBall.vx, lvBall.vy) > 1.0;
     let take = null, bd = 1.9;                 // 공 줍는 거리 약 2m
     [['us', mtUs], ['them', mtThem]].forEach(function (e) {
@@ -6396,14 +6984,15 @@ function lvTick() {
         const d = Math.hypot(p.cx - lvBall.x, p.cy - lvBall.y);
         // 패스 받을 선수는 트래핑 범위를 넓혀준다 (보정). 나머지는 빠른 공이면 몸에 붙어야 막는다.
         const isRecv = lvBall.to === i && (lvBall.toSide || 'us') === sd;
-        const reach = isRecv ? 2.8 : (fast && !p.gk ? 1.1 : p.gk ? 2.4 : 1.9);
+        const reach = isRecv ? 2.8 : (fast && !p.gk ? 1.1 : p.gk ? (p._dived ? 3.3 : 2.4) : 1.9);   // 몸 날린 키퍼는 팔 길이만큼 더
         if (d > reach) return;
         if (d >= bd) return;
         /* 빠른 슛은 골키퍼가 무조건 잡지 않는다.
            그냥 두면 GK 가 골문 앞에 서 있어서 슛이 절대 안 들어간다. */
         // 골대로 날아가는 슛은 느려졌더라도 '막기로 정해진' 키퍼만 잡는다.
         // (키퍼가 골라인에 서 있으니, 이게 없으면 느린 슛은 판정과 무관하게 다 주워버린다)
-        if (p.gk && (fast || lvBall.aim === 'on')) {
+        const slowBall = Math.hypot(lvBall.vx, lvBall.vy) < 0.8;
+        if (p.gk && !slowBall && (fast || lvBall.aim === 'on')) {
           // 슛 순간에 막기로 정해진 키퍼만 잡는다
           if (lvBall.saveBy !== sd) return;
           lvSay('선방!');
@@ -6414,33 +7003,55 @@ function lvTick() {
     });
     if (take) {
       mtUs.forEach(q => q._dived = false); mtThem.forEach(q => q._dived = false);
+      const inV = Math.hypot(lvBall.vx, lvBall.vy);
       lvBall.own = take;
       lvBall.last = take.side;
-      lvBall.lift = null;
-      { const tp = (take.side === 'us' ? mtUs : mtThem)[take.idx]; if (tp && tp.gk) lvAnim(take.side, take.idx, 'catch'); }
+      lvBall.lift = null; lvBall.thru = false; lvBall.shot = false; lvBall.homeK = 0;
+      { const tp = (take.side === 'us' ? mtUs : mtThem)[take.idx];
+        if (tp && tp.gk) { lvAnim(take.side, take.idx, 'catch'); if (inV > 0.8) LvSnd.ooh(); }
+        else if (inV > 0.45) lvAnim(take.side, take.idx, 'trap'); }     // 굴러온 공을 발로 받아 세운다
       lvBall.saveBy = null; lvBall.aim = null; lvBall.passTo = null; lvBall.to = -1;
       if (take.side !== 'us') lvSay('상대에게 넘어갔습니다');
     }
   }
 
   if (lvTackleCd > 0) lvTackleCd--;
+  if (lvSkillCd > 0) lvSkillCd--;
   const gkHolding = lvBall.own && (lvBall.own.side === 'us' ? mtUs : mtThem)[lvBall.own.idx]
                     && (lvBall.own.side === 'us' ? mtUs : mtThem)[lvBall.own.idx].gk;
-  if (lvBall.own && lvTackleCd === 0 && !lvSet && !gkHolding) {
+  if (lvBall.own && lvTackleCd === 0 && !lvSet && !gkHolding && !lvKick) {
     const mySide = lvBall.own.side;
     const foe = mySide === 'us' ? mtThem : mtUs;
     const holder = (mySide === 'us' ? mtUs : mtThem)[lvBall.own.idx];
     for (let i = 0; i < foe.length; i++) {
       const q = foe[i];
-      if (q.gk || !holder) continue;
+      if (q.gk || !holder || q.fooled) continue;                               // 스텝오버에 속은 수비수는 태클 못 한다
       if (Math.hypot(q.cx - holder.cx, q.cy - holder.cy) > 1.8) continue;      // 태클 닿는 거리
       const win = lvTkl(q) / (lvTkl(q) + lvTkl(holder));
       const boost = q.slide ? 6 : q.lunge > 0 ? 3.5 : 1;   // 슬라이딩 > 태클 > 그냥 붙어 있기
-      const ok = Math.random() < win * 0.028 * boost;
-      // 슬라이딩이 실패했는데 몸이 부딪혔으면 파울
-      if (!ok && q.slide && !q.slide.fouled && Math.hypot(q.cx - holder.cx, q.cy - holder.cy) < 1.4) {
+      /* 등 뒤에서 들어오는 태클 — 이미 제친 선수를 뒤에서 뺏는 건 거의 안 된다(실제론 반칙).
+         전엔 수비를 뚫고 지나가자마자 뒤에서 바로 뺏겨서 돌파가 성립하지 않았다. */
+      const hv = Math.hypot(holder.vx || 0, holder.vy || 0);
+      let behind = 1;
+      if (hv > 0.05) {
+        const dot = ((q.cx - holder.cx) * holder.vx + (q.cy - holder.cy) * holder.vy) / (hv * (Math.hypot(q.cx - holder.cx, q.cy - holder.cy) || 1));
+        if (dot < -0.35) behind = q.slide ? 0.45 : 0.2;     // 뒤에서 — 슬라이딩은 그나마 닿는다(대신 파울 위험)
+      }
+      const ok = Math.random() < win * 0.028 * boost * behind;
+      /* 파울 판정 (양 팀 똑같이)
+         · 뒤에서 들어간 슬라이딩 — 공을 뺏었어도 대부분 파울 (실제 규칙)
+         · 공은 못 건드리고 몸만 걸린 슬라이딩 — 대부분 파울
+         · 앞에서 공부터 깔끔하게 뺏은 슬라이딩 — 정상
+         전엔 슬라이딩 성공률이 6배라 거의 다 깔끔히 뺏어서, 뒤에서 들어가도 파울이 잘 안 나왔다. */
+      if (q.slide && !q.slide.fouled && Math.hypot(q.cx - holder.cx, q.cy - holder.cy) < 1.5) {
+        const pFoul = behind < 1 ? (ok ? 0.7 : 0.85) : (ok ? 0.08 : 0.7);
         q.slide.fouled = true;
-        if (Math.random() < 0.38) { lvFoul(mySide === 'us' ? 'them' : 'us', holder.cx, holder.cy); break; }
+        if (Math.random() < pFoul) { lvFoul(mySide === 'us' ? 'them' : 'us', holder.cx, holder.cy); break; }
+      }
+      // 서서 하는 태클도 뒤에서 들어가면 가끔 파울
+      if (!q.slide && q.lunge > 0 && behind < 1 && !q._lf) {
+        q._lf = true;
+        if (Math.random() < 0.35) { lvFoul(mySide === 'us' ? 'them' : 'us', holder.cx, holder.cy); break; }
       }
       if (ok) {
         lvBall.own = { side: mySide === 'us' ? 'them' : 'us', idx: i };
@@ -6453,10 +7064,34 @@ function lvTick() {
     }
   }
 
+  lvRecPush();
+  lvCtrlUpdate();
   lvAiDecide();
   lvAiTackle();
   lvGkHold();
   lvMove();
+  if (lvKick) {
+    const o = lvBall.own;
+    /* 킥오프 — 한 박자 쉬었다가 중앙에서 옆 동료에게 패스하며 시작한다.
+       전엔 골 넣자마자 바로 굴러가서 상대가 곧장 덮쳐 뺏기 쉬웠다. */
+    if (lvKick.hold > 0) {
+      lvKick.hold--;
+      if (lvKick.hold === 12) LvSnd.whistle([0.45]);    // 카메라가 자리 잡은 뒤 휘슬
+      if (lvKick.hold === 0) lvKickoffPass();           // 한 박자 쉬고 중앙 패스로 시작
+      lvPaint(); return;
+    }
+    const k = (lvKick.side === 'us' ? mtUs : mtThem)[lvKick.idx];
+    /* 공이 움직이면(패스했거나 차는 선수가 몰고 나가면) 킥오프 끝.
+       차는 선수를 제자리에 묶어두면 우리 킥오프 때 스틱이 안 먹는다. */
+    const moved = k && Math.hypot(k.cx - (lvKick.side === 'us' ? 49.3 : 50.7), k.cy - 50) > 0.8;
+    if (!o || o.side !== lvKick.side || o.idx !== lvKick.idx || moved || --lvKick.t <= 0) lvKick = null;
+    else {
+      (lvKick.side === 'us' ? mtThem : mtUs).forEach(p => { if (!p.gk) lvOutCircle(p); });
+      (lvKick.side === 'us' ? mtThem : mtUs).forEach(p => {       // 기다리는 팀은 자기 진영에
+        if (lvKick.side === 'us' ? p.cx < 50 : p.cx > 50) p.cx = 50;
+      });
+    }
+  }
 
   lvPaint();
 }
@@ -6480,14 +7115,14 @@ function lvMove() {
     const press2 = order[1] ? order[1].i : -1;
 
     arr.forEach((p, i) => {
-      let tx, ty, sp = lvSpd(p);
+      let tx, ty, sp = lvSpd(p) * lvStamF(p);        // 체력이 떨어지면 느려진다
 
       // 세트피스 준비 — 차는 선수는 공으로, 나머지는 상황에 맞게 자리 잡는다
       if (lvSet) {
         const st = lvSet;
         const ownGoal = sd === 'us' ? 0 : 100;
         if (sd === st.side && i === st.taker) {
-          tx = st.x; ty = st.y; sp *= 1.25;
+          tx = st.x; ty = st.y; sp *= 1.85;
         } else if (p.gk) {
           tx = ownGoal + dir * 2.5; ty = 50;
         } else if (st.kind === 'pk') {
@@ -6495,12 +7130,36 @@ function lvMove() {
           const boxX = st.side === 'us' ? 83 : 17;
           tx = st.side === 'us' ? Math.min(p.hx + 10, boxX - 2) : Math.max(p.hx - 10, boxX + 2);
           ty = 20 + (i * 6.5) % 60;
+        } else if (st.kind === 'fk' && sd !== st.side && st.wall && st.wall.indexOf(i) >= 0) {
+          /* 수비벽 — 공에서 9.15m 떨어져 골문을 잇는 선 위에 어깨를 맞대고 선다.
+             길이·폭 단위가 달라서 방향은 반드시 미터로 계산한다. */
+          const og = sd === 'us' ? 0 : 100;
+          const mx = (og - st.x) * (LV_M.L / 100), my = (50 - st.y) * (LV_M.W / 100);
+          const md = Math.hypot(mx, my) || 1;
+          const ux = mx / md, uy = my / md;                       // 공 → 골문 (미터 기준 단위벡터)
+          const k = st.wall.indexOf(i) - (st.wall.length - 1) / 2;
+          const wx = ux * 9.15 - uy * k * 0.75;                   // 벽 위치 (미터)
+          const wy = uy * 9.15 + ux * k * 0.75;
+          tx = st.x + wx / (LV_M.L / 100); ty = st.y + wy / (LV_M.W / 100);
+          sp *= 1.6;
         } else if (st.kind === 'corner' || st.kind === 'fk') {
-          // 공격팀은 박스로, 수비팀은 박스를 지킨다
-          const tgt = st.side === 'us' ? 100 : 0;
-          const inb = st.side === 'us' ? -1 : 1;
-          if (p.line >= 2) { tx = tgt + inb * (6 + (i % 4) * 3); ty = 36 + (i * 7) % 28; }
-          else { tx = p.hx; ty = p.hy; }
+          /* 공격팀은 박스 안으로 흩어져 들어가고, 수비팀은 골문 앞을 지킨다.
+             전엔 양 팀 다 같은 자리로 보내서 박스가 텅 비어 보였다. */
+          const gl = st.side === 'us' ? 100 : 0;                 // 공격하는 골문
+          const inb = st.side === 'us' ? -1 : 1;                 // 골문 안쪽 방향
+          const atk = sd === st.side;
+          sp *= 1.45;                                            // 자리 잡는 동안 빨리 움직인다
+          if (atk) {
+            if (p.line >= 2) {                                   // 공격수·미드필더는 박스 안
+              tx = gl + inb * lvMx(5 + (i % 4) * 3.5);
+              ty = 50 + ((i % 5) - 2) * lvMy(4.2);
+            } else { tx = gl + inb * lvMx(30); ty = 50 + ((i % 3) - 1) * lvMy(12); }   // 수비는 뒤를 지킨다
+          } else {
+            if (p.line <= 2) {                                   // 수비수·미드필더는 골문 앞
+              tx = gl + inb * lvMx(2.5 + (i % 4) * 3);
+              ty = 50 + ((i % 5) - 2) * lvMy(3.4);
+            } else { tx = gl + inb * lvMx(28); ty = 50 + ((i % 3) - 1) * lvMy(14); }    // 공격수 한둘은 역습 대기
+          }
         } else {
           tx = p.hx; ty = p.hy + (st.y - 50) * 0.3;   // 스로인·골킥은 대형 유지
         }
@@ -6520,33 +7179,89 @@ function lvMove() {
         /* goal 은 '공격하는 골문' 이라 여기에 쓰면 키퍼가 반대편으로 달려간다.
            키퍼는 자기 골문 앞을 지켜야 한다. */
         const ownGoal = sd === 'us' ? 0 : 100;
-        if (lvBall.saveBy === sd && lvBall.own === null) {
-          // 다이빙 — 공이 지나갈 자리로 빠르게
+        /* 키퍼 반응 — 공이 발을 떠나고 0.2초쯤 뒤에 움직인다.
+           전엔 슛 판정이 차는 순간 끝나서 키퍼가 차기도 전에 몸을 날리는 것처럼 보였다. */
+        if (lvBall.saveBy === sd && lvBall.own === null
+            && (lvBall.shotT || 0) >= (Math.abs(lvBall.x - ownGoal) > 18 ? 6 : 3)) {   // 가까운 슛엔 더 빨리 반응
+          /* 공이 도착하기까지 남은 시간(틱). 아직 멀면 골라인을 따라 옆으로 움직이고,
+             0.5초쯤 남았을 때 몸을 날린다. 전엔 슛하자마자 날아서 공보다 한참 먼저 누웠다. */
+          const bvS = Math.hypot(lvBall.vx, lvBall.vy) || 0.01;
+          const eta = Math.abs(lvBall.x - ownGoal) / bvS;
           tx = ownGoal + dir * 2.5;
-          ty = lvBall.saveY;
-          sp *= 3.2;
-          if (!p._dived && Math.abs(lvBall.saveY - p.cy) > 2.5) {
+          /* 공이 아직 멀면 공 쪽으로 각만 좁히고, 가까워져야 선방 지점으로 움직인다.
+             전엔 슛하는 순간 바로 선방 지점으로 달려서 '미리 아는' 것처럼 보였다. */
+          if (eta > 26) { ty = Math.max(LV_GOAL0 - 1, Math.min(LV_GOAL1 + 1, 50 + (lvBall.y - 50) * 0.3)); sp *= 1.1; }
+          else if (eta > 16) { ty = lvBall.saveY; sp *= 1.6; }
+          else { ty = lvBall.saveY; sp *= 3.2; }
+          if (!p._dived && eta <= 16 && Math.abs(lvBall.saveY - p.cy) > 2.5) {
             p._dived = true;
             const el = document.getElementById((sd === 'us' ? 'lvu' : 'lvt') + i);
             if (el) {
               const down = lvBall.saveY > p.cy;              // 화면 아래쪽으로 뛰는가
               el.style.setProperty('--dv', down ? 1 : -1);
-              el.style.setProperty('--dr', down ? '112deg' : '58deg');
+              el.style.setProperty('--dr', down ? '74deg' : '62deg');   // 머리가 경기장 쪽, 땅 위로
               lvAnim(sd, i, 'dive');
             }
           }
         } else {
-          // 평소엔 공과 골문 가운데를 잇는 선 위에 서서 각을 좁힌다
-          // 골라인 바로 앞 (1~1.7m). 전엔 공이 가까우면 5.8m 까지 나와서 머리 위로 넘어갔다
+          const bxIn = Math.abs(lvBall.x - ownGoal) < lvMx(16.5) && lvBall.y > 50 - lvMy(20.16) && lvBall.y < 50 + lvMy(20.16);
+          // 상대 중 공에 가장 가까운 거리
+          let foeD = 1e9; foe.forEach(q => { if (!q.gk) foeD = Math.min(foeD, Math.hypot(q.cx - lvBall.x, q.cy - lvBall.y)); });
+          const myD = Math.hypot(p.cx - lvBall.x, p.cy - lvBall.y);
+          const carrier = lvBall.own && lvBall.own.side !== sd ? foe[lvBall.own.idx] : null;
+          /* 박스 안에 굴러다니는 공은 튀어나와 잡는다 (상대보다 먼저 닿을 수 있으면).
+             전엔 골라인에서 절대 안 나와서, 박스 안 흘러나온 공을 상대가 그냥 밀어 넣었다. */
+          const bvv = Math.hypot(lvBall.vx, lvBall.vy);
+          const toward = !lvBall.own && (lvBall.vx * dir) < -0.05;          // 우리 골대 쪽으로 오는 공
+          const crossY = toward ? lvBall.y + lvBall.vy * ((ownGoal - lvBall.x) / (lvBall.vx || 1e-6)) : 50;
+          const reaches = toward && (lvBall.shot ? true : bvv / 0.04 > Math.abs(lvBall.x - ownGoal) - 1);
+          /* 골대로 굴러오는 공 — 슛이든 아니든, 골라인에 닿을 자리로 미리 가서 막는다.
+             전엔 박스 안에서 느려진 공만 쫓아서, 굴러오는 걸 보고만 있다가 먹혔다. */
+          if (reaches && lvBall.saveBy !== sd && lvBall.aim !== 'on' && crossY > LV_GOAL0 - 3 && crossY < LV_GOAL1 + 3) {
+            tx = ownGoal + dir * 0.9; ty = crossY; p._chase = true;
+            // 멀리 굴러오면 몸을 날린다 — 걸어가면 반 박자 늦어서 구석으로 굴러오는 공을 놓쳤다
+            const etaR = Math.abs(lvBall.x - ownGoal) / (bvv || 0.01);
+            if (Math.abs(crossY - p.cy) > 3 && etaR <= 18) {
+              sp *= 2.6;
+              if (!p._dived) {
+                p._dived = true;
+                const el = document.getElementById((sd === 'us' ? 'lvu' : 'lvt') + i);
+                if (el) { el.style.setProperty('--dv', crossY > p.cy ? 1 : -1); el.style.setProperty('--dr', crossY > p.cy ? '74deg' : '62deg'); lvAnim(sd, i, 'dive'); }
+              }
+            } else sp *= 1.5;
+          }
+          else if (!lvBall.own && bxIn && bvv < 1.1 && myD < foeD + 2.5) {
+            const cp = lvChasePoint(p); tx = cp.x; ty = cp.y; sp *= 1.3; p._chase = true;   // 흘러나온 공 잡으러
+          }
+          // 상대가 박스 안에서 1대1 로 오면 몇 m 나와서 각을 좁힌다
+          else if (carrier && Math.abs(carrier.cx - ownGoal) < lvMx(14)) {
+            const ang = Math.atan2(carrier.cy - 50, carrier.cx - ownGoal);
+            const out = Math.min(lvMx(3.2), Math.abs(carrier.cx - ownGoal) * 0.35);
+            tx = ownGoal + Math.cos(ang) * out; ty = 50 + Math.sin(ang) * out * (LV_M.L / LV_M.W);
+            sp *= 1.1;
+          } else {
+          // 평소엔 골라인 바로 앞 (1~1.7m)
           const out = Math.abs(lvBall.x - ownGoal) < 22 ? 1.6 : 1.0;
           tx = ownGoal + dir * out;
           ty = Math.max(LV_GOAL0 - 1, Math.min(LV_GOAL1 + 1, 50 + (lvBall.y - 50) * 0.22));
           sp *= 0.9;
+          }
         }
+      }
+      // 스텝오버로 옆으로 빠지는 중
+      else if (p.skill) {
+        tx = p.skill.tx; ty = p.skill.ty; sp *= 1.45;
+        p._snap = true;                                   // 속도를 곧바로 붙인다
+        if (--p.skill.t <= 0) p.skill = null;
+      }
+      // 스텝오버에 속은 수비수 — 잠깐 반대쪽으로 움찔
+      else if (p.fooled) {
+        tx = p.cx; ty = p.cy + p.fooled.dir * 3; sp *= 0.55;
+        if (--p.fooled.t <= 0) p.fooled = null;
       }
       // 태클 — 짧게 공으로 몸을 던진다
       else if (p.lunge > 0) {
-        p.lunge--;
+        p.lunge--; if (p.lunge === 0) p._lf = false;
         tx = lvBall.x; ty = lvBall.y; sp *= 1.5;
       }
       // 압박 버튼 — 상대 공격수와 우리 골문 사이에 서서 따라붙는다 (스틱보다 우선)
@@ -6566,11 +7281,21 @@ function lvMove() {
                && Math.hypot(lvStick.dx, lvStick.dy) > 0.15) {
         /* 화면은 세로로 눕혀 그리므로 스틱 위(-dy) = 내부 x 증가(상대 골문) */
         const m = Math.hypot(lvStick.dx, lvStick.dy);
-        const ix = lvLand ? lvStick.dx : -lvStick.dy, iy = lvLand ? lvStick.dy : lvStick.dx;
-        tx = p.cx + (ix / m) * 14;
-        ty = p.cy + (iy / m) * 14;
+        let ix = (lvLand ? lvStick.dx : -lvStick.dy) / m, iy = (lvLand ? lvStick.dy : lvStick.dx) / m;
+        // 공 자석 — 굴러가는 공 쪽으로 대충(70° 안쪽) 밀고 있으면 공이 갈 지점으로 방향을 맞춰준다
+        if (!lvBall.own && !(lvBall.air > 0)) {
+          const cp = lvChasePoint(p), cx = cp.x - p.cx, cy = cp.y - p.cy, cd = Math.hypot(cx, cy) || 1;
+          if ((cx / cd) * ix + (cy / cd) * iy > 0.34) {
+            ix = ix * 0.25 + (cx / cd) * 0.75; iy = iy * 0.25 + (cy / cd) * 0.75;
+            const n = Math.hypot(ix, iy) || 1; ix /= n; iy /= n;
+            p._chase = true;
+          }
+        }
+        tx = p.cx + ix * 14;
+        ty = p.cy + iy * 14;
         // 질주 배율도 낮춘다 — 전엔 1.35배라 OVR 높으면 아무도 못 따라왔다
         sp *= (lvSprint ? 1.16 : 1) * Math.min(1, m * 1.3);
+        if (lvSprint) p._sprint = true;
       }
       // 공을 가진 선수
       else if (lvBall.own && lvBall.own.side === sd && lvBall.own.idx === i) {
@@ -6610,8 +7335,14 @@ function lvMove() {
         // 받을 자리에 상대가 붙어 있으면 기다리지 말고 공 쪽으로 먼저 나온다 (실제 축구의 '마중')
         { let near = 1e9; foe.forEach(q => { if (!q.gk) near = Math.min(near, Math.hypot(q.cx - tx, q.cy - ty)); });
           if (near < 6 && !(lvBall.air > 0)) { tx = tx * 0.4 + lvBall.x * 0.6; ty = ty * 0.4 + lvBall.y * 0.6; } }
-        // 공이 이미 옆을 지나가면 공 쪽으로 붙는다
-        if (Math.hypot(p.cx - lvBall.x, p.cy - lvBall.y) < 7) { tx = lvBall.x; ty = lvBall.y; }
+        // 공이 이미 옆을 지나갔으면(공이 나보다 앞서 굴러가는 중) 받을 자리 대신 공이 갈 지점으로 전속력.
+        // 전엔 받을 자리 ↔ 공 사이를 오가거나, 공 뒤에서 감속해서 느릿느릿 따라갔다.
+        { const bv = Math.hypot(lvBall.vx, lvBall.vy);
+          const passed = bv > 0.05 && ((lvBall.x - p.cx) * lvBall.vx + (lvBall.y - p.cy) * lvBall.vy) > 0
+                         && Math.hypot(p.cx - lvBall.x, p.cy - lvBall.y) < 12;
+          if (passed || Math.hypot(p.cx - lvBall.x, p.cy - lvBall.y) < 4) {
+            const cp = lvChasePoint(p); tx = cp.x; ty = cp.y; p._chase = true;
+          } }
         sp *= 1.3;
       }
       // 수비 — 압박 / 커버 / 마크
@@ -6627,7 +7358,10 @@ function lvMove() {
           /* 공이 굴러가는 중(패스)이면 지금 공 위치가 아니라 경로상 만날 지점으로 간다.
              전에는 공 뒤꽁무니를 쫓아서 가로채기를 못 했다. */
           const bv = Math.hypot(lvBall.vx, lvBall.vy);
-          if (!lvBall.own && bv > 0.25 && !(lvBall.air > 0) && (lvBall.cool || 0) < 9) {
+          if (!lvBall.own && bv <= 0.25) {                  // 느리게 굴러가는 공 — 갈 지점으로 전속력
+            const cp = lvChasePoint(p); tx = cp.x; ty = cp.y; p._chase = true; sp *= 1.05;
+          }
+          else if (!lvBall.own && bv > 0.25 && !(lvBall.air > 0) && (lvBall.cool || 0) < 9) {
             let best = null;
             for (let k = 2; k <= 40; k += 2) {
               const f = (1 - Math.pow(0.96, k)) / 0.04;            // k 틱 뒤 공 이동량
@@ -6636,8 +7370,16 @@ function lvMove() {
               if (Math.hypot(bx - p.cx, by - p.cy) <= reach) { best = { x: bx, y: by }; break; }
             }
             if (best) { tx = best.x; ty = best.y; } else { tx = lvBall.x; ty = lvBall.y; }
-          } else { tx = lvBall.x; ty = lvBall.y; }
-          sp *= 1.12;
+            sp *= 1.12;
+          } else {
+            tx = lvBall.x; ty = lvBall.y;
+            /* 정면에서 다가갈 땐 빠르게, 이미 제쳐져서 뒤에서 쫓을 땐 몸을 돌리느라 느리다.
+               전엔 항상 1.12배라 드리블러가 수비를 제쳐도 절대 떨쳐내지 못했다. */
+            const h = lvBall.own ? (lvBall.own.side === 'us' ? mtUs : mtThem)[lvBall.own.idx] : null;
+            const hv = h ? Math.hypot(h.vx || 0, h.vy || 0) : 0;
+            const chasing = h && hv > 0.08 && ((p.cx - h.cx) * h.vx + (p.cy - h.cy) * h.vy) < 0;
+            sp *= chasing ? 0.94 : 1.12;
+          }
         }
         else if (i === press2) {
           tx = lvBall.x - dir * 7; ty = lvBall.y + (p.cy > lvBall.y ? 7 : -7);
@@ -6679,12 +7421,24 @@ function lvMove() {
 
       let dx = tx - p.cx, dy = ty - p.cy;
       const d = Math.hypot(dx, dy);
-      if (d > 0.35) { dx = dx / d * Math.min(sp, d); dy = dy / d * Math.min(sp, d); }
+      const mvs = p._chase ? sp : Math.min(sp, d); p._chase = false;   // 공 쫓을 땐 끝까지 전속력
+      if (d > 0.35) { dx = dx / d * mvs; dy = dy / d * mvs; }
       else { dx = 0; dy = 0; if (p.tx !== undefined) { p.tx = undefined; p.ty = undefined; } }
-      p.vx = (p.vx || 0) + (dx - (p.vx || 0)) * 0.26;
-      p.vy = (p.vy || 0) + (dy - (p.vy || 0)) * 0.26;
-      p.cx = Math.max(p.gk ? 0.6 : 2, Math.min(p.gk ? 99.4 : 98, p.cx + p.vx));   // 키퍼는 골라인 바로 앞까지
-      p.cy = Math.max(4, Math.min(96, p.cy + p.vy));
+      const acc = p._snap ? 0.6 : 0.26; p._snap = false;   // 발재간 중엔 방향 전환이 빠르다
+      p.vx = (p.vx || 0) + (dx - (p.vx || 0)) * acc;
+      p.vy = (p.vy || 0) + (dy - (p.vy || 0)) * acc;
+      /* 체력 — 모두 100 에서 시작. 뛴 만큼 닳고, 질주하면 더 빨리 닳는다.
+         90분 뛰면 절반쯤 남도록 맞췄다. 키퍼는 거의 안 닳는다. */
+      { const mvd = Math.hypot(p.vx || 0, p.vy || 0);
+        if (p.stam === undefined) p.stam = 100;
+        p.stam = Math.max(0, p.stam - mvd * LV_STAM_RUN * (p.gk ? 0.4 : (p._sprint ? 1.7 : 1)));
+        p._sprint = false; }
+      p.cx = Math.max(p.gk ? 0.6 : 1.2, Math.min(p.gk ? 99.4 : 98.8, p.cx + p.vx));   // 키퍼는 골라인 바로 앞까지
+      if (p.gk) {                                       // 키퍼는 자기 페널티박스 안에서만
+        const og = sd === 'us' ? 0 : 100, lim = lvMx(16.5);
+        p.cx = sd === 'us' ? Math.min(p.cx, og + lim) : Math.max(p.cx, og - lim);
+      }
+      p.cy = Math.max(2, Math.min(98, p.cy + p.vy));      // 코너까지 갈 수 있게
     });
   });
   lvSeparate();
@@ -6705,6 +7459,9 @@ function lvSeparate() {
       const A = all[a], B = all[b];
       if (A.p.gk || B.p.gk) continue;
       const same = A.sd === B.sd;
+      // 수비벽은 어깨를 맞대고 서야 한다 — 같은 팀끼리 벌어지게 하는 규칙에서 뺀다
+      const inWall = o => lvSet && lvSet.kind === 'fk' && lvSet.wall && o.sd !== lvSet.side && lvSet.wall.indexOf(o.i) >= 0;
+      if (same && inWall(A) && inWall(B)) continue;
       const minD = same ? 6.5 : 1.3;
       let dx = B.p.cx - A.p.cx, dy = B.p.cy - A.p.cy;
       const d = Math.hypot(dx, dy);
@@ -6745,9 +7502,25 @@ function lvRestart(kind, side, x, y) {
     arr.forEach((p, i) => { if (p.gk) return;
       const d = Math.hypot(p.cx - x, p.cy - y); if (d < bd) { bd = d; taker = i; } });
   }
-  lvSet = { kind, side, x, y, t: 70, taker };
+  // 코너·프리킥은 선수들이 박스까지 들어갈 시간을 넉넉히 준다 (전엔 2.3초만에 차버려 박스가 비었다)
+  /* 준비 시간 — 공을 세워두고 양 팀이 자리를 잡을 때까지 기다렸다가 찬다.
+     전엔 차는 선수가 도착하자마자 차버려서 벽도 없고 박스도 비어 있었다. */
+  const minT = { corner: 80, fk: 95, pk: 60, throw: 30, goalkick: 35 }[kind] || 30;
+  lvSet = { kind, side, x, y, t: (kind === 'fk' ? 150 : 260), taker, min: minT, wall: [] };
   lvBall.own = null; lvBall.x = x; lvBall.y = y; lvBall.vx = 0; lvBall.vy = 0;
-  lvBall.air = 0; lvBall.to = -1; lvBall.passTo = null; lvBall.saveBy = null; lvBall.arc = null;
+  lvBall.air = 0; lvBall.to = -1; lvBall.passTo = null; lvBall.saveBy = null; lvBall.arc = null; lvBall.shot = false; lvBall.homeK = 0;
+  // 골대 근처 프리킥이면 수비벽을 세운다 (3~4명)
+  if (kind === 'fk') {
+    const dArr = side === 'us' ? mtThem : mtUs;
+    const og = side === 'us' ? 100 : 0;
+    const gd = Math.hypot((x - og) * 1.05, (y - 50) * 0.68);          // 골대까지 m
+    if (gd < 32) {
+      const n = gd < 22 ? 4 : 3;
+      lvSet.wall = dArr.map((p, i) => ({ i, d: Math.hypot(p.cx - x, p.cy - y) }))
+        .filter(o => !dArr[o.i].gk).sort((a, b) => a.d - b.d).slice(0, n).map(o => o.i);
+      lvSay('수비벽 ' + n + '명');
+    }
+  }
   const b = document.getElementById('lvSetBox');
   if (b) { b.textContent = (side === 'us' ? '' : '상대 ') + LV_SET_NAME[kind]; b.classList.add('on'); }
   lvSay((side === 'us' ? '' : '상대 ') + LV_SET_NAME[kind]);
@@ -6763,10 +7536,20 @@ function lvSetStep() {
   lvBall.x = st.x; lvBall.y = st.y; lvBall.vx = 0; lvBall.vy = 0;
   if (!p) { lvSet = null; return; }
   const d = Math.hypot(p.cx - st.x, p.cy - st.y);
-  if (d < 1.6 || st.t <= 0) {
-    p.cx = st.x; p.cy = st.y;                 // 공 위치에 선다
+  if (st.min > 0) { st.min--; return; }       // 최소 대기 — 동료들이 자리 잡을 때까지
+  if (st.t > 0 && !lvSetReady(st)) { return; }  // 수비벽·박스 인원이 자리 잡을 때까지 더 기다린다
+  if (st.t <= 0 && d > 2.2) {                 // 너무 오래 걸리면 더 가까운 선수가 찬다 (순간이동 대신)
+    let best = st.taker, bd = d;
+    arr.forEach((q, i) => { if (q.gk && st.kind !== 'goalkick') return;
+      const dd = Math.hypot(q.cx - st.x, q.cy - st.y); if (dd < bd) { bd = dd; best = i; } });
+    st.taker = best; st.t = 60; return;
+  }
+  if (d < 2.2 || st.t <= 0) {
+    p.cx = st.x; p.cy = st.y;                 // 공 앞에 선다 (가까이 왔을 때만)
     lvBall.own = { side: st.side, idx: st.taker };
     lvBall.last = st.side;
+    if (st.kind === 'throw') p.throwIn = true;
+    if (st.kind === 'corner' || st.kind === 'fk') p.setKick = st.kind;
     const b = document.getElementById('lvSetBox');
     if (b) b.classList.remove('on');
     const kind = st.kind;
@@ -6788,6 +7571,7 @@ function lvAiPenalty() {
   lvBall.own = null; lvBall.to = -1;
   lvBall.vx = ax / d * sp; lvBall.vy = ay / d * sp;
   lvShotId++;
+  lvBall.shot = true; lvBall.shotT = 0;
   lvResolveShot(p, 'them');
   lvAnim('them', own.idx, 'kick');
 }
@@ -6795,7 +7579,7 @@ function lvAiPenalty() {
 /* 상대 수비도 슬라이딩을 한다.
    안 하면 우리 쪽은 프리킥·PK 를 절대 얻을 수 없다. */
 function lvAiTackle() {
-  if (lvSet || !lvBall.own || lvBall.own.side !== 'us') return;
+  if (lvSet || lvKick || !lvBall.own || lvBall.own.side !== 'us') return;
   const holder = mtUs[lvBall.own.idx];
   if (!holder || holder.gk) return;             // 공 잡은 키퍼에겐 슬라이딩 안 한다
   mtThem.forEach(q => {
@@ -6803,8 +7587,15 @@ function lvAiTackle() {
     const d = Math.hypot(q.cx - holder.cx, q.cy - holder.cy);
     if (d > 3.4 || d < 0.7) return;
     // 뒤처졌을수록(자기 골문 쪽으로 밀릴수록) 무리하게 들어온다
-    const behind = q.cx - holder.cx > 0 ? 1 : 1.8;
-    if (Math.random() < 0.0075 * behind) {
+    /* 공 가진 선수가 달리는 방향 기준으로 앞에서는 적극적으로, 뒤에서는 가끔만.
+       (파울 판정과 같은 기준 — 전엔 '우리 골문 쪽이면 앞' 으로 따로 봐서, 옆으로 치고 나가는
+        선수를 뒤에서 걸어 파울을 많이 냈다) */
+    const hv = Math.hypot(holder.vx || 0, holder.vy || 0);
+    const rel = hv > 0.05 ? ((q.cx - holder.cx) * holder.vx + (q.cy - holder.cy) * holder.vy) / (hv * (d || 1)) : 1;
+    const behind = rel < -0.35 ? 0.25 : 1;
+    // 붙어 있으면 서서 태클로 발을 뻗는다 — 앞에서는 자주, 뒤에서는 가끔
+    if (d < 1.8 && !q.lunge && Math.random() < 0.03 * (behind < 1 ? 0.3 : 1)) { q.lunge = 9; lvAnim('them', mtThem.indexOf(q), 'tackle'); return; }
+    if (Math.random() < 0.03 * behind) {                  // 전엔 0.0075 — 너무 얌전했다
       q.slide = { tx: holder.cx + (holder.vx || 0) * 4, ty: holder.cy + (holder.vy || 0) * 4, t: 16 };
       const idx = mtThem.indexOf(q);
       lvAnim('them', idx, 'slide');
@@ -6817,7 +7608,7 @@ function lvAiTackle() {
    공은 0.96 씩 감속하므로 k 틱 뒤 위치를 계산해 수비수 도달 거리와 비교한다. */
 function lvLaneRisk(fx, fy, tx, ty, defenders) {
   const dist = Math.hypot(tx - fx, ty - fy) || 1;
-  const sp = Math.max(0.45, Math.min(2.2, dist / 20));
+  const sp = Math.max(0.45, Math.min(2.2, dist / 17));
   const ux = (tx - fx) / dist, uy = (ty - fy) / dist;
   let risk = 0;
   for (let k = 3; k <= 44; k += 3) {
@@ -6859,6 +7650,33 @@ function lvFoul(foulerSide, x, y) {
   if (inBox) lvRestart('pk', victim, victim === 'us' ? 100 - lvMx(11) : lvMx(11), 50);
   else lvRestart('fk', victim, x, y);
   lvSay('파울! ' + (inBox ? '페널티킥' : '프리킥'));
+  LvSnd.whistle(inBox ? [0.2, 0.45] : [0.35]);
+}
+
+
+/* ══ 주발 · 약발 ══
+   LV_LEFT: 왼발잡이 (버전 무관 — 'messi', 'messi_tl', 'messi_ul' 모두 'messi' 로 본다)
+   LV_WF  : 약발 능력치 1~5 (없으면 3). 5 면 양발.
+   틀린 선수가 있으면 여기만 고치면 된다. */
+const LV_LEFT = new Set(['messi','mara','maradona','salah','bale','puskas','rcarlos','griezmann','dimaria','silva','bs',
+  'cole','chiellini','raul','redondo','mata','marcelo','davies','jam','kyg','xhk','bar_yamal','bar_raphinha','bar_balde',
+  'bar_martin','b_lb','b_lw']);
+const LV_WF = { son:5, db:5, kdb:5, kroos:5, dembele:5, forlan:5, nedved:5, per:5, sneijder:5, neymar:5, pele:5, maldini:5,
+  iniesta:4, modric:4, bergkamp:4, mbappe:4, cr7:4, r9:4, zz:4, zidane:4, lewa:4, lewandowski:4, kane:4, messi:4, park:4,
+  villa:4, muller:4, cruyff:4, beck:4, beckenbauer:4, raul:4, lahm:4, xavi:4, bar_pedri:4, hazard:4, cancelo:4, bar_cancelo:4,
+  scholes:4, ibrahimovic:4, puskas:2, redondo:2, rcarlos:2, dimaria:2, bale:2, salah:2, bar_yamal:3 };
+function lvBase(pid) { return String(pid || '').replace(/_(tl|ul)$/, ''); }
+function lvFoot(p) { return LV_LEFT.has(lvBase(p.pid)) ? 'L' : 'R'; }
+function lvWf(p)   { const v = LV_WF[lvBase(p.pid)]; return v || 3; }
+/* 이번에 어느 발로 차나 — 주발이 기본. 몸 오른쪽으로 공을 몰고 가는 중이면 왼발잡이는 오른발(약발)로,
+   왼쪽으로 몰고 가는 중이면 오른발잡이는 왼발(약발)로 찬다. (공격 방향 기준: 우리 +x, 상대 -x) */
+function lvKickFoot(p, side) {
+  const f = lvFoot(p);
+  const fwd = side === 'us' ? 1 : -1;
+  const lat = (p.vy || 0) * fwd;                         // + 면 몸 오른쪽으로 가는 중
+  if (f === 'L' && lat > 0.09) return 'R';
+  if (f === 'R' && lat < -0.09) return 'L';
+  return f;
 }
 
 /* 슛을 찬 순간 결과를 정한다.
@@ -6868,7 +7686,7 @@ function lvFoul(foulerSide, x, y) {
 function lvResolveShot(shooter, side) {
   const goalX = side === 'us' ? 100 : 0;
   const gk = (side === 'us' ? mtThem : mtUs).find(p => p.gk);
-  lvBall.saveBy = null;
+  lvBall.saveBy = null; lvBall.aim = null;          // 이전 슛 결과가 남지 않게
   if (!gk) return;
   const vx = lvBall.vx;
   if (Math.abs(vx) < 0.05 || (goalX - lvBall.x) * vx < 0) return;          // 골문 반대로 찼다
@@ -6887,6 +7705,12 @@ function lvResolveShot(shooter, side) {
     + ((gk.ovr || 100) - (shooter.ovr || 100)) * 0.006;   // OVR 차 반영 (25점 차 = 15%)
   if (lvBall.curl) save -= 0.08;            // 감아차기는 키퍼가 읽기 어렵다
   save = Math.max(0.20, Math.min(0.95, save));
+  /* 골라인에 도착할 때 속도 — 공은 틱마다 0.96 배로 줄어서 도착 속도 ≈ 처음 속도 - 거리×0.04.
+     느리게 굴러오는 공은 확률과 상관없이 잡는다. 전엔 '골'로 정해지면 데굴데굴 굴러와도 키퍼가 손을 못 댔다. */
+  const v0 = Math.hypot(lvBall.vx, lvBall.vy);
+  const dd = Math.hypot(goalX - lvBall.x, crossY - lvBall.y);
+  const vArr = v0 * Math.pow(0.99, dd / Math.max(0.3, v0) * 1.05);   // 슛은 틱마다 1% 감속
+  if (vArr < 0.75) save = 1;
   lvBall.aim = 'on';
   if (Math.random() < save) {
     lvBall.saveBy = side === 'us' ? 'them' : 'us';
@@ -6895,11 +7719,40 @@ function lvResolveShot(shooter, side) {
 }
 
 /* AI 가 공을 잡았을 때 스스로 패스하거나 슛한다 */
+/* 코너·프리킥 크로스 — 공은 무조건 페널티박스 한가운데로 띄운다 (중간에 안 걸리게 공중으로).
+   side: 차는 팀. 박스 중앙에 가장 가까운 동료를 받을 선수로 잡는다. */
+function lvCross(p, idx, side) {
+  const arr = side === 'us' ? mtUs : mtThem;
+  const gl = side === 'us' ? 100 : 0, inb = side === 'us' ? -1 : 1;
+  const tx = gl + inb * lvMx(10.5), ty = 50;              // 박스 한가운데 (PK 지점 부근)
+  let best = -1, bd = 1e9;
+  arr.forEach((q, i) => { if (i === idx || q.gk) return;
+    const d = Math.hypot(q.cx - tx, q.cy - ty); if (d < bd) { bd = d; best = i; } });
+  if (best < 0) return false;
+  const ax = tx - p.cx, ay = ty - p.cy, dist = Math.hypot(ax, ay) || 1;
+  const airT = Math.max(18, Math.min(40, Math.round(dist * 0.95)));
+  const sp = dist / airT;
+  lvBall.from = { side, idx }; lvBall.cool = 12; lvBall.last = side;
+  lvBall.own = null; lvBall.to = best; lvBall.toSide = side; lvBall.homeK = 0;
+  lvBall.air = airT; lvBall.passTo = { x: tx, y: ty };
+  lvBall.lift = { t0: lvFrame, dur: airT, peak: Math.max(3.5, Math.min(7, dist * 0.22)) };
+  lvBall.vx = ax / dist * sp; lvBall.vy = ay / dist * sp;
+  lvAnim(side, idx, 'kick');
+  lvSay((side === 'us' ? '' : '상대 ') + '크로스 → 박스 중앙');
+  return true;
+}
+
 function lvAiDecide() {
   const own = lvBall.own;
   if (!own || own.side !== 'them') return;
   const p = mtThem[own.idx];
   if (!p) return;
+  // 코너·골문 근처 프리킥은 박스 중앙으로 띄워 올린다
+  if (p.setKick) {
+    const kk = p.setKick; p.setKick = null;
+    const gd = Math.hypot((p.cx - 0) * 1.05, (p.cy - 50) * 0.68);
+    if (kk === 'corner' || gd < 35) { if (lvCross(p, own.idx, 'them')) return; }
+  }
   p.hold = (p.hold || 0) + 1;
 
   // 압박 받는 정도 — 가장 가까운 우리 선수 거리
@@ -6927,6 +7780,8 @@ function lvAiDecide() {
     lvBall.own = null; lvBall.to = -1;
     lvBall.vx = ax / d * sp; lvBall.vy = ay / d * sp;
     lvShotId++;
+    lvBall.shot = true; lvBall.shotT = 0; lvBall.homeK = 0;
+    lvStamCost(p, 1.1);
     lvResolveShot(p, 'them');
     lvBall.lift = { t0: lvFrame, dur: Math.max(10, Math.min(30, p.cx / Math.max(0.5, sp))), peak: 0.9 };
     lvAnim('them', own.idx, 'kick');
@@ -6962,7 +7817,7 @@ function lvAiDecide() {
     let tx = q.cx, ty = q.cy;
     for (let k = 0; k < 3; k++) {
       const d0 = Math.hypot(tx - p.cx, ty - p.cy) || 1;
-      const T = Math.min(40, d0 / Math.max(0.3, Math.max(0.45, Math.min(2.2, d0 / 20)) * 0.7));
+      const T = Math.min(40, d0 / Math.max(0.3, Math.max(0.45, Math.min(2.2, d0 / 17)) * 0.7));
       tx = q.cx + (q.vx || 0) * T * 0.8; ty = q.cy + (q.vy || 0) * T * 0.8;
     }
     tx = Math.max(3, Math.min(97, tx)); ty = Math.max(5, Math.min(95, ty));
@@ -6970,14 +7825,15 @@ function lvAiDecide() {
     const cross = p.cx < 30 && (p.cy < 26 || p.cy > 74) && q.cx < 20 && q.cy > 28 && q.cy < 72;
     const ax = tx - p.cx, ay = ty - p.cy, dist = Math.hypot(ax, ay) || 1;
     const airT = cross ? Math.max(14, Math.min(34, Math.round(dist * 0.85))) : 0;
-    const sp = cross ? dist / airT : Math.max(0.45, Math.min(2.2, dist / 20));
+    const sp = cross ? dist / airT : Math.max(0.45, Math.min(2.2, dist / 17));
     lvBall.passTo = { x: tx, y: ty };
     lvBall.air = airT;
     lvBall.lift = cross ? { t0: lvFrame, dur: airT, peak: Math.max(2.4, Math.min(6, dist * 0.17)) } : null;
     lvBall.from = { side:'them', idx: own.idx }; lvBall.cool = 12; lvBall.last = 'them';
     lvBall.own = null; lvBall.to = best;
-    lvBall.toSide = 'them';
-    lvAnim('them', own.idx, 'pass');
+    lvBall.toSide = 'them'; lvBall.homeK = cross ? 0.015 : 0.04;
+    if (p.throwIn || p.gk) { lvAnim('them', own.idx, 'throw'); p.throwIn = false; }
+    else lvAnim('them', own.idx, 'pass');
     lvBall.vx = ax / dist * sp; lvBall.vy = ay / dist * sp;
   }
   // 3) 아니면 계속 드리블 (lvMove 가 처리)
@@ -6987,31 +7843,53 @@ function lvGoal(mine) {
   if (lvLock) return;
   lvLock = true;                 // 킥오프 전까지 다시 득점 판정되지 않게 잠근다
   lvBall.inNet = mine ? 'top' : 'bot';   // 속도는 살려서 골망으로 들어가게
+  LvSnd.cheer(mine);                     // 우리 골이면 큰 환호, 상대 골이면 작게
   // 득점자
   const f = lvBall.from;
   const scorer = f ? (f.side === 'us' ? mtUs : mtThem)[f.idx] : null;
-  if (f) lvAnim(f.side, f.idx, 'cele');
+  if (f) {
+    lvAnim(f.side, f.idx, 'cele');
+    // 세리머니 — 가까운 코너 쪽으로 두 팔 들고 달려간다. 카메라도 득점자를 따라간다.
+    const sc = (f.side === 'us' ? mtUs : mtThem)[f.idx];
+    if (sc) {
+      sc.skill = { tx: f.side === 'us' ? 92 : 8, ty: sc.cy < 50 ? 12 : 88, t: 70 };
+      lvCamLock = { side: f.side, idx: f.idx };
+    }
+  }
   const box = document.getElementById('lvGoalBox'), who = document.getElementById('lvGoalWho');
   if (box && who) {
     who.textContent = '⚽ ' + (scorer && scorer.nm ? scorer.nm : (mine ? '우리 팀' : '상대 팀'));
     box.classList.toggle('opp', !mine);
     box.classList.remove('on'); void box.offsetWidth; box.classList.add('on');
-    setTimeout(() => box.classList.remove('on'), 2000);
+    setTimeout(() => box.classList.remove('on'), 2300);
   }
   lvScore[mine ? 0 : 1]++;
   const s = document.getElementById('lvScore');
   if (s) s.textContent = lvScore[0] + ' - ' + lvScore[1];
   lvSay(mine ? '⚽ 골!!' : '실점...');
   try { mtGoalEffect(mine); } catch (e) {}
-  lvPaused = true;
+  // 세리머니 동안엔 득점자만 달리고 나머지는 멈춘다 (완전히 멈추면 세리머니가 안 보인다)
+  lvPaused = false;
+  lvCele = 70; lvCeleWho = f ? { side: f.side, idx: f.idx } : null;
   setTimeout(() => {
     if (!lvOn) return;
-    lvBall.inNet = null;
-    lvKickoff(!mine);
+    // 세리머니 끝 → 골 장면 리플레이 → 킥오프
+    const go = () => {
+      lvBall.inNet = null;
+      lvCele = 0; lvCeleWho = null;
+      lvKickoff(!mine);
+      if (lvKick) lvKick.hold = 80;      // 카메라가 중앙선으로 오는 동안 넉넉히 기다린다 (약 2.6초)
+      lvBanner('킥오프 준비', 1500);
+      lvLock = false;
+      lvPaused = false;
+      lvHintPaint();
+    };
+    if (lvReplayStart(scorer && scorer.nm ? '⚽ ' + scorer.nm : '')) {
+      const wait = setInterval(() => { if (!lvReplay) { clearInterval(wait); go(); } }, 120);
+      setTimeout(() => { if (lvReplay) lvReplayEnd(); }, 5200);     // 너무 길면 끊는다
+    } else go();
     lvLock = false;
-    lvPaused = false;
-    lvHintPaint();
-  }, 2200);
+  }, 2300);
 }
 
 function lvPaint() {
@@ -7038,6 +7916,12 @@ function lvPaint() {
         if (p._st !== undefined) el.classList.remove('st' + p._st);
         el.classList.add('st' + stepT); p._st = stepT;
       }
+      // 드리블: 발걸음 네 박자 중 한 박자에 주발로 공을 톡
+      const tch = drib && stepT === 1 ? (sd === 'us' && lvFoot(p) === 'L' ? 'tchL' : 'tchR') : '';
+      if (tch !== (p._tch || '')) { if (p._tch) el.classList.remove(p._tch); if (tch) el.classList.add(tch); p._tch = tch; }
+      // 압박 버튼 누르는 중인 내 선수: 버티는 자세
+      const jock = sd === 'us' && lvJockey && i === lvCtrlIdx() && !hasB;
+      if (jock !== !!p._jk) { p._jk = jock; el.classList.toggle('jock', jock); }
       // 좌우 이동 방향으로 몸을 돌린다
       const hv = lvLand ? (p.vx || 0) : (p.vy || 0);            // 화면 가로 방향 속도
       // 확실히 반대로 움직일 때만 돌아선다 (몇 프레임 연속이어야)
@@ -7063,13 +7947,15 @@ function lvPaint() {
   });
   const b = document.getElementById('lvBall');
   if (b) {
-    let dy = 0;
+    let dy = 0, dxA = 0;
     if (lvBall.arc && !lvBall.own) {
       const t = Math.max(0, Math.min(1, (lvBall.x - lvBall.arc.x0) / lvBall.arc.span));
-      dy = lvBall.arc.amp * Math.sin(Math.PI * t);          // 가운데서 가장 크게 휜다
+      const m = lvBall.arc.amp * Math.sin(Math.PI * t);     // 가운데서 가장 크게 휜다
+      if (lvBall.arc.nx !== undefined) { dxA = lvBall.arc.nx * m; dy = lvBall.arc.ny * m; }
+      else dy = m;
     } else if (lvBall.own) { lvBall.arc = null; }
     /* 드리블 중엔 공을 몸 한가운데가 아니라 진행 방향 발끝에 둔다 */
-    let bx = lvBall.px === undefined ? lvBall.x : lvBall.px + (lvBall.x - lvBall.px) * lvAlpha;
+    let bx = (lvBall.px === undefined ? lvBall.x : lvBall.px + (lvBall.x - lvBall.px) * lvAlpha) + dxA;
     let by = (lvBall.py === undefined ? lvBall.y : lvBall.py + (lvBall.y - lvBall.py) * lvAlpha) + dy;
     let feet = 0;
     const own = lvBall.own;
@@ -7081,7 +7967,8 @@ function lvPaint() {
            공이 가슴 높이로 올라가 보인다. 앞뒤는 조금, 좌우는 넉넉하게. */
         const v = Math.hypot(q.vx || 0, q.vy || 0);
         // 화면 가로 방향으로는 넉넉히, 세로(깊이) 방향으로는 조금만 앞에 둔다
-        const hk = 0.62, vk = 0.22;
+        const push = q._tch ? 1.55 : 1;                 // 볼터치 박자엔 공이 조금 더 앞으로
+        const hk = 0.62 * push, vk = 0.22 * push;
         if (v > 0.03) {
           if (lvLand) { bx += (q.vx / v) * hk; by += (q.vy / v) * vk; }
           else        { bx += (q.vx / v) * vk; by += (q.vy / v) * hk; }
@@ -7133,6 +8020,27 @@ function lvPaint() {
     const flying = !own && Math.hypot(lvBall.vx, lvBall.vy) > 1.6;
     if (flying !== lvBall._f) { lvBall._f = flying; b.classList.toggle('fly', flying); }
   }
+  // 조작 선수 표시 — 노란 원은 내 선수에게만. 수비 중이면 머리 위 화살표도
+  {
+    const ci = lvCtrlIdx(), me = mtUs[ci];
+    const ring = document.getElementById('lvCtrlRing'), arr = document.getElementById('lvCtrlArrow');
+    if (ring && me) { ring.style.left = lvScrL(lvIx(me), lvIy(me)).toFixed(2) + '%'; ring.style.top = lvScrT(lvIx(me), lvIy(me)).toFixed(2) + '%'; }
+    const defending = !(lvBall.own && lvBall.own.side === 'us');
+    if (arr && me) {
+      arr.style.display = defending ? 'block' : 'none';
+      if (defending) {
+        arr.style.left = lvScrL(lvIx(me), lvIy(me)).toFixed(2) + '%';
+        arr.style.top  = lvScrT(lvIx(me), lvIy(me)).toFixed(2) + '%';
+        arr.style.transform = 'translate(-50%,-100%) translateZ(' + (LV_PH * 1.25 * lvPxPerM).toFixed(1) + 'px) rotateX(' + (-LV_TILT) + 'deg)';
+      }
+    }
+    const fr = document.getElementById('lvFoeRing');
+    const fo = lvBall.own && lvBall.own.side === 'them' ? mtThem[lvBall.own.idx] : null;
+    if (fr) {
+      fr.style.display = fo ? 'block' : 'none';
+      if (fo) { fr.style.left = lvScrL(lvIx(fo), lvIy(fo)).toFixed(2) + '%'; fr.style.top = lvScrT(lvIx(fo), lvIy(fo)).toFixed(2) + '%'; }
+    }
+  }
   // 공 가진 선수 머리 위에 이름
   const tag = document.getElementById('lvTag');
   if (tag) {
@@ -7141,8 +8049,16 @@ function lvPaint() {
     if (q) {
       tag.style.display = 'block';
       tag.className = 'lvtag ' + o.side;
+      const nmEl = document.getElementById('lvTagN'), stEl = document.getElementById('lvTagS');
       const nm = q.nm || '';
-      if (tag.textContent !== nm) tag.textContent = nm;
+      if (nmEl && nmEl.textContent !== nm) nmEl.textContent = nm;
+      if (stEl) {                                   // 이름표 아래 체력 막대
+        const st = Math.max(0, Math.min(100, q.stam === undefined ? 100 : q.stam));
+        if (Math.abs((stEl._v || 0) - st) > 1.5) {
+          stEl._v = st; stEl.style.width = st.toFixed(0) + '%';
+          stEl.style.background = st > 60 ? '#4ade80' : st > 30 ? '#fbbf24' : '#f87171';
+        }
+      }
       tag.style.left = lvScrL(lvIx(q), lvIy(q)).toFixed(2) + '%';
       tag.style.top  = lvScrT(lvIx(q), lvIy(q)).toFixed(2) + '%';
       tag.style.transform = 'translate(-50%,-100%) translateZ(' + (LV_PH * 1.12 * lvPxPerM).toFixed(1) + 'px) rotateX(' + (-LV_TILT) + 'deg)';
