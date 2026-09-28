@@ -329,6 +329,115 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
   border:1px solid rgba(20,40,80,.16);color:#fff;font-size:13px;font-weight:700}.sc-search::placeholder{color:#666}.sc-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;
   margin-bottom:6px;background:rgba(20,40,80,.05);cursor:pointer}.sc-row:active{background:rgba(212,175,55,.16)}.sc-row img{width:38px;height:38px;object-fit:contain;flex:0 0 38px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#3d5580 0%,#22334f 62%,#152238 100%);box-shadow:inset 0 0 0 1.5px rgba(212,175,55,.35),0 2px 6px rgba(10,20,40,.25)}.sc-nm{font-size:12px;font-weight:800;color:#fff}.sc-sub{font-size:9px;color:#888;font-weight:700;margin-top:1px}.sc-cost{font-size:12px;font-weight:900;color:#d4af37;flex-shrink:0;text-align:right}.sc-row.no{opacity:.35}
 
+/* ─── LUCKY CHOICE (럭키 초이스) ─── */
+.lc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.lc-title{font-size:17px;font-weight:900;letter-spacing:1px;
+  background:linear-gradient(90deg,#8a6d0f,#c9a227,#6f5309);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent}
+.lc-ticket{font-size:12px;font-weight:900;padding:5px 10px;border-radius:9px;background:#221a33;color:#e5c8ff;
+  border:1px solid rgba(190,140,255,.45)}
+.lc-buy{padding:6px 12px;border-radius:9px;border:0;cursor:pointer;font-size:11px;font-weight:900;
+  background:linear-gradient(135deg,#5b2b8a,#b47cf5);color:#fff}
+.lc-pity{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:11px;font-weight:800;color:#5b6472}
+.lc-pity .bar{flex:1;height:7px;border-radius:4px;background:rgba(20,30,50,.12);overflow:hidden}
+.lc-pity .fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#8b5cf6,#f5d67b);transition:width .35s}
+.lc-pity.now{color:#8a6d0f}
+.lc-main{border-radius:14px;padding:12px 14px;margin-bottom:12px;text-align:center;
+  background:linear-gradient(135deg,#1a1030,#2d1b4e);border:1px solid rgba(190,140,255,.35)}
+.lc-main .lb{font-size:10px;font-weight:900;letter-spacing:2px;color:#b98cf5;margin-bottom:5px}
+.lc-main .vl{font-size:15px;font-weight:900;color:#fff8dc;line-height:1.35}
+.lc-main.hid .vl{color:#5a4a7a}
+.lc-main.lucky{background:linear-gradient(135deg,#3a2400,#6b4a00);border-color:rgba(245,214,123,.7);
+  box-shadow:0 0 18px rgba(245,214,123,.22)}
+.lc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.lc-hintbar{display:flex;align-items:center;gap:7px;margin:-4px 0 10px;padding:8px 11px;border-radius:11px;
+  background:linear-gradient(135deg,#0d2b22,#14483a);border:1px solid rgba(110,231,183,.45);
+  font-size:11.5px;font-weight:800;color:#a7f3d0;animation:lcHintIn .4s ease-out both}
+@keyframes lcHintIn{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}
+.lc-hintbar b{color:#6ee7b7;font-size:12.5px}
+/* 힌트가 가리키는 줄 — 테두리를 살려서 눈에 들어오게 */
+.lc-card.hintrow .lc-back{border-color:rgba(110,231,183,.85);
+  box-shadow:0 0 0 1px rgba(110,231,183,.4),0 0 14px rgba(110,231,183,.28)}
+.lc-card{position:relative;aspect-ratio:.72;perspective:600px;cursor:pointer}
+.lc-card.off{cursor:default}
+.lc-in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,1.5,.5,1)}
+.lc-card.flip .lc-in{transform:rotateY(180deg)}
+.lc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border-radius:10px;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+.lc-back{background:linear-gradient(150deg,#241a3d 0%,#3a2a5e 45%,#1b1330 100%);
+  border:1.5px solid rgba(190,140,255,.45);font-size:21px;color:rgba(230,200,255,.5)}
+.lc-card:active .lc-back{filter:brightness(1.35)}
+.lc-front{transform:rotateY(180deg);padding:5px;font-size:9px;font-weight:800;line-height:1.28;
+  background:linear-gradient(150deg,#101820,#1b2836);border:1.5px solid rgba(255,255,255,.16);color:#cfe2f5}
+.lc-front.t-main{background:linear-gradient(150deg,#3a2400,#6b4a00);border-color:#f5d67b;color:#fff3c4;
+  box-shadow:inset 0 0 14px rgba(245,214,123,.3)}
+.lc-front.t-sub{background:linear-gradient(150deg,#1a1030,#3d2668);border-color:#b98cf5;color:#efe0ff}
+.lc-card.dim .lc-front{filter:grayscale(.8) brightness(.72);opacity:.9}
+.lc-card.win .lc-front{animation:lcPop .45s ease-out}
+@keyframes lcPop{0%{transform:rotateY(180deg) scale(1)}45%{transform:rotateY(180deg) scale(1.14)}100%{transform:rotateY(180deg) scale(1)}}
+/* 누르는 반응 — 살짝 눌렸다가 떠오른다 */
+.lc-card{transition:transform .12s ease}
+.lc-card:not(.off):active{transform:scale(.94)}
+.lc-card.pickd{z-index:5;animation:lcLift .9s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes lcLift{0%{transform:scale(1)}22%{transform:scale(1.1) translateY(-6px)}100%{transform:scale(1.04) translateY(0)}}
+.lc-card.pickd .lc-in{transition:transform .62s cubic-bezier(.35,1.5,.45,1)}
+
+/* 카드 섞기 — JS 가 칸마다 중앙까지의 거리(--cx,--cy)를 넣어준다 */
+.lc-card.shuf{animation:lcShuf var(--sd,820ms) cubic-bezier(.45,.05,.4,1) both;animation-delay:var(--dl,0ms)}
+@keyframes lcShuf{
+  0%{transform:translate(0,0) rotate(0) scale(1)}
+  20%{transform:translate(var(--cx),var(--cy)) rotate(var(--r1)) scale(.9)}
+  50%{transform:translate(calc(var(--cx) + var(--ax)),calc(var(--cy) + var(--ay))) rotate(var(--r2)) scale(.88)}
+  78%{transform:translate(var(--cx),var(--cy)) rotate(var(--r1)) scale(.9)}
+  100%{transform:translate(0,0) rotate(0) scale(1)}
+}
+
+/* 뒤집힌 뒤 터지는 이펙트 */
+.lc-fx{position:absolute;inset:0;pointer-events:none;z-index:6}
+.lc-fx .ring{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;
+  border-radius:50%;border:2.5px solid var(--fx,#8fa);opacity:0}
+.lc-fx.on .ring{animation:lcRing .62s ease-out forwards}
+@keyframes lcRing{0%{opacity:.95;transform:scale(.4)}100%{opacity:0;transform:scale(9)}}
+.lc-fx .flash{position:absolute;inset:0;border-radius:10px;background:var(--fx,#8fa);opacity:0}
+.lc-fx.on .flash{animation:lcFlash .5s ease-out forwards}
+@keyframes lcFlash{0%{opacity:.55}100%{opacity:0}}
+.lc-fx .sp{position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;
+  background:var(--fx,#f5d67b);box-shadow:0 0 6px var(--fx,#f5d67b);opacity:0}
+.lc-fx.on .sp{animation:lcSpark .72s cubic-bezier(.15,.8,.3,1) forwards;animation-delay:var(--sdl,0ms)}
+@keyframes lcSpark{
+  0%{opacity:1;transform:translate(0,0) scale(1)}
+  70%{opacity:1}
+  100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(.35)}
+}
+.lc-card.hit .lc-front{animation:lcGlow 1.1s ease-out 1}
+@keyframes lcGlow{0%,100%{box-shadow:inset 0 0 14px rgba(245,214,123,.3)}
+  35%{box-shadow:inset 0 0 22px rgba(255,240,180,.85),0 0 26px rgba(245,214,123,.75)}}
+
+/* 메인 당첨 — 판 전체가 한 번 번쩍인다 */
+.lc-boom{position:absolute;inset:-10px;pointer-events:none;border-radius:16px;opacity:0;z-index:4;
+  background:radial-gradient(circle at 50% 50%,rgba(255,240,180,.6),rgba(245,214,123,0) 45%)}
+.lc-boom.on{animation:lcBoom .72s ease-out forwards}
+@keyframes lcBoom{0%{opacity:0;transform:scale(.55)}16%{opacity:.5}100%{opacity:0;transform:scale(1.15)}}
+.lc-gridwrap{position:relative}
+
+.lc-tag{position:absolute;top:3px;left:3px;font-size:7px;font-weight:900;padding:1px 4px;border-radius:4px;
+  background:rgba(0,0,0,.45);letter-spacing:.5px}
+.lc-main-btn{width:100%;padding:15px;border-radius:14px;border:0;cursor:pointer;font-size:15px;font-weight:900;
+  background:linear-gradient(135deg,#5b2b8a,#b47cf5);color:#fff;box-shadow:0 4px 14px rgba(140,80,220,.3)}
+.lc-main-btn.gold{background:linear-gradient(135deg,#8a6a00,#f5d67b);color:#2a2003}
+.lc-main-btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.lc-note{margin-top:10px;font-size:10px;line-height:1.6;color:#5b6472;text-align:center}
+.lc-res{margin-top:10px;border-radius:12px;padding:11px;text-align:center;
+  background:linear-gradient(135deg,#141a26,#20293a);border:1px solid rgba(255,255,255,.14)}
+.lc-res .rl{font-size:10px;font-weight:900;letter-spacing:1px;color:#8fa;margin-bottom:4px}
+.lc-res .rv{font-size:14px;font-weight:900;color:#fff}
+.lc-tbl{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px}
+.lc-tbl th{text-align:left;padding:6px 8px;color:#5b6472;font-weight:800;font-size:10px;
+  border-bottom:1px solid rgba(20,30,50,.16)}
+.lc-tbl td{padding:6px 8px;border-bottom:1px solid rgba(20,30,50,.08);color:#1f2937;font-weight:700}
+.lc-tbl td.p{text-align:right;color:#8a6d0f;font-weight:900;white-space:nowrap}
+.lc-sec{font-size:12px;font-weight:900;color:#8a6d0f;margin:14px 0 7px}
+
 /* ─── SPECIAL CHANCE (스페셜 찬스) ─── */
 .spc-btn{position:absolute;bottom:100px;left:16px;z-index:10;padding:11px 14px;border-radius:14px;
   background:linear-gradient(135deg,#7a5c00,#f0c94a);color:#2a2003;font-size:12px;font-weight:900;
@@ -889,6 +998,7 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
         <div class="sv-tabs">
           <div class="sv-tab active">빠칭코</div>
           <div class="sv-tab" onclick="switchTab('sv')">선방의 신</div>
+          <div class="sv-tab" onclick="switchTab('lc')">럭키 초이스</div>
         </div>
         <div class="pach-tabs">
           <div class="pach-tab active" id="pachTabBoard" onclick="setPachTab('board')">판</div>
@@ -922,6 +1032,7 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
         <div class="sv-tabs">
           <div class="sv-tab" onclick="switchTab('pach')">빠칭코</div>
           <div class="sv-tab active">선방의 신</div>
+          <div class="sv-tab" onclick="switchTab('lc')">럭키 초이스</div>
         </div>
         <div class="sv-tabs">
           <div class="sv-tab active" id="svTabPlay" onclick="setSvTab('play')">플레이</div>
@@ -975,6 +1086,49 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
           네 모서리가 스페셜 칸입니다. 좌상단 1.5%가 메인 보상, 우하단 2.5%가 서브 메인.<br>
           <b id="scDailyNote">메인·서브 선수는 매일 자정에 바뀝니다</b>
         </div>
+      </div>
+    </div>
+
+    <!-- LUCKY CHOICE (럭키 초이스) -->
+    <div class="screen" id="screen-lc" style="padding-top:50px">
+      <div style="padding:0 16px 24px">
+        <div class="back-btn" onclick="switchTab('home')">← 로비</div>
+        <div class="lc-head">
+          <div class="lc-title">럭키 초이스</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="lc-ticket">🃏 <span id="lcTicketCnt">0</span></div>
+            <button class="lc-buy" onclick="openLcShop()">참여권</button>
+          </div>
+        </div>
+        <div class="sv-tabs">
+          <div class="sv-tab" onclick="switchTab('pach')">빠칭코</div>
+          <div class="sv-tab" onclick="switchTab('sv')">선방의 신</div>
+          <div class="sv-tab active">럭키 초이스</div>
+        </div>
+        <div class="sv-tabs">
+          <div class="sv-tab active" id="lcTabPlay" onclick="setLcTab('play')">플레이</div>
+          <div class="sv-tab" id="lcTabInfo" onclick="setLcTab('info')">보상 안내</div>
+        </div>
+        <div id="lcPlayView">
+          <div class="lc-pity" id="lcPity"></div>
+          <div class="lc-main hid" id="lcMainBox">
+            <div class="lb" id="lcMainLb">이번 판 메인 보상</div>
+            <div class="vl" id="lcMainVal">시작하면 공개됩니다</div>
+          </div>
+          <div class="lc-hintbar" id="lcHintBar" style="display:none"></div>
+          <div class="lc-gridwrap">
+            <div class="lc-grid" id="lcGrid"></div>
+            <div class="lc-boom" id="lcBoom"></div>
+          </div>
+          <button class="lc-main-btn" id="lcBtn" onclick="lcAction()">시작 (참여권 1장)</button>
+          <div class="lc-res" id="lcRes" style="display:none"></div>
+          <div class="lc-note">
+            8장 중 1장을 고릅니다. 한 번 고르면 그 판은 끝납니다.<br>
+            <b>10판마다</b> 메인 보상이 어느 줄에 있는지 힌트가 나옵니다.<br>
+            <b>30회마다 오는 럭키판에서는 8장이 전부 메인 보상</b>입니다.
+          </div>
+        </div>
+        <div id="lcInfoView" style="display:none"></div>
       </div>
     </div>
 
@@ -1273,6 +1427,22 @@ const PACK_TYPES = {
   // UCL LEGACY 1강 팩. 티어 기반 확률을 쓰고, 최상위 120 은 119 보다 훨씬 낮게 둔다.
   // 선수 74명(최종) 기준 재계산: 기대 정가 2600억 → cpValue 2080억 → 4500MP 기준 회수율 84.4%
   // 인원이 늘면 티어 평균가가 올라가므로 선수 추가 때마다 다시 계산할 것.
+  /* ── 럭키 초이스 보상 전용 팩 3종 (상점에서 팔지 않는다) ──
+     강화 분포는 셋 다 낮은 등급부터 55 / 30 / 15 % */
+  ul35: {
+    name: 'UCL LEGACY', sub: '3~5강 선수팩', enhLevels: {3:0.55, 4:0.30, 5:0.15},
+    price: 0, season: 'ul', cpValue: 6088,
+    prob: {"116":0.26,"117":0.27,"118":0.31,"119":0.14,"120":0.02}
+  },
+  tl35: {
+    name: 'TEAM LEGEND', sub: '3~5강 선수팩', enhLevels: {3:0.55, 4:0.30, 5:0.15},
+    price: 0, season: 'tl', cpValue: 4796,
+    prob: {"114":0.05,"115":0.10,"116":0.25,"117":0.30,"118":0.20,"119":0.10}
+  },
+  bar13: {
+    name: 'BARÇA', sub: '1~3강 선수팩', enhLevels: {1:0.55, 2:0.30, 3:0.15},
+    price: 0, season: 'bar', cpValue: 1494
+  },
   ul1: {
     name: 'UCL LEGACY', sub: '1강 선수팩', enhLevel: 1, price: 4500, cpValue: 2080,
     season: 'ul',
@@ -1352,7 +1522,8 @@ const PACK_TYPES = {
   },
 };
 let packInv = {fwc1:0, fwc3:0, fwc5:0, fwc56:0, all57:0, tl1:0, ul1:0, mix1:0, fwc13:0, fwc35:0, tl13:0, mix35:0, bar1:0, bar35:0,
-               bar3:0, tl3:0, all35:0, tlbar5:0, bar5:0, tl5:0, tlbar56:0};
+               bar3:0, tl3:0, all35:0, tlbar5:0, bar5:0, tl5:0, tlbar56:0,
+               ul35:0, tl35:0, bar13:0};
 let legendInv = 0;   // 레전더리 박스 (선방의 신 전용, 상점 판매 없음)
 let luckyKeys = 0;   // 행운 열쇠
 let luckyBoxInv = {lb5:0, lb15:0, lb30:0, lb45:0};   // 보유 중인 행운 상자
@@ -1452,6 +1623,7 @@ function switchTab(name) {
   if(name==='pach') { pachAnimating=false; setPachTab('board'); renderPach(); }
   if(name==='sv')   { svAnimating=false; setSvTab('play'); renderSv(); }
   if(name==='sc')   { scSpinning=false; renderSC(); }
+  if(name==='lc')   { lcAnim=false; setLcTab('play'); renderLc(); }
   if(name==='match') { if(matchTimer){clearInterval(matchTimer);matchTimer=null;} renderMatch(); }
   if(name==='ach')   { renderBenefit(); }
   if(name==='fuse')  { renderFuse(); }
@@ -2229,6 +2401,9 @@ function renderItems() {
     {key:'tlbar56',color:'#ff5ec7',label:'5~6강 전원동일',season:'TL·BARÇA'},
     {key:'fwc56',color:'#64c8ff',label:'5~6강',season:'FWC'},
     {key:'all57',color:'#ff5ec7',label:'5~7강',season:'ALL시즌'},
+    {key:'ul35',color:'#7dffd4',label:'3~5강',season:'UL'},
+    {key:'tl35',color:'#64c8ff',label:'3~5강',season:'TL'},
+    {key:'bar13',color:'#a50044',label:'1~3강',season:'BARÇA'},
   ];
   
   let html = transRow;
@@ -11879,6 +12054,422 @@ function buySvTicket(i) {
   ]);
 }
 
+
+/* ══════════════════════════════════════════════════════════════════
+   럭키 초이스 (LUCKY CHOICE)
+   뒤집힌 카드 8장 중 1장을 고른다. 고르면 그 판은 끝. 확률은 전부 1/8.
+   · 메인 1장  — 판마다 아래 표에서 하나가 뽑혀 들어간다. 시작할 때 공개.
+   · 서브메인 2장 — 5종 중 서로 다른 2개. 시작해도 안 알려준다.
+   · 일반 5장  — 고정.
+   · 30회마다 '럭키판' — 8장이 전부 메인 보상(8종 한 장씩).
+   ══════════════════════════════════════════════════════════════════ */
+
+/* 참여권 — 10,000 MP 묶음은 '확정 4회' 와 '3회 또는 5회 도박' 둘 중에 고른다.
+   둘 다 기댓값 4회라 1회당 단가는 2,500 MP 로 같다. 순수하게 취향·도박성의 차이. */
+const LC_TICKET_PACKS = [
+  { qty:1, mp:2500,  label:'1회' },
+  { qty:4, mp:10000, label:'4회 확정' },
+  { qty:0, mp:10000, rnd:[3,5], label:'3회 또는 5회 (5:5)' },
+];
+
+/* ★★★ 메인 보상 표 — 여기만 고치면 된다 ★★★ (합 100)
+   alt 가 있으면 뽑힌 뒤 50% 확률로 alt 로 바뀐다. */
+const LC_MAIN = [
+  { w:5,  r:{packs:{ul35:1}}  },
+  { w:10, r:{packs:{ul1:1}}   },
+  { w:8,  r:{packs:{tl35:1}}  },
+  { w:12, r:{packs:{tl1:1}}   },
+  { w:20, r:{packs:{bar35:1}} },
+  { w:20, r:{packs:{fwc5:1}}  },
+  { w:15, r:{cp:3000}         },
+  { w:10, r:{trans:1}, alt:{trans:2} },
+];
+// 서브메인 — 5종 동일 확률, 이 중 서로 다른 2개가 판에 올라간다
+const LC_SUB = [
+  { protects:3 },
+  { tokens:5 },
+  { packs:{fwc3:1} },
+  { packs:{bar13:1} },
+  { cp:1500 },
+];
+// 일반 5장 — 고정
+const LC_NORM = [ {cp:800}, {cp:800}, {tokens:3}, {tokens:3}, {packs:{fwc1:1}} ];
+
+const LC_PITY = 30;           // 이 횟수마다 럭키판
+const LC_HINT_EVERY = 10;     // 이 횟수마다 힌트 (럭키판과 별개, 원할 때 쓰는 게 아니라 자동)
+
+let lcTickets  = 0;
+let lcCount    = 0;           // 럭키판 이후 진행한 판 수
+let lcBoard    = null;        // [{tier:'main'|'sub'|'norm', r:보상}] 8칸 (섞인 상태)
+let lcPicked   = -1;
+let lcLucky    = false;
+let lcHint     = null;        // {row:0|1} — 10판마다 나오는 공짜 힌트 (메인이 윗줄/아랫줄 중 어디인지)
+let lcPhase    = 'idle';      // idle → pick → done
+let lcAnim     = false;
+
+function lcMainPick() {
+  const tot = LC_MAIN.reduce((a, o) => a + o.w, 0);
+  let x = Math.random() * tot;
+  for (const o of LC_MAIN) { x -= o.w; if (x < 0) return (o.alt && Math.random() < 0.5) ? o.alt : o.r; }
+  const last = LC_MAIN[LC_MAIN.length - 1];
+  return (last.alt && Math.random() < 0.5) ? last.alt : last.r;
+}
+function lcShuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+function lcBuildBoard() {
+  lcLucky = lcCount >= LC_PITY;                // lcAction 에서 이미 1 올린 뒤라 30번째 판에서 true
+  let cells;
+  if (lcLucky) {
+    cells = LC_MAIN.map(o => ({ tier:'main', r: (o.alt && Math.random() < 0.5) ? o.alt : o.r }));
+  } else {
+    const subs = lcShuffle(LC_SUB.slice()).slice(0, 2);       // 서로 다른 2개
+    cells = [{ tier:'main', r: lcMainPick() }]
+      .concat(subs.map(r => ({ tier:'sub', r })))
+      .concat(LC_NORM.map(r => ({ tier:'norm', r })));
+  }
+  lcBoard = lcShuffle(cells);
+  lcPicked = -1;
+  lcPhase = 'pick';
+  /* 힌트 — 10판째마다 자동으로 나온다. 4장씩 두 줄이므로 8장 → 4장으로 좁혀준다.
+     럭키판은 어차피 전부 메인이라 힌트가 의미 없어서 건너뛴다. */
+  lcHint = null;
+  if (!lcLucky && lcCount % LC_HINT_EVERY === 0) {
+    const mi = lcBoard.findIndex(c => c.tier === 'main');
+    if (mi >= 0) lcHint = { row: mi < 4 ? 0 : 1 };
+  }
+}
+function lcMainOfBoard() {
+  if (!lcBoard) return null;
+  const c = lcBoard.find(x => x.tier === 'main');
+  return c ? c.r : null;
+}
+
+/* ─── 화면 ─── */
+function setLcTab(t) {
+  document.getElementById('lcTabPlay').classList.toggle('active', t === 'play');
+  document.getElementById('lcTabInfo').classList.toggle('active', t === 'info');
+  document.getElementById('lcPlayView').style.display = t === 'play' ? '' : 'none';
+  document.getElementById('lcInfoView').style.display = t === 'info' ? '' : 'none';
+  if (t === 'info') renderLcInfo();
+}
+
+let lcBoardId = 0;      // 판이 새로 깔릴 때마다 +1
+let lcGridId  = -1;     // 지금 화면에 그려진 판 번호
+
+/* 카드 8칸 껍데기만 만든다. 앞면 내용은 뒤집는 순간에 채운다
+   (미리 넣어 두면 개발자도구로 정답이 보인다) */
+function lcGridBuild() {
+  const g = document.getElementById('lcGrid');
+  if (!g) return;
+  let h = '';
+  for (let i = 0; i < 8; i++) {
+    h += '<div class="lc-card" onclick="lcPick(' + i + ')">'
+       + '<div class="lc-in">'
+       + '<div class="lc-face lc-back">?</div>'
+       + '<div class="lc-face lc-front"><span></span></div>'
+       + '</div><div class="lc-fx"></div></div>';
+  }
+  g.innerHTML = h;
+  lcGridId = lcBoardId;
+}
+
+/* 한 칸의 앞면을 실제 보상으로 채운다 */
+function lcFillFront(i) {
+  const g = document.getElementById('lcGrid');
+  if (!g || !g.children[i] || !lcBoard) return;
+  const c = lcBoard[i], el = g.children[i];
+  const front = el.querySelector('.lc-front');
+  front.className = 'lc-face lc-front' + (c.tier === 'main' ? ' t-main' : c.tier === 'sub' ? ' t-sub' : '');
+  const tag = c.tier === 'main' ? '<div class="lc-tag" style="color:#f5d67b">MAIN</div>'
+            : c.tier === 'sub'  ? '<div class="lc-tag" style="color:#cfa6ff">SUB</div>' : '';
+  front.innerHTML = tag + '<span>' + svRewardText(c.r) + '</span>';
+}
+
+/* 카드가 뒤집힌 순간 터지는 이펙트 */
+function lcBurst(i, tier) {
+  const g = document.getElementById('lcGrid');
+  if (!g || !g.children[i]) return;
+  const el = g.children[i], fx = el.querySelector('.lc-fx');
+  if (!fx) return;
+  const col = tier === 'main' ? '#ffe9a3' : tier === 'sub' ? '#cfa6ff' : '#9fe8c0';
+  const n   = tier === 'main' ? 14 : tier === 'sub' ? 9 : 5;
+  let h = '<div class="flash"></div><div class="ring"></div>';
+  for (let k = 0; k < n; k++) {
+    const a = (Math.PI * 2 * k) / n + Math.random() * 0.5;
+    const d = (tier === 'main' ? 52 : 36) + Math.random() * 26;
+    h += '<div class="sp" style="--tx:' + Math.round(Math.cos(a) * d) + 'px;--ty:'
+       + Math.round(Math.sin(a) * d) + 'px;--sdl:' + Math.round(Math.random() * 90) + 'ms"></div>';
+  }
+  fx.style.setProperty('--fx', col);
+  fx.innerHTML = h;
+  void fx.offsetWidth;
+  fx.classList.add('on');
+  el.classList.add('hit');
+  if (tier === 'main') {
+    const b = document.getElementById('lcBoom');
+    if (b) { b.classList.remove('on'); void b.offsetWidth; b.classList.add('on'); }
+  }
+  setTimeout(() => { if (fx) { fx.classList.remove('on'); fx.innerHTML = ''; } }, 1000);
+}
+
+/* 시작할 때 카드 섞는 모션 — 가운데로 모았다가 두 갈래로 엇갈린 뒤 제자리로 */
+function lcShuffleAnim(done) {
+  const g = document.getElementById('lcGrid');
+  if (!g || !g.children.length) { done(); return; }
+  const gr = g.getBoundingClientRect();
+  const cx0 = gr.left + gr.width / 2, cy0 = gr.top + gr.height / 2;
+  const DUR = 780;
+  for (let i = 0; i < 8; i++) {
+    const el = g.children[i], r = el.getBoundingClientRect();
+    const dx = cx0 - (r.left + r.width / 2), dy = cy0 - (r.top + r.height / 2);
+    const side = i % 2 ? 1 : -1;                       // 두 갈래로 갈라져 엇갈린다
+    el.style.setProperty('--cx', Math.round(dx) + 'px');
+    el.style.setProperty('--cy', Math.round(dy) + 'px');
+    el.style.setProperty('--ax', Math.round(side * (26 + (i % 4) * 7)) + 'px');
+    el.style.setProperty('--ay', Math.round((i < 4 ? -1 : 1) * 14) + 'px');
+    el.style.setProperty('--r1', (side * (4 + i)) + 'deg');
+    el.style.setProperty('--r2', (-side * (10 + i * 2)) + 'deg');
+    el.style.setProperty('--dl', (i * 26) + 'ms');
+    el.style.setProperty('--sd', DUR + 'ms');
+    el.classList.remove('shuf'); void el.offsetWidth; el.classList.add('shuf');
+  }
+  setTimeout(() => {
+    for (let i = 0; i < 8; i++) if (g.children[i]) g.children[i].classList.remove('shuf');
+    done();
+  }, DUR + 8 * 26 + 30);
+}
+
+function renderLc() {
+  const tc = document.getElementById('lcTicketCnt');
+  if (tc) tc.textContent = lcTickets;
+
+  // 천장 게이지
+  const pity = document.getElementById('lcPity');
+  if (pity) {
+    const rem = Math.max(0, LC_PITY - lcCount);
+    const nowLucky = lcLucky && lcPhase !== 'idle';
+    pity.className = 'lc-pity' + (rem <= 1 || nowLucky ? ' now' : '');
+    // 힌트까지 남은 판 수 (럭키판이 되는 회차는 힌트 대신 럭키판)
+    let hRem = (LC_HINT_EVERY - (lcCount % LC_HINT_EVERY)) % LC_HINT_EVERY;
+    if (hRem === 0) hRem = LC_HINT_EVERY;
+    if (lcCount + hRem >= LC_PITY) hRem = 0;                 // 그 전에 럭키판이 먼저 온다
+    const hTxt = lcHint && lcPhase === 'pick' ? ' · <span style="color:#3f9e7c">🔍 힌트!</span>'
+               : hRem > 0 ? ' · 힌트까지 ' + hRem + '회' : '';
+    pity.innerHTML = (nowLucky ? '★ 럭키판 진행 중' : (rem <= 1 ? '★ 다음 판이 럭키판!' : '럭키판까지 ' + rem + '회'))
+      + hTxt
+      + '<div class="bar"><div class="fill" style="width:' + Math.round(lcCount / LC_PITY * 100) + '%"></div></div>'
+      + '<span>' + lcCount + '/' + LC_PITY + '</span>';
+  }
+
+  // 메인 보상 배너
+  const mb = document.getElementById('lcMainBox'), ml = document.getElementById('lcMainLb'), mv = document.getElementById('lcMainVal');
+  if (mb && mv) {
+    if (lcPhase === 'idle') {
+      mb.className = 'lc-main hid';
+      ml.textContent = '이번 판 메인 보상';
+      mv.textContent = '시작하면 공개됩니다';
+    } else if (lcLucky) {
+      mb.className = 'lc-main lucky';
+      ml.textContent = '★ 럭키판 — 8장 전부 메인 보상';
+      mv.textContent = '어느 카드를 골라도 메인 보상';
+    } else {
+      mb.className = 'lc-main';
+      ml.textContent = '이번 판 메인 보상';
+      mv.textContent = lcPhase === 'shuffle' ? '섞는 중...' : svRewardText(lcMainOfBoard());
+    }
+  }
+
+  // 힌트 줄 — 섞기가 끝나고 고르는 동안만 보인다
+  const hb = document.getElementById('lcHintBar');
+  if (hb) {
+    if (lcHint && (lcPhase === 'pick' || lcPhase === 'done')) {
+      hb.style.display = '';
+      hb.innerHTML = '🔍 <span>공짜 힌트 — 메인 보상은 <b>'
+        + (lcHint.row === 0 ? '윗줄' : '아랫줄') + ' 4장</b> 안에 있습니다</span>';
+    } else hb.style.display = 'none';
+  }
+
+  // 카드 — 판이 바뀐 경우에만 다시 짓는다 (애니메이션이 끊기지 않게)
+  const g = document.getElementById('lcGrid');
+  if (g) {
+    if (lcGridId !== lcBoardId || g.children.length !== 8) lcGridBuild();
+    for (let i = 0; i < 8; i++) {
+      const el = g.children[i];
+      if (!el) continue;
+      el.classList.toggle('off', lcPhase !== 'pick');
+      // 힌트가 가리키는 줄 강조 (고르는 동안만)
+      el.classList.toggle('hintrow',
+        !!lcHint && lcPhase === 'pick' && (lcHint.row === 0 ? i < 4 : i >= 4));
+      if (lcPhase === 'idle' || lcPhase === 'shuffle') {
+        el.classList.remove('flip', 'dim', 'win', 'pickd', 'hit');
+      }
+    }
+  }
+
+  // 버튼
+  const b = document.getElementById('lcBtn');
+  if (b) {
+    if (lcPhase === 'shuffle') { b.disabled = true; b.className = 'lc-main-btn'; b.textContent = '카드를 섞는 중...'; }
+    else if (lcPhase === 'pick') { b.disabled = true; b.className = 'lc-main-btn'; b.textContent = '카드를 한 장 고르세요'; }
+    else {
+      b.disabled = lcAnim;
+      const next = (lcCount + 1) >= LC_PITY;
+      b.className = 'lc-main-btn' + (next ? ' gold' : '');
+      b.textContent = (next ? '★ 럭키판 시작 (참여권 1장)' : '시작 (참여권 1장)');
+    }
+  }
+  if (lcPhase !== 'done') { const r = document.getElementById('lcRes'); if (r) r.style.display = 'none'; }
+}
+
+function lcAction() {
+  if (lcAnim || lcPhase === 'pick' || lcPhase === 'shuffle') return;
+  if (lcTickets < 1) {
+    showModal('참여권이 없습니다!', [
+      { label:'구매하기', cls:'confirm', fn: openLcShop },
+      { label:'닫기', cls:'ok' }
+    ]);
+    return;
+  }
+  lcTickets -= 1;
+  lcCount += 1;
+  lcBuildBoard();
+  lcBoardId++;                       // 카드 껍데기를 새로 짓게 한다
+  lcPhase = 'shuffle';
+  const r = document.getElementById('lcRes'); if (r) r.style.display = 'none';
+  renderLc();
+  saveGame();
+  lcShuffleAnim(() => { lcPhase = 'pick'; renderLc(); });
+}
+
+function lcPick(i) {
+  if (lcPhase !== 'pick' || lcAnim || !lcBoard) return;
+  lcAnim = true;
+  lcPicked = i;
+  const g = document.getElementById('lcGrid');
+  const card = g ? g.children[i] : null;
+  const cell = lcBoard[i];
+  lcFillFront(i);
+  if (card) { card.classList.add('flip', 'pickd'); card.classList.remove('off'); }
+  setTimeout(() => lcBurst(i, cell.tier), 340);        // 뒤집히는 중간에 터진다
+  setTimeout(() => {
+    lcPhase = 'done';
+    if (lcLucky) lcCount = 0;                          // 럭키판을 썼으면 천장 초기화
+    grantSvReward(cell.r);
+    achBump('lcPlay');
+    // 나머지 7장도 공개 (흑백)
+    if (g) for (let k = 0; k < 8; k++) {
+      if (k === i || !g.children[k]) continue;
+      lcFillFront(k);
+      g.children[k].classList.add('flip', 'dim');
+    }
+    lcAnim = false;
+    renderLc();
+    const rb = document.getElementById('lcRes');
+    if (rb) {
+      rb.style.display = '';
+      rb.innerHTML = '<div class="rl" style="color:'
+        + (cell.tier === 'main' ? '#f5d67b' : cell.tier === 'sub' ? '#cfa6ff' : '#8fa') + '">'
+        + (cell.tier === 'main' ? '★ 메인 보상 당첨!' : cell.tier === 'sub' ? '서브 메인 당첨' : '획득') + '</div>'
+        + '<div class="rv">' + svRewardText(cell.r) + '</div>';
+    }
+    updateCPDisplay(); updateMPDisplay(); updateTokenDisplay();
+    saveGame();
+  }, 880);
+}
+
+/* ─── 참여권 상점 ─── */
+function openLcShop() {
+  let ov = document.getElementById('lcShopOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'lcShopOv'; ov.className = 'pach-reveal'; document.body.appendChild(ov); }
+  const rows = LC_TICKET_PACKS.map((p, i) => {
+    const avg = p.rnd ? (p.rnd[0] + p.rnd[1]) / 2 : p.qty;
+    const per = Math.round(p.mp / avg);
+    return '<div onclick="buyLcTicket(' + i + ')" style="display:flex;align-items:center;'
+      + 'justify-content:space-between;padding:14px 16px;border-radius:10px;margin-bottom:8px;'
+      + 'cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">'
+      + '<div><div style="font-size:14px;font-weight:900;color:' + (p.rnd ? '#f0c94a' : '#e5c8ff') + '">'
+      + (p.rnd ? '🎲 ' : '🃏 ') + p.label + '</div>'
+      + (p.rnd ? '<div style="font-size:10px;font-weight:700;color:#8b7aa8;margin-top:2px">기댓값 ' + avg + '회 · 운에 맡기기</div>' : '')
+      + '</div>'
+      + '<div style="text-align:right">'
+      + '<div style="font-size:13px;font-weight:900;color:#fff">' + p.mp.toLocaleString() + ' MP</div>'
+      + '<div style="font-size:10px;font-weight:700;color:#777">1회당 ' + per.toLocaleString() + ' MP</div>'
+      + '</div></div>';
+  }).join('');
+  ov.innerHTML = '<div style="width:100%;max-width:340px">'
+    + '<div style="font-size:16px;font-weight:900;margin-bottom:14px;color:#fff">럭키 초이스 참여권</div>'
+    + rows
+    + '<div style="font-size:10px;color:#777;line-height:1.5;margin-bottom:8px">'
+    + '10,000 MP 는 <b style="color:#aaa">4회 확정</b>과 <b style="color:#f0c94a">3회 또는 5회(반반)</b> 중에 고릅니다.<br>'
+    + '둘 다 기댓값 4회로 1회당 2,500 MP 입니다.</div>'
+    + '<div onclick="closeLcShop()" style="margin-top:4px;padding:12px;text-align:center;'
+    + 'border-radius:10px;background:rgba(255,255,255,.04);font-size:12px;font-weight:800;'
+    + 'color:#888;cursor:pointer">닫기</div></div>';
+  ov.classList.add('active');
+}
+function closeLcShop() { const ov = document.getElementById('lcShopOv'); if (ov) ov.classList.remove('active'); }
+
+function buyLcTicket(i) {
+  const p = LC_TICKET_PACKS[i];
+  if (!p) return;
+  if (mp < p.mp) { showModal('MP가 부족합니다! (필요: ' + p.mp.toLocaleString() + ' MP)', [{label:'확인', cls:'ok'}]); return; }
+  showModal('참여권 ' + p.label + '을(를) 구매하시겠습니까? (' + p.mp.toLocaleString() + ' MP)', [
+    { label:'구매', cls:'confirm', fn: () => {
+        mp -= p.mp; addMPSpent(p.mp);
+        const got = p.rnd ? (Math.random() < 0.5 ? p.rnd[0] : p.rnd[1]) : p.qty;
+        lcTickets += got;
+        closeLcShop();
+        updateMPDisplay(); renderLc(); saveGame();
+        showModal(p.rnd ? '🎲 ' + got + '회 당첨!\n참여권 ' + got + '장을 받았습니다.'
+                        : '참여권 ' + got + '장 구매 완료!', [{label:'확인', cls:'ok'}]);
+      } },
+    { label:'취소', cls:'ok' }
+  ]);
+}
+
+/* ─── 보상 안내 ─── */
+function renderLcInfo() {
+  const el = document.getElementById('lcInfoView');
+  if (!el) return;
+  const tot = LC_MAIN.reduce((a, o) => a + o.w, 0);
+  let mainRows = '';
+  LC_MAIN.forEach(o => {
+    const nm = svRewardText(o.r) + (o.alt ? ' 또는 ' + svRewardText(o.alt) + ' (반반)' : '');
+    mainRows += '<tr><td>' + nm + '</td><td class="p">' + (o.w / tot * 100).toFixed(0) + '%</td></tr>';
+  });
+  let subRows = '';
+  LC_SUB.forEach(r => { subRows += '<tr><td>' + svRewardText(r) + '</td><td class="p">5종 중 2장</td></tr>'; });
+  const normCnt = {};
+  LC_NORM.forEach(r => { const t = svRewardText(r); normCnt[t] = (normCnt[t] || 0) + 1; });
+  let normRows = '';
+  for (const k in normCnt) normRows += '<tr><td>' + k + '</td><td class="p">' + normCnt[k] + '장</td></tr>';
+
+  el.innerHTML =
+      '<div class="lc-sec">고르는 법</div>'
+    + '<div style="font-size:11px;color:#3f4a5a;line-height:1.7;margin-bottom:6px">'
+    + '뒤집힌 카드 8장 중 <b>1장</b>만 고릅니다. 어느 카드가 무엇인지는 알 수 없고, 8장 모두 <b>1/8 동일 확률</b>입니다.<br>'
+    + '한 번 고르면 그 판은 끝나고, 다음 판은 참여권을 한 장 더 써야 합니다.<br>'
+    + '메인 보상이 무엇인지는 <b>시작할 때</b> 알려줍니다. 서브 메인 2장은 알려주지 않습니다.</div>'
+    + '<div class="lc-sec">★ 메인 보상 — 1장 (판마다 아래 확률로 결정)</div>'
+    + '<table class="lc-tbl"><tr><th>보상</th><th style="text-align:right">등장 확률</th></tr>' + mainRows + '</table>'
+    + '<div class="lc-sec">서브 메인 — 2장 (5종 중 서로 다른 2개, 동일 확률)</div>'
+    + '<table class="lc-tbl">' + subRows + '</table>'
+    + '<div class="lc-sec">일반 — 5장 (고정)</div>'
+    + '<table class="lc-tbl">' + normRows + '</table>'
+    + '<div class="lc-sec">공짜 힌트</div>'
+    + '<div style="font-size:11px;color:#3f4a5a;line-height:1.7;margin-bottom:6px">'
+    + '<b>' + LC_HINT_EVERY + '판마다</b> 힌트가 자동으로 나옵니다. 따로 쓰거나 아껴둘 수 없습니다.<br>'
+    + '메인 보상이 <b>윗줄 4장</b>인지 <b>아랫줄 4장</b>인지 알려주므로, 그 판은 확률이 1/8 에서 <b>1/4</b> 로 올라갑니다.<br>'
+    + '럭키판인 회차는 어차피 전부 메인이라 힌트를 건너뜁니다.</div>'
+    + '<div class="lc-sec">천장</div>'
+    + '<div style="font-size:11px;color:#3f4a5a;line-height:1.7">'
+    + '<b>' + LC_PITY + '회</b>째 판은 <b style="color:#8a6d0f">럭키판</b>이 되어 8장이 전부 메인 보상이 됩니다.<br>'
+    + '메인 보상 8종이 한 장씩 깔리므로 무엇을 골라도 메인 보상을 받습니다.<br>'
+    + '럭키판을 쓰면 횟수는 0으로 초기화됩니다.</div>';
+}
+
 /* ══════════════════════════════════════════════════════════════
    스페셜 찬스 (SPECIAL CHANCE)
    ──────────────────────────────────────────────────────────────
@@ -12444,7 +13035,7 @@ function saveGame() {
       tmPlayers, tmLastRefresh, tmSold,
       pachTickets, pachBoard, pachOpened, pachHints, pachHinted,
       svTickets, svPoints, svActive, svBoostRuns, svRevived,
-      scTickets, scCount, ulBlind, worldCleared, worldClaimed, worldRegionClaimed, transTokens, achClaimed, achStats, attDays, attLast, mailClaimed,
+      scTickets, scCount, lcTickets, lcCount, lcBoard, lcPicked, lcLucky, lcPhase, lcHint, ulBlind, worldCleared, worldClaimed, worldRegionClaimed, transTokens, achClaimed, achStats, attDays, attLast, mailClaimed,
       dailyDone, dailyDay, dailyClaim,
       clubName, playerLv, levelPts, mpSpentAcc, levelPending,
       matchCleared, scoutUsed, scoutDay,
@@ -12475,7 +13066,8 @@ function loadGame() {
   if (typeof s.enhanceTokens === 'number') enhanceTokens = s.enhanceTokens;
   if (typeof s.protectTickets === 'number') protectTickets = s.protectTickets;
   // mix1 이 빠져 있으면 packInv.mix1 이 undefined 가 되고, 개봉 시 undefined-1 = NaN 이 된다.
-  if (s.packInv) packInv = Object.assign({fwc1:0,fwc3:0,fwc5:0,tl1:0,mix1:0,fwc13:0,fwc35:0,tl13:0,mix35:0,bar1:0,bar35:0}, s.packInv);
+  if (s.packInv) packInv = Object.assign({fwc1:0,fwc3:0,fwc5:0,tl1:0,mix1:0,fwc13:0,fwc35:0,tl13:0,mix35:0,bar1:0,bar35:0,
+                                          bar3:0,tl3:0,all35:0,tlbar5:0,bar5:0,tl5:0,tlbar56:0,ul35:0,tl35:0,bar13:0}, s.packInv);
   Object.keys(packInv).forEach(k => { if (typeof packInv[k] !== 'number' || isNaN(packInv[k])) packInv[k] = 0; });
   if (typeof s.boxInv === 'number') boxInv = s.boxInv;
   if (typeof s.legendInv === 'number') legendInv = s.legendInv;
@@ -12499,6 +13091,22 @@ function loadGame() {
   if (typeof s.svRevived === 'boolean') svRevived = s.svRevived;
   if (typeof s.scTickets === 'number') scTickets = s.scTickets;
   if (typeof s.scCount === 'number') scCount = s.scCount;
+  if (typeof s.lcTickets === 'number') lcTickets = s.lcTickets;
+  if (typeof s.lcCount === 'number') lcCount = s.lcCount;
+  /* 판을 펴 둔 채로 나갔다 오면 그대로 이어서 고른다.
+     안 그러면 메인 보상이 마음에 안 들 때 나갔다 들어와 다시 뽑을 수 있다. */
+  if (Array.isArray(s.lcBoard) && s.lcBoard.length === 8) {
+    lcBoard = s.lcBoard;
+    lcPicked = (typeof s.lcPicked === 'number') ? s.lcPicked : -1;
+    lcLucky  = !!s.lcLucky;
+    /* 'done' 은 이미 보상을 받은 판이라 복원하지 않는다 (앞면 내용은 뒤집을 때 채우므로
+       done 으로 되살리면 빈 카드가 뒤집힌 채로 남는다) */
+    /* 섞는 중(shuffle)에 나갔어도 그 판을 그대로 이어서 고른다 — 섞기는 연출일 뿐이다.
+       'done' 은 이미 보상을 받은 판이라 복원하지 않는다. */
+    lcPhase  = (s.lcPhase === 'pick' || s.lcPhase === 'shuffle') ? 'pick' : 'idle';
+    lcHint = (s.lcHint && typeof s.lcHint.row === 'number') ? { row: s.lcHint.row } : null;
+    if (lcPhase !== 'pick') { lcBoard = null; lcPicked = -1; lcLucky = false; lcHint = null; }
+  }
   if (typeof s.ulBlind === 'boolean') ulBlind = s.ulBlind;
   if (Array.isArray(s.worldCleared)) worldCleared = s.worldCleared;
   if (Array.isArray(s.worldClaimed)) worldClaimed = s.worldClaimed;
