@@ -707,7 +707,7 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
       <span id="stSndIcon">🔊</span><span id="stSndTxt">음악 켜짐</span>
     </div>
   </div>
-  <audio id="bgm" loop preload="auto" src="audio/bgm.mp3"></audio>
+  <audio id="bgm" preload="auto" src="audio/bgm2.mp3"></audio>
 <div class="app">
       <div class="sc-ov" id="scoutOv">
         <div class="sc-head">
@@ -13166,6 +13166,49 @@ function resetGame() {
 let bgmOn = true;
 try { const v = localStorage.getItem('fcl_bgm'); if (v !== null) bgmOn = (v === '1'); } catch(e) {}
 
+/* ── 배경음악 재생목록 ──
+   위에서부터 순서대로 나오고, 마지막 곡이 끝나면 다시 첫 곡으로 돌아간다.
+   gain 은 곡마다 음량 보정 (1 이 기본, 0.8 이면 20% 작게). 곡이 유난히 크거나 작으면 이것만 고치면 된다. */
+const BGM_LIST = [
+  { src: 'audio/bgm2.mp3', gain: 1.00 },   // 새 노래 — 켜면 이게 먼저 나온다
+  { src: 'audio/bgm.mp3',  gain: 1.00 },   // 원래 노래
+];
+const BGM_BASE = 0.45;                     // 기본 음량
+let bgmIdx = 0;
+
+function bgmTargetVol() {
+  const g = (BGM_LIST[bgmIdx] && BGM_LIST[bgmIdx].gain) || 1;
+  return Math.max(0, Math.min(1, BGM_BASE * g));
+}
+/* 경기 중에는 관중 소리에 묻히지 않게 음량을 줄여 둔다(lvBgmVol 에 원래 값을 보관).
+   그 사이에 곡이 넘어가도 갑자기 커지면 안 되므로 여기서 확인한다. */
+function bgmDucked() { return (typeof lvBgmVol !== 'undefined') && lvBgmVol !== null; }
+
+function bgmSetTrack(i, play) {
+  const a = document.getElementById('bgm');
+  if (!a) return;
+  bgmIdx = ((i % BGM_LIST.length) + BGM_LIST.length) % BGM_LIST.length;
+  a.src = BGM_LIST[bgmIdx].src;
+  if (bgmDucked()) { lvBgmVol = bgmTargetVol(); a.volume = Math.min(lvBgmVol, 0.1); }
+  else a.volume = bgmTargetVol();
+  if (play && bgmOn) a.play().catch(() => {});
+}
+
+/* 한 곡이 끝나면 다음 곡으로. 마지막 곡 뒤에는 다시 첫 곡 — 두 곡이 번갈아 돈다. */
+(function bgmBindNext() {
+  const bind = () => {
+    const a = document.getElementById('bgm');
+    if (!a) { setTimeout(bind, 300); return; }
+    a.addEventListener('ended', () => bgmSetTrack(bgmIdx + 1, true));
+    // 파일이 없거나 깨졌으면 멈추지 말고 다음 곡으로 넘어간다
+    a.addEventListener('error', () => {
+      if (BGM_LIST.length > 1) setTimeout(() => bgmSetTrack(bgmIdx + 1, true), 400);
+    });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
+  else bind();
+})();
+
 function syncStartSound() {
   const box = document.getElementById('stSnd');
   const ic = document.getElementById('stSndIcon');
@@ -13188,7 +13231,7 @@ function toggleBgm() {
   bgmOn = !bgmOn;
   try { localStorage.setItem('fcl_bgm', bgmOn ? '1' : '0'); } catch(err) {}
   const a = document.getElementById('bgm');
-  if (a) { if (bgmOn) { a.volume = 0.45; a.play().catch(()=>{}); } else a.pause(); }
+  if (a) { if (bgmOn) { a.volume = bgmTargetVol(); a.play().catch(()=>{}); } else a.pause(); }
   syncStartSound();
 }
 
@@ -13196,15 +13239,21 @@ function startGame() {
   const sc = document.getElementById('startScreen');
   const a = document.getElementById('bgm');
   if (bgmOn && a) {
+    bgmIdx = 0;                       // 켤 때는 늘 첫 곡(새 노래)부터
+    if (a.getAttribute('src') !== BGM_LIST[0].src) a.src = BGM_LIST[0].src;
+    const tgt = bgmTargetVol();
     a.volume = 0;
     const pr = a.play();
-    if (!pr || !pr.then) { a.volume = 0.45; return; }   // 구형 웹뷰는 Promise 를 안 준다
+    if (!pr || !pr.then) { a.volume = tgt; return; }   // 구형 웹뷰는 Promise 를 안 준다
     pr.then(() => {
       // 갑자기 크게 나오면 놀란다. 1.5초에 걸쳐 서서히 올린다.
       let v = 0;
       const fade = setInterval(() => {
-        v += 0.03;
-        if (v >= 0.45) { v = 0.45; clearInterval(fade); }
+        // 페이드 도중에 경기가 시작되면(음량을 줄여 둔 상태) 여기서 멈춘다.
+        // 안 그러면 줄여 놓은 음량을 페이드가 도로 끌어올린다.
+        if (bgmDucked()) { clearInterval(fade); return; }
+        v += tgt / 15;
+        if (v >= tgt) { v = tgt; clearInterval(fade); }
         a.volume = v;
       }, 100);
     }).catch(() => {});
