@@ -329,6 +329,43 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
   border:1px solid rgba(20,40,80,.16);color:#fff;font-size:13px;font-weight:700}.sc-search::placeholder{color:#666}.sc-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;
   margin-bottom:6px;background:rgba(20,40,80,.05);cursor:pointer}.sc-row:active{background:rgba(212,175,55,.16)}.sc-row img{width:38px;height:38px;object-fit:contain;flex:0 0 38px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#3d5580 0%,#22334f 62%,#152238 100%);box-shadow:inset 0 0 0 1.5px rgba(212,175,55,.35),0 2px 6px rgba(10,20,40,.25)}.sc-nm{font-size:12px;font-weight:800;color:#fff}.sc-sub{font-size:9px;color:#888;font-weight:700;margin-top:1px}.sc-cost{font-size:12px;font-weight:900;color:#d4af37;flex-shrink:0;text-align:right}.sc-row.no{opacity:.35}
 
+/* ─── 특성 (TRAIT) ─── */
+.tr-cat{font-size:12px;font-weight:900;color:#8a6d0f;margin:14px 0 8px;letter-spacing:.5px}
+.tr-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.tr-card{display:flex;gap:9px;padding:10px;border-radius:12px;background:rgba(255,255,255,.55);
+  border:1px solid rgba(20,30,50,.1);box-shadow:0 1px 4px rgba(20,30,50,.06)}
+.tr-card .ic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  flex:0 0 36px;background:rgba(20,30,50,.05)}
+.tr-nm{font-size:12px;font-weight:900;line-height:1.2}
+.tr-ds{font-size:9.5px;line-height:1.45;color:#5b6472;margin-top:3px;white-space:pre-line}
+.tr-row{display:flex;align-items:center;justify-content:space-between;margin-top:7px;gap:6px}
+.tr-own{font-size:9.5px;font-weight:800;color:#5b6472}
+.tr-buy{padding:5px 10px;border-radius:8px;border:0;cursor:pointer;font-size:10.5px;font-weight:900;
+  background:linear-gradient(135deg,#8a6d0f,#e0b83a);color:#2a2003;white-space:nowrap}
+.tr-buy:disabled{opacity:.4;cursor:not-allowed}
+/* 선수 상세의 특성 줄 */
+.pd-trait{display:flex;align-items:center;gap:8px;justify-content:center;margin:8px auto 0;padding:7px 11px;
+  border-radius:11px;max-width:260px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14)}
+.pd-trait .nm{font-size:12px;font-weight:900}
+.pd-trait .sub{font-size:9px;color:#8b93a1;font-weight:700}
+/* 특성 고르기 창 */
+.tr-pick{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:10px;margin-bottom:7px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);cursor:pointer}
+.tr-pick:active{background:rgba(212,175,55,.16)}
+.tr-pick.no{opacity:.35}
+/* 경기 중 특성 발동 아이콘 — 바깥은 카메라 기울기 보정, 안쪽이 떠오른다 */
+.lv-trpop{position:absolute;z-index:75;pointer-events:none}
+.lv-trpop .in{animation:lvTrPop 1.25s cubic-bezier(.2,1.25,.4,1) forwards;transform-origin:50% 100%}
+@keyframes lvTrPop{
+  0%{opacity:0;transform:translateY(4px) scale(.35)}
+  16%{opacity:1;transform:translateY(-12px) scale(1.3)}
+  32%{transform:translateY(-18px) scale(1)}
+  100%{opacity:0;transform:translateY(-46px) scale(.92)}
+}
+.lv-trpop .bx{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:11px;
+  background:rgba(8,12,22,.92);box-shadow:0 2px 10px rgba(0,0,0,.5)}
+.lv-trpop .tx{font-size:10px;font-weight:900;letter-spacing:.3px;white-space:nowrap}
+
 /* ─── LUCKY CHOICE (럭키 초이스) ─── */
 .lc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .lc-title{font-size:17px;font-weight:900;letter-spacing:1px;
@@ -802,8 +839,14 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
       <div class="store-tabs">
         <div class="store-tab active" data-tab="packs" onclick="switchStoreTab('packs')">팩</div>
         <div class="store-tab" data-tab="items" onclick="switchStoreTab('items')">아이템</div>
+        <div class="store-tab" data-tab="trait" onclick="switchStoreTab('trait')">특성</div>
         <div class="store-tab" data-tab="lucky" onclick="switchStoreTab('lucky')">🔑 행운</div>
         <div class="store-tab" data-tab="charge" onclick="switchStoreTab('charge')">충전</div>
+      </div>
+
+      <!-- 특성 탭 -->
+      <div class="store-panel" id="storePanel-trait">
+        <div id="traitShopBody"></div>
       </div>
 
       <!-- 팩 탭 -->
@@ -1387,6 +1430,275 @@ function grantBasicSquad() {
   saveGame();
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   선수 특성 (TRAIT)
+   · 선수당 하나. 상점에서 사서 원하는 선수에게 장착한다.
+   · 장착 정보는 카드(uid)에 저장된다 → card.trait
+   · 선수 데이터에 "trait" 가 박혀 있으면 그건 '고유 특성' (장착으로 덮어쓸 수 있다)
+   · OVR·스탯·가격·급여에는 전혀 영향이 없다. 경기 중 동작만 바뀐다.
+   새 특성 추가 = 아래 표에 한 줄 + 아이콘 한 줄 + 효과 거는 곳 한 군데.
+   ══════════════════════════════════════════════════════════════════ */
+const TRAIT_PRICE = 1000;        // 특성 1개 값 (억 CP). 임시 가격 — 여기만 고치면 전부 바뀐다.
+
+const TRAITS = {
+  /* ── 공격 ── */
+  laser:    { name:'레이저',        cat:'공격', color:'#ff5e4d',
+              desc:'19m 밖에서 때린 슛은 키퍼가 막기 어렵다.\n먼 거리 슛 선방률 −10%p · 슛 속도 +8%' },
+  curl:     { name:'감아차기 마스터', cat:'공격', color:'#ff8f3f',
+              desc:'감아차기가 더 크게 휘고 키퍼가 더 못 읽는다.\n감아차기 선방률 추가 −7%p · 휘는 폭 +40%' },
+  target:   { name:'타겟',          cat:'공격', color:'#ffd43b',
+              desc:'박스 안에서의 결정력이 다르다.\n17m 안쪽 슛 선방률 −12%p' },
+  onetouch: { name:'원터치 피니셔',  cat:'공격', color:'#ff5fa2',
+              desc:'받자마자 때리는 슛이 날카롭다.\n패스 받고 0.8초 안에 쏜 슛 선방률 −10%p' },
+  clutch:   { name:'해결사',        cat:'공격', color:'#e03131',
+              desc:'중요한 순간에 강해진다.\n75분 이후 지거나 비기는 중이면 선방률 −10%p · 슛 속도 +5%' },
+  runner:   { name:'침투',          cat:'공격', color:'#51cf66',
+              desc:'수비 뒷공간으로 더 깊이 파고든다.\n공격 시 전진 폭 +40% · 스루패스 1순위 타겟' },
+
+  /* ── 기술 ── */
+  magician: { name:'마술사',        cat:'기술', color:'#cc5de8',
+              desc:'발재간으로 수비를 더 잘 속인다.\n스텝오버 성공률 +18%p · 쿨다운 −40%' },
+  gust:     { name:'질풍',          cat:'기술', color:'#22d3ee',
+              desc:'질주가 더 빠르고 덜 지친다.\n질주 속도 +9% · 질주 체력 소모 −30%' },
+  juggler:  { name:'저글러',        cat:'기술', color:'#4dabf7',
+              desc:'공을 쉽게 빼앗기지 않는다.\n상대 태클 성공률 −25%' },
+  burst:    { name:'급출발',        cat:'기술', color:'#20c997',
+              desc:'방향 전환과 첫 발이 빠르다.\n가속 0.26 → 0.40' },
+
+  /* ── 패스 ── */
+  vision:   { name:'안개 속의 눈',   cat:'패스', color:'#9775fa',
+              desc:'남들이 못 보는 길을 찾는다.\n스루패스 길목 위험도 −35%' },
+  maestro:  { name:'지휘자',        cat:'패스', color:'#748ffc',
+              desc:'긴 패스가 정확하고 빠르다.\n26m 이상 패스 속도 +12% · 보정 +50%' },
+  crosser:  { name:'크로스 마스터',  cat:'패스', color:'#38d9a9',
+              desc:'크로스를 박스 중앙에 정확히 떨군다.\n크로스 낙하 오차 −55%' },
+
+  /* ── 수비 ── */
+  tackler:  { name:'태클 마스터',    cat:'수비', color:'#fa5252',
+              desc:'태클이 깔끔하게 들어간다.\n태클 성공 배율 ×1.35 · 파울 확률 −30%' },
+  clean:    { name:'클린 태클러',    cat:'수비', color:'#94d82d',
+              desc:'거칠지 않게 끊는다.\n파울 확률 −50% · 경고 확률 −40%' },
+  presser:  { name:'압박의 화신',    cat:'수비', color:'#ff922b',
+              desc:'쉬지 않고 달라붙는다.\n압박 추격 속도 +8%' },
+  sweeper:  { name:'스위퍼',        cat:'수비', color:'#15aabf',
+              desc:'흘러나온 공을 먼저 줍는다.\n루즈볼 가로채기 반경 1.4 → 1.9' },
+
+  /* ── 체력 · 세트피스 · 골키퍼 ── */
+  hearts:   { name:'두 개의 심장',   cat:'체력', color:'#f06595',
+              desc:'90분을 끝까지 뛴다.\n체력 소모 −30% · 체력 60 이하 속도 패널티 없음' },
+  fkmaster: { name:'프리킥 마스터',  cat:'세트피스', color:'#fcc419',
+              desc:'직접 프리킥을 제대로 감는다.\n스윗스팟 58~82% → 50~90% · 선방률 추가 −6%p' },
+  pkmaster: { name:'페널티 전문가',  cat:'세트피스', color:'#f783ac',
+              desc:'페널티를 놓치지 않는다.\nPK 선방률 −12%p' },
+  gkgod:    { name:'선방의 신',      cat:'골키퍼', color:'#4c6ef5', gk:true,
+              desc:'골키퍼 전용. 어떻게든 막아낸다.\n선방률 +8%p' },
+};
+const TRAIT_IDS = Object.keys(TRAITS);
+
+/* ── 아이콘 — 전부 코드로 그린다 (24×24, currentColor) ── */
+const TRAIT_SVG = {
+  // 번개처럼 꽂히는 직선 슛
+  laser:'<path d="M2 12h7" stroke-width="2"/><path d="M3.5 8.5h4M3.5 15.5h4" stroke-width="1.4" opacity=".55"/><path d="M9 12l9-5v10z" fill="currentColor" stroke="none"/><path d="M20 5v14" stroke-width="2"/>',
+  // 휘어 들어가는 궤적
+  curl:'<path d="M4 20c0-9 5-14 14-14" stroke-width="2"/><path d="M13 4.5l5 1.5-2.5 4.5" stroke-width="2" stroke-linejoin="round"/><circle cx="4.5" cy="19.5" r="2.2" fill="currentColor" stroke="none"/>',
+  // 과녁
+  target:'<circle cx="12" cy="12" r="8.5" stroke-width="1.8"/><circle cx="12" cy="12" r="4.5" stroke-width="1.6"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" stroke-width="1.6"/>',
+  // 발등에 바로 맞는 공 + 충격
+  onetouch:'<circle cx="15" cy="9" r="3.4" stroke-width="1.8"/><path d="M3 18h6l2-3" stroke-width="2" stroke-linejoin="round"/><path d="M19 4l2-2M20 9h3M18.5 14l2.2 2" stroke-width="1.6"/><path d="M9 15l3 3" stroke-width="1.6" opacity=".6"/>',
+  // 막바지 시계 + 불꽃
+  clutch:'<circle cx="11" cy="13" r="7.5" stroke-width="1.8"/><path d="M11 8.5V13l3 2" stroke-width="1.8" stroke-linecap="round"/><path d="M18.5 2c2.6 2.4 3 4.6 1.6 6.2-1.1 1.3-3 .9-3.3-.6-.2-1 .4-1.7.4-2.6 0-1-.4-2-1.2-3z" fill="currentColor" stroke="none"/>',
+  // 수비 라인을 뚫는 화살
+  runner:'<path d="M3 7h18M3 17h18" stroke-width="1.5" opacity=".45" stroke-dasharray="3 3"/><path d="M5 19L17 7" stroke-width="2.2"/><path d="M11 6h7v7" stroke-width="2.2" stroke-linejoin="round"/>',
+  // 발끝에서 도는 소용돌이
+  magician:'<path d="M12 12c0-3 2.5-5 5-4s2 5-1.5 7S7 18 5 14 6 4 12 3" stroke-width="1.9" stroke-linecap="round"/><circle cx="19" cy="5" r="1.2" fill="currentColor" stroke="none"/><circle cx="4" cy="8" r="1" fill="currentColor" stroke="none"/>',
+  // 질주 — 속도선
+  gust:'<path d="M2 7h11M2 12h8M2 17h11" stroke-width="2" stroke-linecap="round" opacity=".5"/><path d="M12 5l7 7-7 7" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M17 5l5 7-5 7" stroke-width="1.8" stroke-linejoin="round" opacity=".6"/>',
+  // 공을 감싸는 보호막
+  juggler:'<circle cx="12" cy="13" r="4" stroke-width="1.8"/><path d="M3.5 13a8.5 8.5 0 0117 0" stroke-width="2" stroke-linecap="round"/><path d="M5 18.5c2 2 4.5 3 7 3s5-1 7-3" stroke-width="1.6" opacity=".5" stroke-linecap="round"/>',
+  // 꺾어 나가는 첫 발
+  burst:'<path d="M4 20V9h8" stroke-width="2.2" stroke-linejoin="round"/><path d="M8.5 5.5L12 9l-3.5 3.5" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><path d="M12 9h3.5a4.5 4.5 0 014.5 4.5V20" stroke-width="2.2" stroke-linejoin="round"/>',
+  // 눈
+  vision:'<path d="M1.8 12S5.5 5.5 12 5.5 22.2 12 22.2 12 18.5 18.5 12 18.5 1.8 12 1.8 12z" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2" stroke-width="1.7"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>',
+  // 긴 패스 궤적
+  maestro:'<path d="M2.5 18C7 7 15 4 21.5 6.5" stroke-width="2" stroke-dasharray="1 3.4" stroke-linecap="round"/><circle cx="3" cy="18.5" r="2.2" fill="currentColor" stroke="none"/><path d="M16.5 4.5l5 2-1.5 5" stroke-width="2" stroke-linejoin="round"/>',
+  // 측면에서 박스로 올리는 크로스
+  crosser:'<path d="M2.5 19.5V5.5h6" stroke-width="1.8" opacity=".55"/><path d="M4 18C7 8 15 5.5 20 10" stroke-width="2" stroke-linecap="round"/><path d="M15.5 9.5L20 10l-.8 4.3" stroke-width="2" stroke-linejoin="round"/><rect x="13" y="15" width="9" height="6" rx="1" stroke-width="1.5" opacity=".55"/>',
+  // 슬라이딩 다리 + 공
+  tackler:'<circle cx="19" cy="7" r="3" stroke-width="1.8"/><path d="M2 19h8l3.5-4.5 3-1.5" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M2.5 15.5L7 17" stroke-width="1.6" opacity=".55"/><path d="M4 12l3 2" stroke-width="1.6" opacity=".4"/>',
+  // 방패 + 체크
+  clean:'<path d="M12 2.2l8 3v6.3c0 5-3.4 8.6-8 10.3-4.6-1.7-8-5.3-8-10.3V5.2z" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.3 12l2.7 2.7 5-5.4" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>',
+  // 밀어붙이는 압박
+  presser:'<circle cx="17.5" cy="12" r="3.6" stroke-width="1.8"/><path d="M2 12h9" stroke-width="2.4" stroke-linecap="round"/><path d="M7.5 7.5L12 12l-4.5 4.5" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M2.5 7.5h4M2.5 16.5h4" stroke-width="1.5" opacity=".5"/>',
+  // 뒤를 쓸어담는 호
+  sweeper:'<path d="M2.5 8.5h19" stroke-width="1.6" opacity=".5" stroke-dasharray="3 3"/><path d="M3.5 19a8.5 8.5 0 0117 0" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12.5" r="2.3" fill="currentColor" stroke="none"/>',
+  // 심장 두 개
+  hearts:'<path d="M8.5 19.5C5 17 1.8 14.3 1.8 10.8 1.8 8.4 3.7 6.6 6 6.6c1.3 0 2.1.6 2.5 1.2.4-.6 1.2-1.2 2.5-1.2 2.3 0 4.2 1.8 4.2 4.2 0 3.5-3.2 6.2-6.7 8.7z" stroke-width="1.7" stroke-linejoin="round"/><path d="M16.5 15.5c2.6-2 5.7-4.2 5.7-7.2 0-2-1.5-3.5-3.4-3.5-1 0-1.7.5-2 1" stroke-width="1.6" stroke-linecap="round" opacity=".75"/>',
+  // 벽을 넘기는 프리킥
+  fkmaster:'<circle cx="3.5" cy="19" r="2.1" fill="currentColor" stroke="none"/><path d="M4.5 17.5C8 6 16 4.5 21 9" stroke-width="1.9" stroke-dasharray="1 3.2" stroke-linecap="round"/><rect x="8" y="13" width="2.6" height="7" rx="1.1" stroke-width="1.5"/><rect x="11.4" y="13" width="2.6" height="7" rx="1.1" stroke-width="1.5"/><rect x="14.8" y="13" width="2.6" height="7" rx="1.1" stroke-width="1.5"/>',
+  // 페널티 마크 + 골문
+  pkmaster:'<path d="M3 4h18v8H3z" stroke-width="1.8"/><path d="M7 4v8M11 4v8M15 4v8M19 4v8M3 8h18" stroke-width="1" opacity=".45"/><circle cx="12" cy="18.5" r="2.6" stroke-width="1.8"/><path d="M12 15.9v-1.6" stroke-width="1.5" opacity=".6"/>',
+  // 골키퍼 장갑
+  gkgod:'<path d="M6 21v-7.5C6 12 5 11 5 9.5 5 8.2 6 7.5 7 7.5s1.8.8 1.8 2V11V4.6c0-1.2.9-2.1 2-2.1s2 .9 2 2.1V11V5.4c0-1.2.9-2 2-2s2 .8 2 2V11v-.8c0-1.1.8-1.9 1.8-1.9s1.9.8 1.9 2V15c0 3.4-2.3 6-5.7 6z" stroke-width="1.7" stroke-linejoin="round"/>',
+};
+
+/* 특성 아이콘 HTML. size = 픽셀. col 을 주면 그 색, 아니면 특성 고유색. */
+function traitIconHTML(id, size, col) {
+  const t = TRAITS[id]; if (!t) return '';
+  const body = TRAIT_SVG[id] || '<circle cx="12" cy="12" r="7" stroke-width="2"/>';
+  return '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '" fill="none" '
+    + 'stroke="' + (col || t.color) + '" stroke-linecap="round" '
+    + 'style="display:block;flex:0 0 auto;color:' + (col || t.color) + '">' + body + '</svg>';
+}
+
+// 선수(또는 경기 중 선수 객체)의 특성 정보. 없으면 null.
+function traitOf(x) {
+  if (!x) return null;
+  const id = x.trait || null;
+  return id && TRAITS[id] ? TRAITS[id] : null;
+}
+function hasTrait(x, id) { return !!(x && x.trait === id); }
+
+/* 카드에 실제로 적용되는 특성 id — 장착한 게 우선, 없으면 선수 고유 특성 */
+function cardTraitId(card) {
+  if (!card) return null;
+  if (card.trait && TRAITS[card.trait]) return card.trait;
+  const p = PLAYERS.find(x => x.id === card.id);
+  return (p && p.trait && TRAITS[p.trait]) ? p.trait : null;
+}
+/* 카드 빌더에 넘길 선수 객체 — 장착 특성을 입혀서 넘긴다 (빌더 인자는 그대로) */
+function withTrait(p, card) {
+  const id = cardTraitId(card);
+  if (!p || !id || p.trait === id) return p;
+  const q = Object.assign({}, p); q.trait = id; return q;
+}
+
+// 보유 특성 (상점에서 산 것). { laser: 2, ... }
+let traitInv = {};
+function traitOwned(id) { return traitInv[id] || 0; }
+
+/* ─── 상점 > 특성 탭 ─── */
+function renderTraitShop() {
+  const el = document.getElementById('traitShopBody');
+  if (!el) return;
+  const cats = [];
+  TRAIT_IDS.forEach(id => { const c = TRAITS[id].cat; if (cats.indexOf(c) < 0) cats.push(c); });
+  let h = '<div style="font-size:11px;color:#5b6472;line-height:1.7;margin-bottom:4px">'
+    + '특성은 <b>선수당 하나</b>만 장착됩니다. 사 두면 <b>내 선수 → 선수를 눌러</b> 원하는 선수에게 붙일 수 있습니다.<br>'
+    + '떼어내면 다시 보유함으로 돌아옵니다. OVR·가격에는 영향이 없습니다.</div>';
+  cats.forEach(cat => {
+    h += '<div class="tr-cat">' + cat + '</div><div class="tr-grid">';
+    TRAIT_IDS.filter(id => TRAITS[id].cat === cat).forEach(id => {
+      const t = TRAITS[id], own = traitOwned(id), can = cp >= TRAIT_PRICE;
+      h += '<div class="tr-card">'
+        + '<div class="ic" style="background:' + t.color + '18">' + traitIconHTML(id, 24) + '</div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div class="tr-nm" style="color:' + t.color + '">' + t.name + (t.gk ? ' <span style="font-size:8px;color:#8b93a1">GK</span>' : '') + '</div>'
+        + '<div class="tr-ds">' + t.desc + '</div>'
+        + '<div class="tr-row"><span class="tr-own">보유 ' + own + '</span>'
+        + '<button class="tr-buy" onclick="buyTrait(\'' + id + '\')"' + (can ? '' : ' disabled') + '>'
+        + fmtEok(TRAIT_PRICE) + ' CP</button></div>'
+        + '</div></div>';
+    });
+    h += '</div>';
+  });
+  el.innerHTML = h;
+}
+
+function buyTrait(id) {
+  const t = TRAITS[id]; if (!t) return;
+  if (cp < TRAIT_PRICE) { showModal('CP가 부족합니다! (필요: ' + fmtEok(TRAIT_PRICE) + ' CP)', [{label:'확인', cls:'ok'}]); return; }
+  showModal('[' + t.name + '] 특성을 구매하시겠습니까?\n' + fmtEok(TRAIT_PRICE) + ' CP', [
+    { label:'구매', cls:'confirm', fn: () => {
+        cp -= TRAIT_PRICE;
+        traitInv[id] = traitOwned(id) + 1;
+        updateCPDisplay(); renderTraitShop(); saveGame();
+        showModal('[' + t.name + '] 구매 완료!\n내 선수에서 원하는 선수에게 장착하세요.', [{label:'확인', cls:'ok'}]);
+      } },
+    { label:'취소', cls:'ok' }
+  ]);
+}
+
+/* ─── 선수에게 장착 ─── */
+function openTraitPicker(uid) {
+  const card = collection.find(c => c.uid === uid); if (!card) return;
+  const p = PLAYERS.find(x => x.id === card.id); if (!p) return;
+  const cur = cardTraitId(card);
+  const innate = p.trait && TRAITS[p.trait] ? p.trait : null;
+
+  let ov = document.getElementById('traitPickOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'traitPickOv'; ov.className = 'pach-reveal'; document.body.appendChild(ov); }
+
+  const owned = TRAIT_IDS.filter(id => traitOwned(id) > 0);
+  let rows = '';
+  if (!owned.length) {
+    rows = '<div style="font-size:11px;color:#888;line-height:1.7;padding:14px 4px;text-align:center">'
+      + '보유한 특성이 없습니다.<br>상점 → <b>특성</b> 탭에서 구매하세요.</div>';
+  } else {
+    owned.forEach(id => {
+      const t = TRAITS[id];
+      const bad = t.gk && !p.gk;                       // 골키퍼 전용은 필드 선수에게 못 단다
+      rows += '<div class="tr-pick' + (bad ? ' no' : '') + '"'
+        + (bad ? '' : ' onclick="equipTrait(' + uid + ',\'' + id + '\')"') + '>'
+        + traitIconHTML(id, 22)
+        + '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:900;color:' + t.color + '">'
+        + t.name + '</div><div style="font-size:9px;color:#8b93a1;margin-top:2px">'
+        + (bad ? '골키퍼 전용 특성입니다' : t.desc.split('\n')[1] || t.desc) + '</div></div>'
+        + '<div style="font-size:10px;font-weight:900;color:#d4af37">' + traitOwned(id) + '개</div></div>';
+    });
+  }
+
+  const curBox = cur
+    ? '<div style="display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:10px;margin-bottom:10px;'
+      + 'background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.4)">'
+      + traitIconHTML(cur, 22)
+      + '<div style="flex:1"><div style="font-size:11px;font-weight:900;color:' + TRAITS[cur].color + '">'
+      + TRAITS[cur].name + '</div><div style="font-size:9px;color:#8b93a1">'
+      + (card.trait ? '장착 중' : '이 선수의 고유 특성') + '</div></div>'
+      + (card.trait ? '<div onclick="unequipTrait(' + uid + ')" style="padding:5px 10px;border-radius:8px;'
+          + 'background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.5);font-size:10px;'
+          + 'font-weight:900;color:#ff9b9b;cursor:pointer">떼어내기</div>' : '')
+      + '</div>'
+    : '';
+
+  ov.innerHTML = '<div style="width:100%;max-width:360px;max-height:80vh;overflow:auto">'
+    + '<div style="font-size:15px;font-weight:900;color:#fff;margin-bottom:3px">' + p.name + ' — 특성</div>'
+    + '<div style="font-size:10px;color:#777;margin-bottom:11px">선수당 하나만 장착됩니다'
+    + (innate && !card.trait ? ' · 고유 특성 위에 덮어쓸 수 있습니다' : '') + '</div>'
+    + curBox + rows
+    + '<div onclick="closeTraitPicker()" style="margin-top:10px;padding:12px;text-align:center;'
+    + 'border-radius:10px;background:rgba(255,255,255,.04);font-size:12px;font-weight:800;'
+    + 'color:#888;cursor:pointer">닫기</div></div>';
+  ov.classList.add('active');
+}
+function closeTraitPicker() { const o = document.getElementById('traitPickOv'); if (o) o.classList.remove('active'); }
+
+function equipTrait(uid, id) {
+  const card = collection.find(c => c.uid === uid); if (!card) return;
+  if (traitOwned(id) <= 0) return;
+  const t = TRAITS[id];
+  const prev = card.trait;                     // 이미 장착 중이던 것은 보유함으로 되돌린다
+  traitInv[id] = traitOwned(id) - 1;
+  if (traitInv[id] <= 0) delete traitInv[id];
+  if (prev) traitInv[prev] = traitOwned(prev) + 1;
+  card.trait = id;
+  closeTraitPicker();
+  saveGame();
+  try { showPlayerDetailByUid(uid); } catch(e) {}
+  try { renderCollection(); } catch(e) {}
+  showModal('[' + t.name + '] 장착 완료!', [{label:'확인', cls:'ok'}]);
+}
+function unequipTrait(uid) {
+  const card = collection.find(c => c.uid === uid); if (!card || !card.trait) return;
+  const id = card.trait;
+  traitInv[id] = traitOwned(id) + 1;
+  delete card.trait;
+  closeTraitPicker();
+  saveGame();
+  try { showPlayerDetailByUid(uid); } catch(e) {}
+  try { renderCollection(); } catch(e) {}
+  showModal('[' + TRAITS[id].name + '] 을(를) 떼어냈습니다.', [{label:'확인', cls:'ok'}]);
+}
+
 const PACK_TYPES = {
   fwc1: {
     name: 'FWC TOP40', sub: '1강 선수팩', enhLevel: 1, price: 975, cpValue: 853,
@@ -1931,6 +2243,18 @@ function buildULCardHTML(player, enhLvl, trainLvl) {
       + ' font-size="11" font-weight="900" fill="#d4af37">'+tl+'</text>'
     : '';
 
+  // 특성 배지 — 선수당 하나. 없으면 아예 안 그린다.
+  const _tr = (typeof traitOf === 'function') ? traitOf(player) : null;
+  const traitPill = _tr
+    ? '<div style="position:absolute;top:calc(58% + 79px);left:50%;transform:translateX(-50%);z-index:12;'
+      + 'display:flex;align-items:center;gap:3px;padding:1.5px 8px;border-radius:8px;white-space:nowrap;'
+      + 'background:linear-gradient(135deg,rgba(255,107,87,.22),rgba(255,107,87,.06));'
+      + 'border:1px solid ' + _tr.color + '99;box-shadow:0 0 8px ' + _tr.color + '33">'
+      + '<span style="font-size:8px;line-height:1">' + _tr.icon + '</span>'
+      + '<span style="font-size:8.5px;font-weight:900;letter-spacing:.4px;color:' + _tr.color + '">'
+      + _tr.name + '</span></div>'
+    : '';
+
   const photo = '<img src="'+(IMGS[player.id]||'')+'" style="position:absolute;bottom:42%;left:52%;'
     + 'transform:translateX(-50%);height:50%;object-fit:contain;z-index:3" draggable="false">';
 
@@ -1968,6 +2292,7 @@ function buildULCardHTML(player, enhLvl, trainLvl) {
     + '<div style="position:absolute;top:calc(58% + 69px);left:0;right:0;display:flex;justify-content:center;'
     + 'align-items:center;gap:20px;z-index:10;font-size:9px;font-weight:800;color:#9fb0d0;letter-spacing:.5px">'
     + '<span>'+(player.foot||'')+'</span><span>'+(player.club||'')+'</span></div>'
+    + traitPill
     + '<div style="position:absolute;bottom:5px;left:50%;transform:translateX(-50%);z-index:10">'
     + '<svg width="24" height="24" viewBox="-13 -13 26 26">'
     + '<path d="M0 -1 L.31 -.31 L1 0 L.31 .31 L0 1 L-.31 .31 L-1 0 L-.31 -.31 Z" transform="scale(11)"'
@@ -2089,7 +2414,8 @@ function showRevealCardByUid(uid){
     ov.onclick = () => { ov.style.display='none'; };
     document.body.appendChild(ov);
   }
-  ov.innerHTML = '<div onclick="event.stopPropagation()">'+(p.season === 'ul' ? buildULCardHTML(p, card.enhLevel||1, card.trainLevel||0) : buildRevealCardHTML(p, ovrB, card.enhLevel||1, card.trainLevel||0))+'</div>' +
+  const pT = withTrait(p, card);
+  ov.innerHTML = '<div onclick="event.stopPropagation()">'+(p.season === 'ul' ? buildULCardHTML(pT, card.enhLevel||1, card.trainLevel||0) : buildRevealCardHTML(pT, ovrB, card.enhLevel||1, card.trainLevel||0))+'</div>' +
     '<div style="font-size:13px;font-weight:800;color:#d4af37">'+(getEnhancedPrice(p.price, card.enhLevel||1)||'미정')+' CP · 급여 '+(p.salary||0)+'</div>' +
     '<div style="font-size:11px;color:#888">아무 곳이나 눌러 닫기</div>';
   ov.style.display = 'flex';
@@ -2153,7 +2479,12 @@ function renderCollection(){
     const act = sellMode
       ? (locked ? '' : 'onclick="toggleSellPick('+c.uid+')"')
       : 'onclick="showPlayerDetailByUid('+c.uid+')"';
-    return '<div class="'+cls+'" '+act+'><div class="coll-season '+(p.season==='ul'?'ul':p.season==='tl'?'tl':'fwc')+'">'+(p.season==='ul'?'UL':p.season==='tl'?'TL':'FWC')+'</div><img src="'+IMGS[c.id]+'"><div class="covr">'+(p.ovr+ovrB)+'</div><div class="cname">'+p.name+'</div><div class="cextra">급여 '+(p.salary||0)+'</div><div class="coll-enh">'+getEnhBadgeHTML(lvl)+'</div>'+useTag+'</div>';
+    return '<div class="'+cls+'" '+act+'><div class="coll-season '+(p.season==='ul'?'ul':p.season==='tl'?'tl':'fwc')+'">'+(p.season==='ul'?'UL':p.season==='tl'?'TL':'FWC')+'</div><img src="'+IMGS[c.id]+'"><div class="covr">'+(p.ovr+ovrB)+'</div><div class="cname">'+p.name+'</div><div class="cextra">급여 '+(p.salary||0)+'</div><div class="coll-enh">'+getEnhBadgeHTML(lvl)+'</div>'
+      +(function(){ const ti = cardTraitId(c); return ti
+          ? '<div style="position:absolute;top:4px;right:4px;z-index:6;width:19px;height:19px;border-radius:50%;'
+            + 'display:flex;align-items:center;justify-content:center;background:rgba(8,12,22,.82);'
+            + 'border:1px solid ' + TRAITS[ti].color + 'cc">' + traitIconHTML(ti, 12) + '</div>' : ''; })()
+      +useTag+'</div>';
   }).join('');
 }
 
@@ -2768,7 +3099,19 @@ function showPlayerDetail(idx) {
       <div style="font-size:12px;color:#aaa;font-weight:700;margin-top:-2px">급여 ${p.salary||0}</div>
       ${enhInfoHtml}
       ${trainInfoHtml}
+      ${(function(){
+        const tid = cardTraitId(card);
+        if (!tid) return '<div class="pd-trait" style="opacity:.6">'
+          + '<div class="nm" style="color:#8b93a1">특성 없음</div>'
+          + '<div class="sub">상점에서 사서 장착</div></div>';
+        const t = TRAITS[tid];
+        return '<div class="pd-trait" style="border-color:' + t.color + '66">'
+          + traitIconHTML(tid, 20)
+          + '<div style="text-align:left"><div class="nm" style="color:' + t.color + '">' + t.name + '</div>'
+          + '<div class="sub">' + (card.trait ? '장착 중' : '고유 특성') + '</div></div></div>';
+      })()}
       <div class="pd-btns">
+        <button class="pd-btn" onclick="openTraitPicker(${card.uid})" style="background:linear-gradient(135deg,#5b2b8a,#b47cf5);color:#fff">특성</button>
         ${enhBtnHtml}
         ${trainBtnHtml}
         <button class="pd-btn" onclick="sellPlayer(${card.uid})" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff">판매 (${sellPriceDisplay})</button>
@@ -4262,6 +4605,7 @@ function switchStoreTab(tab) {
   });
   if (tab === 'charge') renderChargePanel();
   if (tab === 'lucky')  renderLuckyShop();
+  if (tab === 'trait')  renderTraitShop();
 }
 
 /* 상점 > 행운 탭. 열쇠 구매와 상자 개봉을 한 화면에서 끝낸다. */
@@ -6117,7 +6461,10 @@ function lvDoShoot(curl, pw) {
   const fkKick = p.setKick === 'fk' || p.setKick === 'pk';
   const fkKind = p.setKick; if (fkKick) p.setKick = null;
   const pwv = (pw === undefined ? 0.75 : pw);
-  const sweet = fkKind === 'fk' && pwv >= 0.58 && pwv <= 0.82;
+  // 프리킥 마스터는 스윗스팟이 넓다 (58~82% → 50~90%)
+  const _fkLo = hasTrait(p, 'fkmaster') ? 0.50 : 0.58;
+  const _fkHi = hasTrait(p, 'fkmaster') ? 0.90 : 0.82;
+  const sweet = fkKind === 'fk' && pwv >= _fkLo && pwv <= _fkHi;
   const tooHard = fkKind === 'fk' && pwv > 0.92;
   const acc = 1 - Math.min(0.5, (125 - (p.ovr || 100)) * 0.012);
   let jit = (1 - acc) * (Math.random() - 0.5) * 0.9;
@@ -6130,7 +6477,9 @@ function lvDoShoot(curl, pw) {
   lvBall.from = { side:'us', idx: own.idx }; lvBall.cool = 10;
   lvBall.own = null; lvBall.to = -1; lvBall.air = 0; lvBall.last = 'us';
   lvBall.vx = dx * sp; lvBall.vy = (dy + jit) * sp;
-  lvBall.curl = (curl || sweet) ? 1 : 0;
+  lvBall.isPk = (fkKind === 'pk');                 // 페널티 전문가 판정용
+  // 감아차기 마스터는 더 크게 휜다
+  lvBall.curl = (curl || sweet) ? (hasTrait(p, 'curl') ? 1.4 : 1) : 0;
   lvBall.fkSweet = !!sweet;                     // 선방 판정에서 키퍼가 읽기 어렵게
   if (sweet) {                                  // 수비벽을 넘겨 감아 찬다 (넘는 동안엔 아무도 못 건드린다)
     lvBall.air = 9;
@@ -6211,7 +6560,8 @@ function lvDoPass(lob, pw) {
   // 누른 시간만큼 세게 (살짝 0.8배 = 짧고 느린 패스 ~ 꾹 1.28배 = 빠르고 멀리)
   const ppw = 0.85 + 0.35 * (pw === undefined ? 0.6 : pw);
   const airT = lob ? Math.max(14, Math.min(36, Math.round(dist * 0.85 / ppw))) : 0;
-  const sp = lob ? dist / airT : lvPassSp(dist, ppw);
+  let sp = lob ? dist / airT : lvPassSp(dist, ppw);
+  if (hasTrait(p, 'maestro') && dist >= 25) { sp *= 1.12; lvPopFor(p, 'maestro'); }   // 지휘자 — 긴 패스가 빠르다
   lvBall.from = { side:'us', idx: own.idx }; lvBall.cool = 12; lvBall.thru = false;
   lvBall.own = null; lvBall.curl = 0; lvBall.arc = null; lvBall.last = 'us';
   lvBall.vx = ax / dist * sp; lvBall.vy = ay / dist * sp;
@@ -6221,7 +6571,7 @@ function lvDoPass(lob, pw) {
   lvBall.air = airT;
   // 로빙은 멀수록 높이 뜬다
   lvBall.lift = lob ? { t0: lvFrame, dur: airT, peak: Math.max(2.4, Math.min(6.5, dist * 0.17)) } : null;
-  lvBall.homeK = lob ? 0.015 : 0.04;                     // 일반 패스도 받을 선수 쪽으로 살짝 휜다
+  lvBall.homeK = (lob ? 0.015 : 0.04) * (hasTrait(p, 'maestro') ? 1.5 : 1);   // 일반 패스도 받을 선수 쪽으로 살짝 휜다
   lvBall.to = best; lvBall.toSide = 'us';
   lvSay((lob ? '🪁 로빙 → ' : '패스 → ') + (q.nm || ''));
 }
@@ -6236,6 +6586,7 @@ function lvDoThrough(lob, pw) {
   const p = mtUs[own.idx];
   if (!p || p.gk) { lvDoPass(false); return; }
   const aim = lvAimDir();
+  let _visionHit = false;
   let best = -1, bs = -1e9;
   mtUs.forEach((q, i) => {
     if (i === own.idx || q.gk) return;
@@ -6247,7 +6598,8 @@ function lvDoThrough(lob, pw) {
     /* 길목 위험도 — 전엔 이걸 아예 안 봐서, 수비수가 정면에 서 있어도 그대로 찔러 넣었다.
        (땅볼 스루패스는 10번 중 9번 끊겼다) 로빙은 떠서 넘어가니 덜 본다. */
     const lead0 = lvMx(5);
-    const risk = lvLaneRisk(p.cx, p.cy, Math.min(96, q.cx + lead0), q.cy, mtThem);
+    let risk = lvLaneRisk(p.cx, p.cy, Math.min(96, q.cx + lead0), q.cy, mtThem);
+    if (hasTrait(p, 'vision')) { risk *= 0.65; _visionHit = true; }   // 안개 속의 눈 — 길이 보인다
     if (!lob && risk > 0.62) return;
     sc -= risk * (lob ? 8 : 26);
     // 최종 수비수 어깨에 걸친 동료를 가장 선호 (뒷공간으로 달려 들어갈 수 있는 위치)
@@ -6281,6 +6633,7 @@ function lvDoThrough(lob, pw) {
   lvBall.to = best; lvBall.toSide = 'us';
   lvBall.thru = !lob; lvBall.homeK = lob ? 0.02 : 0.07;  // 굴러가는 동안 받을 선수 쪽으로 보정
   { const kf = lvKickFoot(p, 'us'); lvAnim('us', own.idx, lob ? (kf === 'L' ? 'kickL' : 'kick') : (kf === 'L' ? 'passL' : 'pass')); }
+  if (_visionHit) lvPopFor(p, 'vision');
   lvSay((lob ? '🪁 로빙 스루패스 → ' : '⚡ 스루패스 → ') + (q.nm || ''));
 }
 
@@ -6309,7 +6662,9 @@ function lvDoStepover() {
   mtThem.forEach(q => {
     if (q.gk) return;
     if (Math.hypot(q.cx - p.cx, q.cy - p.cy) > 5) return;
-    const chance = Math.max(0.25, Math.min(0.9, 0.58 + ((p.ovr || 100) - (q.ovr || 100)) * 0.012));
+    const chance = Math.max(0.25, Math.min(0.95,
+      0.58 + ((p.ovr || 100) - (q.ovr || 100)) * 0.012 + (hasTrait(p, 'magician') ? 0.18 : 0)));
+    if (hasTrait(p, 'magician')) lvPopFor(p, 'magician');
     if (Math.random() < chance) { q.fooled = { t: 22, dir: -side }; q.slide = null; q.lunge = 0; fooled++; }
     else { q.fooled = { t: 6, dir: 0 }; }             // 안 속아도 잠깐 멈칫한다
   });
@@ -6648,6 +7003,7 @@ const LV_TAP_R = 10;            // 동료 터치 인식 반경 (넉넉하게 —
 /* 체력 — 모두 같은 최대치(100). 60 아래부터 느려지고, 바닥나면 78% 속도. */
 const LV_STAM_RUN = 0.062;             // 한 칸 움직일 때 닳는 양 (90분에 절반쯤 남게 맞춘 값)
 function lvStamF(p) {
+  if (hasTrait(p, 'hearts')) return 1;              // 두 개의 심장 — 체력 때문에 느려지지 않는다
   const st = p.stam === undefined ? 100 : p.stam;
   return st >= 60 ? 1 : 0.78 + 0.22 * (st / 60);
 }
@@ -6662,7 +7018,48 @@ function lvPassSp(d, pw) {
 }   // 105↔130 차이 약 13% (전엔 29%)
 /* 슛 속도 — 전엔 초속 58~86m (실제 강슛 25~35m 의 2~3배) 라 키퍼가 반응할 틈이 없었다.
    OVR 105 → 33m/s, 120 → 37m/s, 130 → 40m/s. 대신 슛은 날아가는 동안 감속을 적게 받는다(lvBall.shot). */
-function lvShot(p) { return 0.95 + ((p.ovr || 100) - 95) * 0.009; }
+function lvShot(p) {
+  let v = 0.95 + ((p.ovr || 100) - 95) * 0.009;
+  if (hasTrait(p, 'laser'))  v *= 1.08;             // 레이저 — 슛이 더 빠르다
+  if (hasTrait(p, 'clutch') && lvClutchOn(p)) v *= 1.05;   // 해결사 — 막판에 더 강하게
+  return v;
+}
+/* 해결사 발동 조건 — 75분 이후, 그 선수의 팀이 지고 있거나 비기는 중 */
+/* 특성이 발동한 순간 선수 머리 위에 아이콘을 띄운다.
+   같은 특성이 연달아 터져도 1.5초에 한 번만 보여준다. */
+function lvTraitPop(side, idx, id) {
+  const t = TRAITS[id]; if (!t) return;
+  const arr = side === 'us' ? mtUs : mtThem;
+  const p = arr && arr[idx]; if (!p || p.off) return;
+  if (!p._trPop) p._trPop = {};
+  if (p._trPop[id] !== undefined && lvFrame - p._trPop[id] < 45) return;   // 0 도 유효한 값이라 undefined 로 본다
+  p._trPop[id] = lvFrame;
+  const host = document.getElementById('lvField'); if (!host) return;
+  const d = document.createElement('div');
+  d.className = 'lv-trpop';
+  d.style.left = lvScrL(p.cx, p.cy).toFixed(2) + '%';
+  d.style.top  = lvScrT(p.cx, p.cy).toFixed(2) + '%';
+  // translateZ 로 잔디 위로 띄운다. 안 그러면 선수·마커에 가려진다.
+  d.style.transform = 'translate(-50%,-100%) translateZ(2.2px) rotateX(' + (-LV_TILT) + 'deg)';
+  d.innerHTML = '<div class="in"><div class="bx" style="border:1px solid ' + t.color + 'aa">'
+    + traitIconHTML(id, 15) + '<span class="tx" style="color:' + t.color + '">' + t.name + '</span>'
+    + '</div></div>';
+  host.appendChild(d);
+  setTimeout(() => { try { d.remove(); } catch (e) {} }, 1350);
+}
+/* 경기 중 선수 객체로 side/idx 찾기 */
+function lvWho(p) {
+  let i = mtUs.indexOf(p); if (i >= 0) return { side:'us', idx:i };
+  i = mtThem.indexOf(p);  if (i >= 0) return { side:'them', idx:i };
+  return null;
+}
+function lvPopFor(p, id) { const w = lvWho(p); if (w) lvTraitPop(w.side, w.idx, id); }
+
+function lvClutchOn(p) {
+  if (lvMin < 75) return false;
+  const mine = mtUs.indexOf(p) >= 0;
+  return mine ? (lvScore[0] <= lvScore[1]) : (lvScore[1] <= lvScore[0]);
+}
 function lvTkl(p)  { return 0.30 + ((p.ovr || 100) - 95) * 0.011; }
 
 function startLiveMatch() {
@@ -7039,7 +7436,9 @@ function lvHintPaint() {
   if (lvMsg) { h.textContent = lvMsg; return; }
   const mine = !!(lvBall.own && lvBall.own.side === 'us');
   const p = mtUs[lvCtrlIdx()];
-  h.textContent = (p ? (p.nm || '') + ' · ' : '') + (mine ? '공격 중' : '수비 중');
+  const tr = traitOf(p);
+  h.textContent = (p ? (p.nm || '') + (tr ? ' ' + tr.icon : '') + ' · ' : '')
+                + (mine ? '공격 중' : '수비 중');
 }
 
 function lvAct(t) {
@@ -7266,7 +7665,8 @@ function lvTick() {
         /* 가로채기 반경 — 전엔 1.9 였다. 패스는 4틱이면 '느린 공'이 되므로 그 뒤 20여 틱 동안
            근처 수비수가 그냥 주워갔다(실측: 상대 공격 실패 132/144 가 패스 차단).
            발을 뻗어 닿는 거리 정도로 줄인다. */
-        const reach = isRecv ? 2.8 : (fast && !p.gk ? 1.1 : p.gk ? (p._dived ? 3.3 : 2.4) : 1.4);
+        const _sw = hasTrait(p, 'sweeper') ? 1.9 : 1.4;        // 스위퍼 — 먼저 줍는다
+        const reach = isRecv ? 2.8 : (fast && !p.gk ? 1.1 : p.gk ? (p._dived ? 3.3 : 2.4) : _sw);
         if (d > reach) return;
         if (d >= bd) return;
         /* 빠른 슛은 골키퍼가 무조건 잡지 않는다.
@@ -7284,6 +7684,13 @@ function lvTick() {
       });
     });
     if (take) {
+      // 공을 잡은 시각 — '원터치 피니셔' 가 이 값을 본다
+      { const tp0 = (take.side === 'us' ? mtUs : mtThem)[take.idx];
+        if (tp0) {
+          tp0.gotT = lvFrame;
+          // 스위퍼 — 보통이면 못 닿았을 거리에서 주웠다
+          if (hasTrait(tp0, 'sweeper') && bd > 1.4) lvTraitPop(take.side, take.idx, 'sweeper');
+        } }
       mtUs.forEach(q => q._dived = false); mtThem.forEach(q => q._dived = false);
       const inV = Math.hypot(lvBall.vx, lvBall.vy);
       lvBall.own = take;
@@ -7309,8 +7716,10 @@ function lvTick() {
       const q = foe[i];
       if (q.gk || !holder || q.fooled) continue;                               // 스텝오버에 속은 수비수는 태클 못 한다
       if (Math.hypot(q.cx - holder.cx, q.cy - holder.cy) > 1.8) continue;      // 태클 닿는 거리
-      const win = lvTkl(q) / (lvTkl(q) + lvTkl(holder));
-      const boost = q.slide ? 6 : q.lunge > 0 ? 3.5 : 1;   // 슬라이딩 > 태클 > 그냥 붙어 있기
+      let win = lvTkl(q) / (lvTkl(q) + lvTkl(holder));
+      if (hasTrait(holder, 'juggler')) { win *= 0.75; lvPopFor(holder, 'juggler'); }   // 저글러 — 잘 안 뺏긴다
+      let boost = q.slide ? 6 : q.lunge > 0 ? 3.5 : 1;     // 슬라이딩 > 태클 > 그냥 붙어 있기
+      if (hasTrait(q, 'tackler')) boost *= 1.35;           // 태클 마스터
       /* 등 뒤에서 들어오는 태클 — 이미 제친 선수를 뒤에서 뺏는 건 거의 안 된다(실제론 반칙).
          전엔 수비를 뚫고 지나가자마자 뒤에서 바로 뺏겨서 돌파가 성립하지 않았다. */
       const hv = Math.hypot(holder.vx || 0, holder.vy || 0);
@@ -7327,16 +7736,23 @@ function lvTick() {
          전엔 슬라이딩 성공률이 6배라 거의 다 깔끔히 뺏어서, 뒤에서 들어가도 파울이 잘 안 나왔다. */
       if (q.slide && !q.slide.fouled && Math.hypot(q.cx - holder.cx, q.cy - holder.cy) < 1.5) {
         // 파울이 너무 잦아서 낮춘다 (앞에서 헛디딘 슬라이딩 0.7 → 0.40)
-        const pFoul = behind < 1 ? (ok ? 0.58 : 0.72) : (ok ? 0.06 : 0.40);
+        let pFoul = behind < 1 ? (ok ? 0.58 : 0.72) : (ok ? 0.06 : 0.40);
+        if (hasTrait(q, 'tackler')) pFoul *= 0.70;         // 태클 마스터 — 덜 걸린다
+        if (hasTrait(q, 'clean'))   pFoul *= 0.50;         // 클린 태클러
         q.slide.fouled = true;
         if (Math.random() < pFoul) { lvFoul(mySide === 'us' ? 'them' : 'us', holder.cx, holder.cy, i, behind < 1); break; }
       }
       // 서서 하는 태클도 뒤에서 들어가면 가끔 파울
       if (!q.slide && q.lunge > 0 && behind < 1 && !q._lf) {
         q._lf = true;
-        if (Math.random() < 0.20) { lvFoul(mySide === 'us' ? 'them' : 'us', holder.cx, holder.cy, i, false); break; }
+        let pF2 = 0.20;
+        if (hasTrait(q, 'tackler')) pF2 *= 0.70;
+        if (hasTrait(q, 'clean'))   pF2 *= 0.50;
+        if (Math.random() < pF2) { lvFoul(mySide === 'us' ? 'them' : 'us', holder.cx, holder.cy, i, false); break; }
       }
       if (ok) {
+        if (hasTrait(q, 'tackler')) lvPopFor(q, 'tackler');
+        else if (hasTrait(q, 'clean')) lvPopFor(q, 'clean');
         lvBall.own = { side: mySide === 'us' ? 'them' : 'us', idx: i };
         lvTackleCd = 25;          // 뺏자마자 도로 뺏기는 핑퐁 방지
         if (!q.slide) lvAnim(mySide === 'us' ? 'them' : 'us', i, 'tackle');   // 뺏는 동작
@@ -7587,7 +8003,7 @@ function lvMove() {
         tx = p.cx + ix * 14;
         ty = p.cy + iy * 14;
         // 질주 배율도 낮춘다 — 전엔 1.35배라 OVR 높으면 아무도 못 따라왔다
-        sp *= (lvSprint ? 1.16 : 1) * Math.min(1, m * 1.3);
+        sp *= (lvSprint ? (hasTrait(p, 'gust') ? 1.26 : 1.16) : 1) * Math.min(1, m * 1.3);
         if (lvSprint) p._sprint = true;
       }
       // 공을 가진 선수
@@ -7671,7 +8087,7 @@ function lvMove() {
             const h = lvBall.own ? (lvBall.own.side === 'us' ? mtUs : mtThem)[lvBall.own.idx] : null;
             const hv = h ? Math.hypot(h.vx || 0, h.vy || 0) : 0;
             const chasing = h && hv > 0.08 && ((p.cx - h.cx) * h.vx + (p.cy - h.cy) * h.vy) < 0;
-            sp *= chasing ? 0.96 : 1.2;      // 정면 압박을 더 강하게
+            sp *= (chasing ? 0.96 : 1.2) * (hasTrait(p, 'presser') ? 1.08 : 1);   // 정면 압박을 더 강하게
           }
         }
         else if (i === press2) {
@@ -7706,7 +8122,8 @@ function lvMove() {
            공격수는 x=18 — 그 사이 29칸이 비어 패스할 곳이 없었다(실측: 박스 진입 0%).
            공이 내 홈보다 앞서 나간 만큼 라인을 끌어올린다. */
         const adv = Math.max(0, (lvBall.x - p.hx) * dir);
-        const push = Math.min(p.line >= 3 ? 9 : 24, adv * 0.6);
+        let push = Math.min(p.line >= 3 ? 9 : 24, adv * 0.6);
+        if (hasTrait(p, 'runner')) push *= 1.4;              // 침투 — 더 깊이 들어간다
         const fwd = (p.line >= 3 ? 30 : p.line === 2 ? 20 : 8) + push;
         tx = p.hx + dir * fwd;
         ty = p.hy + (lvBall.y - 50) * 0.35;
@@ -7732,14 +8149,17 @@ function lvMove() {
       const mvs = p._chase ? sp : Math.min(sp, d); p._chase = false;   // 공 쫓을 땐 끝까지 전속력
       if (d > 0.35) { dx = dx / d * mvs; dy = dy / d * mvs; }
       else { dx = 0; dy = 0; if (p.tx !== undefined) { p.tx = undefined; p.ty = undefined; } }
-      const acc = p._snap ? 0.6 : 0.26; p._snap = false;   // 발재간 중엔 방향 전환이 빠르다
+      const acc = p._snap ? 0.6 : (hasTrait(p, 'burst') ? 0.40 : 0.26); p._snap = false;   // 발재간 중엔 방향 전환이 빠르다
       p.vx = (p.vx || 0) + (dx - (p.vx || 0)) * acc;
       p.vy = (p.vy || 0) + (dy - (p.vy || 0)) * acc;
       /* 체력 — 모두 100 에서 시작. 뛴 만큼 닳고, 질주하면 더 빨리 닳는다.
          90분 뛰면 절반쯤 남도록 맞췄다. 키퍼는 거의 안 닳는다. */
       { const mvd = Math.hypot(p.vx || 0, p.vy || 0);
         if (p.stam === undefined) p.stam = 100;
-        p.stam = Math.max(0, p.stam - mvd * LV_STAM_RUN * (p.gk ? 0.4 : (p._sprint ? 1.7 : 1)));
+        let _sprMul = p._sprint ? (hasTrait(p, 'gust') ? 1.19 : 1.7) : 1;   // 질풍 — 질주 소모 −30%
+        let _stMul = p.gk ? 0.4 : _sprMul;
+        if (hasTrait(p, 'hearts')) _stMul *= 0.7;                            // 두 개의 심장
+        p.stam = Math.max(0, p.stam - mvd * LV_STAM_RUN * _stMul);
         p._sprint = false; }
       p.cx = Math.max(p.gk ? 0.6 : 1.2, Math.min(p.gk ? 99.4 : 98.8, p.cx + p.vx));   // 키퍼는 골라인 바로 앞까지
       if (p.gk) {                                       // 키퍼는 자기 페널티박스 안에서만
@@ -7963,7 +8383,7 @@ function lvCard(side, idx, x, y, hard) {
   const behindMe = arr.filter(q => !q.gk && !q.off && q !== p && (side === 'us' ? q.cx < x : q.cx > x)).length;
   let card = 0;
   if (near && behindMe === 0 && hard) card = 2;                 // 즉시 퇴장
-  else if (Math.random() < (hard ? 0.45 : 0.14)) card = 1;
+  else if (Math.random() < (hard ? 0.45 : 0.14) * (hasTrait(p, 'clean') ? 0.6 : 1)) card = 1;
   if (!card) return;
   p.cards = (p.cards || 0) + (card === 2 ? 2 : 1);
   const red = card === 2 || p.cards >= 2;
@@ -8049,6 +8469,34 @@ function lvResolveShot(shooter, side) {
     + Math.max(0, dist - 10) * 0.018        // 멀리서 찬 건 막기 쉽다
     - off * 0.028                           // 구석으로 찰수록 어렵다 (골대 7.32m 기준)
     + ((gk.ovr || 100) - (shooter.ovr || 100)) * 0.006;   // OVR 차 반영 (25점 차 = 15%)
+  /* ── 특성 ── (전부 선방률을 깎거나 올린다) */
+  // 레이저 — 19m(내부 18칸) 밖. 가까운 거리엔 효과 없음
+  if (hasTrait(shooter, 'laser') && dist > 18) save -= 0.10;
+  // 타겟 — 17m(내부 16칸) 안쪽 결정력
+  if (hasTrait(shooter, 'target') && dist < 16) save -= 0.12;
+  // 감아차기 마스터 — 감아 찼을 때만
+  if (hasTrait(shooter, 'curl') && lvBall.curl) save -= 0.07;
+  // 원터치 피니셔 — 공 잡고 0.8초(24틱) 안에 때린 슛
+  if (hasTrait(shooter, 'onetouch') && shooter.gotT !== undefined && (lvFrame - shooter.gotT) <= 24) save -= 0.10;
+  // 해결사 — 75분 이후 지거나 비기는 중
+  if (hasTrait(shooter, 'clutch') && lvClutchOn(shooter)) save -= 0.10;
+  // 프리킥 마스터 / 페널티 전문가
+  if (hasTrait(shooter, 'fkmaster') && lvBall.fkSweet) save -= 0.06;
+  if (hasTrait(shooter, 'pkmaster') && lvBall.isPk) save -= 0.12;
+  // 선방의 신 — 막는 쪽 골키퍼
+  if (hasTrait(gk, 'gkgod')) save += 0.08;
+  /* 발동한 슛 특성을 머리 위에 띄운다 (가장 앞의 하나만) */
+  {
+    const fired = [];
+    if (hasTrait(shooter, 'laser')    && dist > 18) fired.push('laser');
+    if (hasTrait(shooter, 'target')   && dist < 16) fired.push('target');
+    if (hasTrait(shooter, 'curl')     && lvBall.curl) fired.push('curl');
+    if (hasTrait(shooter, 'onetouch') && shooter.gotT !== undefined && (lvFrame - shooter.gotT) <= 24) fired.push('onetouch');
+    if (hasTrait(shooter, 'clutch')   && lvClutchOn(shooter)) fired.push('clutch');
+    if (hasTrait(shooter, 'fkmaster') && lvBall.fkSweet) fired.push('fkmaster');
+    if (hasTrait(shooter, 'pkmaster') && lvBall.isPk) fired.push('pkmaster');
+    if (fired.length) lvPopFor(shooter, fired[0]);
+  }
   if (lvBall.curl) save -= 0.08;            // 감아차기는 키퍼가 읽기 어렵다
   if (lvBall.fkSweet) save -= 0.10;         // 제대로 맞은 직접 프리킥
   save = Math.max(0.20, Math.min(0.95, save));
@@ -8062,6 +8510,7 @@ function lvResolveShot(shooter, side) {
   if (Math.random() < save) {
     lvBall.saveBy = side === 'us' ? 'them' : 'us';
     lvBall.saveY = crossY;
+    if (hasTrait(gk, 'gkgod')) lvPopFor(gk, 'gkgod');
   }
 }
 
@@ -8071,7 +8520,11 @@ function lvResolveShot(shooter, side) {
 function lvCross(p, idx, side) {
   const arr = side === 'us' ? mtUs : mtThem;
   const gl = side === 'us' ? 100 : 0, inb = side === 'us' ? -1 : 1;
-  const tx = gl + inb * lvMx(10.5), ty = 50;              // 박스 한가운데 (PK 지점 부근)
+  // 크로스 마스터는 목표 지점이 거의 안 흔들린다
+  const _cj = hasTrait(p, 'crosser') ? 0.45 : 1;
+  if (hasTrait(p, 'crosser')) lvPopFor(p, 'crosser');
+  const tx = gl + inb * lvMx(10.5) + (Math.random() * 2 - 1) * 2.2 * _cj;
+  const ty = 50 + (Math.random() * 2 - 1) * 4.0 * _cj;    // 박스 한가운데 (PK 지점 부근)
   let best = -1, bd = 1e9;
   arr.forEach((q, i) => { if (i === idx || q.gk) return;
     const d = Math.hypot(q.cx - tx, q.cy - ty); if (d < bd) { bd = d; best = i; } });
@@ -9623,6 +10076,8 @@ function mtInitPitch() {
     ovr: (function(){ const c = cardByUid(squadSlots[i]); return c ? effectiveOvr(c, sl.label).eff : 100; })(),
     nm:  (function(){ const c = cardByUid(squadSlots[i]); const p = c && PLAYERS.find(x=>x.id===c.id); return p ? p.name : sl.label; })(),
     pid: (function(){ const c = cardByUid(squadSlots[i]); return c ? c.id : null; })(),
+    // 특성 — 장착한 게 우선, 없으면 선수 고유 특성 (강화·훈련과 무관)
+    trait: (function(){ const c = cardByUid(squadSlots[i]); return cardTraitId(c); })(),
     hx: 6 + (100 - sl.y) * 0.52, hy: 14 + sl.x * 0.72,
     line: mtLineOf(sl.label), gk: sl.label === 'GK',
     wide: /LB|RB|LWB|RWB|LM|RM|LW|RW/.test(sl.label),   // 측면 자원
@@ -13035,6 +13490,7 @@ function saveGame() {
       tmPlayers, tmLastRefresh, tmSold,
       pachTickets, pachBoard, pachOpened, pachHints, pachHinted,
       svTickets, svPoints, svActive, svBoostRuns, svRevived,
+      traitInv,
       scTickets, scCount, lcTickets, lcCount, lcBoard, lcPicked, lcLucky, lcPhase, lcHint, ulBlind, worldCleared, worldClaimed, worldRegionClaimed, transTokens, achClaimed, achStats, attDays, attLast, mailClaimed,
       dailyDone, dailyDay, dailyClaim,
       clubName, playerLv, levelPts, mpSpentAcc, levelPending,
@@ -13089,6 +13545,10 @@ function loadGame() {
   if (typeof s.svActive  === 'boolean') svActive = s.svActive;
   if (typeof s.svBoostRuns === 'number') svBoostRuns = s.svBoostRuns;
   if (typeof s.svRevived === 'boolean') svRevived = s.svRevived;
+  if (s.traitInv && typeof s.traitInv === 'object') {
+    traitInv = {};
+    for (const k in s.traitInv) if (TRAITS[k] && s.traitInv[k] > 0) traitInv[k] = s.traitInv[k] | 0;
+  }
   if (typeof s.scTickets === 'number') scTickets = s.scTickets;
   if (typeof s.scCount === 'number') scCount = s.scCount;
   if (typeof s.lcTickets === 'number') lcTickets = s.lcTickets;
