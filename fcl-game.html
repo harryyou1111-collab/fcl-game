@@ -135,6 +135,8 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
 .csb-b.all{background:rgba(255,255,255,.1);color:#cfd6e4}
 .csb-b.sell{background:linear-gradient(135deg,#b8860b,#f0c94a);color:#2a2003}
 .csb-b.sell.off{opacity:.4}
+.csb-b.scrap{background:linear-gradient(135deg,#5b2b8a,#9d5cf5);color:#fff}
+.csb-b.scrap.off{opacity:.4}
 .coll-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.coll-count{font-size:12px;color:#6b7a90}.collection-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:8px}.coll-card{position:relative;background:#ffffff;border:1px solid rgba(20,40,80,.16);border-radius:10px;padding:8px;text-align:center;cursor:pointer;transition:all .2s;box-shadow:0 1px 4px rgba(10,25,50,.08)}.coll-controls{margin:0 0 12px}.coll-sortrow,.coll-filterrow{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}.coll-filterrow{margin-top:6px}.coll-sort-btn,.coll-filter-btn{flex:0 0 auto;padding:5px 12px;border:1px solid rgba(20,40,80,.14);border-radius:16px;background:transparent;color:#64748b;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s}.coll-sort-btn.active{background:rgba(212,175,55,.15);border-color:#d4af37;color:#d4af37}.coll-filter-btn.active{background:rgba(20,40,80,.14);border-color:rgba(255,255,255,.4);color:#1a2233}.coll-season.bar{background:linear-gradient(135deg,#a50044,#00489b);color:#fff}.coll-season.ul{background:linear-gradient(135deg,#0b2a7a,#04102f);border:.5px solid rgba(212,175,55,.6);color:#f5e6a3}
 .coll-season{position:absolute;top:4px;left:4px;font-size:7px;font-weight:900;letter-spacing:.5px;padding:1px 4px;border-radius:3px;line-height:1.4}.coll-season.fwc{background:rgba(100,200,255,.15);border:.5px solid rgba(100,200,255,.45);color:#8fd8ff}.coll-season.tl{background:rgba(212,175,55,.15);border:.5px solid rgba(212,175,55,.5);color:#f5e6a3}.coll-card:hover{border-color:rgba(212,175,55,.3)}.coll-card img{width:55px;height:55px;object-fit:contain;border-radius:50%;background:radial-gradient(circle at 50% 40%,#3d5580 0%,#22334f 62%,#152238 100%);box-shadow:inset 0 0 0 1.5px rgba(212,175,55,.35),0 2px 6px rgba(10,20,40,.25)}.coll-card .cname{font-size:9px;font-weight:700;color:#16233a;margin-top:3px}.coll-card .covr{font-size:12px;font-weight:900;color:#d4af37}.coll-card.icon-card{border-color:rgba(212,175,55,.15);background:rgba(212,175,55,.03)}.coll-card .cextra{font-size:8px;color:#5a6b82}
 
@@ -330,6 +332,29 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
   margin-bottom:6px;background:rgba(20,40,80,.05);cursor:pointer}.sc-row:active{background:rgba(212,175,55,.16)}.sc-row img{width:38px;height:38px;object-fit:contain;flex:0 0 38px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#3d5580 0%,#22334f 62%,#152238 100%);box-shadow:inset 0 0 0 1.5px rgba(212,175,55,.35),0 2px 6px rgba(10,20,40,.25)}.sc-nm{font-size:12px;font-weight:800;color:#fff}.sc-sub{font-size:9px;color:#888;font-weight:700;margin-top:1px}.sc-cost{font-size:12px;font-weight:900;color:#d4af37;flex-shrink:0;text-align:right}.sc-row.no{opacity:.35}
 
 /* ─── 특성 (TRAIT) ─── */
+.pp-bar{display:flex;align-items:center;gap:9px;padding:11px 13px;border-radius:13px;margin-bottom:12px;
+  background:linear-gradient(135deg,#1a1030,#2d1b4e);border:1px solid rgba(190,140,255,.4)}
+.pp-bar .v{font-size:19px;font-weight:900;color:#e5c8ff;line-height:1}
+.pp-bar .l{font-size:9.5px;font-weight:800;color:#9d8bc0;letter-spacing:.5px;margin-top:2px}
+.pp-pull{margin-left:auto;padding:9px 14px;border-radius:10px;border:0;cursor:pointer;font-size:12px;
+  font-weight:900;background:linear-gradient(135deg,#5b2b8a,#b47cf5);color:#fff;white-space:nowrap}
+.pp-pull:disabled{opacity:.4;cursor:not-allowed}
+.tr-scrap{padding:5px 7px;border-radius:7px;border:1px solid rgba(239,68,68,.45);cursor:pointer;
+  font-size:9.5px;font-weight:900;background:rgba(239,68,68,.12);color:#e05a5a;white-space:nowrap}
+.tr-tier{font-size:8.5px;font-weight:900;padding:1px 6px;border-radius:6px;margin-left:5px;vertical-align:middle}
+/* 뽑기 연출 */
+.pull-ov{position:fixed;inset:0;z-index:3000;background:rgba(4,6,14,.94);display:none;
+  align-items:center;justify-content:center;flex-direction:column;gap:14px}
+.pull-ov.on{display:flex}
+.pull-card{width:190px;height:190px;border-radius:22px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:10px;background:linear-gradient(150deg,#141a2e,#232c47);border:2px solid #39415c}
+.pull-card.spin{animation:ppSpin .36s linear infinite}
+@keyframes ppSpin{0%{transform:rotateY(0)}100%{transform:rotateY(360deg)}}
+.pull-card.hit{animation:ppHit .7s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes ppHit{0%{transform:scale(.5) rotateY(180deg);opacity:0}60%{transform:scale(1.1) rotateY(0);opacity:1}100%{transform:scale(1) rotateY(0)}}
+.pull-nm{font-size:17px;font-weight:900}
+.pull-tier{font-size:11px;font-weight:900;letter-spacing:1px}
+.pull-ds{font-size:11px;color:#9aa4b2;text-align:center;line-height:1.6;max-width:260px;white-space:pre-line}
 .tr-cat{font-size:12px;font-weight:900;color:#8a6d0f;margin:14px 0 8px;letter-spacing:.5px}
 .tr-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .tr-card{display:flex;gap:9px;padding:10px;border-radius:12px;background:rgba(255,255,255,.55);
@@ -338,9 +363,9 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
   flex:0 0 36px;background:rgba(20,30,50,.05)}
 .tr-nm{font-size:12px;font-weight:900;line-height:1.2}
 .tr-ds{font-size:9.5px;line-height:1.45;color:#5b6472;margin-top:3px;white-space:pre-line}
-.tr-row{display:flex;align-items:center;justify-content:space-between;margin-top:7px;gap:6px}
-.tr-own{font-size:9.5px;font-weight:800;color:#5b6472}
-.tr-buy{padding:5px 10px;border-radius:8px;border:0;cursor:pointer;font-size:10.5px;font-weight:900;
+.tr-row{display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-top:7px;gap:5px}
+.tr-own{font-size:9.5px;font-weight:800;color:#5b6472;margin-right:auto;white-space:nowrap}
+.tr-buy{padding:5px 10px;border-radius:8px;border:0;cursor:pointer;font-size:10.5px;font-weight:900;white-space:nowrap;
   background:linear-gradient(135deg,#8a6d0f,#e0b83a);color:#2a2003;white-space:nowrap}
 .tr-buy:disabled{opacity:.4;cursor:not-allowed}
 /* 선수 상세의 특성 줄 */
@@ -1182,6 +1207,7 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
       </div>
       <div class="csb-btns">
         <div class="csb-b all" onclick="selectAllSellable()" id="csbAll">전체 선택</div>
+        <div class="csb-b scrap" onclick="confirmBulkDismantle()">분해</div>
         <div class="csb-b sell" onclick="confirmBulkSell()">판매</div>
       </div>
     </div>
@@ -1438,62 +1464,98 @@ function grantBasicSquad() {
    · OVR·스탯·가격·급여에는 전혀 영향이 없다. 경기 중 동작만 바뀐다.
    새 특성 추가 = 아래 표에 한 줄 + 아이콘 한 줄 + 효과 거는 곳 한 군데.
    ══════════════════════════════════════════════════════════════════ */
-const TRAIT_PRICE = 1000;        // 특성 1개 값 (억 CP). 임시 가격 — 여기만 고치면 전부 바뀐다.
+/* ── 파워포인트(PP) ──
+   선수를 '분해' 하면 그 선수 값어치만큼 PP 가 나오고, PP 로 특성을 사거나 뽑는다.
+   CP·MP 로는 특성을 살 수 없다. */
+const PP_NAME = '파워포인트';
+// 분해 보상표 — [가격 상한(억), 주는 PP]. 상한을 넘으면 마지막 값(80).
+const PP_TABLE = [
+  [500, 5], [1000, 10], [1500, 15], [2000, 20], [2500, 26], [3000, 32],
+  [3500, 38], [4000, 44], [4500, 50], [5000, 57], [5500, 64], [6000, 72]
+];
+const PP_MAX = 80;
+function ppOfEok(eok) {
+  for (let i = 0; i < PP_TABLE.length; i++) if (eok <= PP_TABLE[i][0]) return PP_TABLE[i][1];
+  return PP_MAX;
+}
+// 카드 하나를 분해했을 때 나오는 PP (강화된 가격 기준 — 카드에 적힌 CP 값과 같다)
+function ppOfCard(card) {
+  if (!card) return 0;
+  const p = PLAYERS.find(x => x.id === card.id);
+  if (!p) return 0;
+  return ppOfEok(getEnhancedPriceEok(p.price, card.enhLevel || 1));
+}
+
+// 등급별 특성 값 (PP)
+const TRAIT_TIER_COST = { 1: 150, 2: 60, 3: 20 };
+const TRAIT_SCRAP_PP = { 1: 40, 2: 15, 3: 5 };   // 특성을 갈면 돌려받는 PP (등급별)
+function traitScrapPP(id) { const t = TRAITS[id]; return TRAIT_SCRAP_PP[(t && t.tier) || 3]; }
+const TRAIT_UNEQUIP_CP = 100;       // 장착한 특성을 떼어낼 때 드는 비용 (억 CP)
+const TRAIT_TIER_NAME = { 1: '1티어', 2: '2티어', 3: '3티어' };
+const TRAIT_TIER_COLOR = { 1: '#ff5e4d', 2: '#b47cf5', 3: '#4dabf7' };
+// 뽑기
+const TRAIT_PULL_COST = 30;
+const TRAIT_PULL_ODDS = { 3: 0.75, 2: 0.19, 1: 0.06 };
+
+let powerPoints = 0;
 
 const TRAITS = {
   /* ── 공격 ── */
-  laser:    { name:'레이저',        cat:'공격', color:'#ff5e4d',
+  laser:    { tier:1, name:'레이저',        cat:'공격', color:'#ff5e4d',
               desc:'19m 밖에서 때린 슛은 키퍼가 막기 어렵다.\n먼 거리 슛 선방률 −10%p · 슛 속도 +8%' },
-  curl:     { name:'감아차기 마스터', cat:'공격', color:'#ff8f3f',
+  curl:     { tier:2, name:'감아차기 마스터', cat:'공격', color:'#ff8f3f',
               desc:'감아차기가 더 크게 휘고 키퍼가 더 못 읽는다.\n감아차기 선방률 추가 −7%p · 휘는 폭 +40%' },
-  target:   { name:'타겟',          cat:'공격', color:'#ffd43b',
+  target:   { tier:1, name:'타겟',          cat:'공격', color:'#ffd43b',
               desc:'박스 안에서의 결정력이 다르다.\n17m 안쪽 슛 선방률 −12%p' },
-  onetouch: { name:'원터치 피니셔',  cat:'공격', color:'#ff5fa2',
+  onetouch: { tier:2, name:'원터치 피니셔',  cat:'공격', color:'#ff5fa2',
               desc:'받자마자 때리는 슛이 날카롭다.\n패스 받고 0.8초 안에 쏜 슛 선방률 −10%p' },
-  clutch:   { name:'해결사',        cat:'공격', color:'#e03131',
+  clutch:   { tier:3, name:'해결사',        cat:'공격', color:'#e03131',
               desc:'중요한 순간에 강해진다.\n75분 이후 지거나 비기는 중이면 선방률 −10%p · 슛 속도 +5%' },
-  runner:   { name:'침투',          cat:'공격', color:'#51cf66',
+  runner:   { tier:2, name:'침투',          cat:'공격', color:'#51cf66',
               desc:'수비 뒷공간으로 더 깊이 파고든다.\n공격 시 전진 폭 +40% · 스루패스 1순위 타겟' },
 
   /* ── 기술 ── */
-  magician: { name:'마술사',        cat:'기술', color:'#cc5de8',
+  magician: { tier:2, name:'마술사',        cat:'기술', color:'#cc5de8',
               desc:'발재간으로 수비를 더 잘 속인다.\n스텝오버 성공률 +18%p · 쿨다운 −40%' },
-  gust:     { name:'질풍',          cat:'기술', color:'#22d3ee',
+  gust:     { tier:1, name:'질풍',          cat:'기술', color:'#22d3ee',
               desc:'질주가 더 빠르고 덜 지친다.\n질주 속도 +9% · 질주 체력 소모 −30%' },
-  juggler:  { name:'저글러',        cat:'기술', color:'#4dabf7',
+  juggler:  { tier:2, name:'저글러',        cat:'기술', color:'#4dabf7',
               desc:'공을 쉽게 빼앗기지 않는다.\n상대 태클 성공률 −25%' },
-  burst:    { name:'급출발',        cat:'기술', color:'#20c997',
+  burst:    { tier:1, name:'급출발',        cat:'기술', color:'#20c997',
               desc:'방향 전환과 첫 발이 빠르다.\n가속 0.26 → 0.40' },
 
   /* ── 패스 ── */
-  vision:   { name:'안개 속의 눈',   cat:'패스', color:'#9775fa',
+  vision:   { tier:3, name:'안개 속의 눈',   cat:'패스', color:'#9775fa',
               desc:'남들이 못 보는 길을 찾는다.\n스루패스 길목 위험도 −35%' },
-  maestro:  { name:'지휘자',        cat:'패스', color:'#748ffc',
+  maestro:  { tier:3, name:'지휘자',        cat:'패스', color:'#748ffc',
               desc:'긴 패스가 정확하고 빠르다.\n26m 이상 패스 속도 +12% · 보정 +50%' },
-  crosser:  { name:'크로스 마스터',  cat:'패스', color:'#38d9a9',
+  crosser:  { tier:3, name:'크로스 마스터',  cat:'패스', color:'#38d9a9',
               desc:'크로스를 박스 중앙에 정확히 떨군다.\n크로스 낙하 오차 −55%' },
 
   /* ── 수비 ── */
-  tackler:  { name:'태클 마스터',    cat:'수비', color:'#fa5252',
+  tackler:  { tier:2, name:'태클 마스터',    cat:'수비', color:'#fa5252',
               desc:'태클이 깔끔하게 들어간다.\n태클 성공 배율 ×1.35 · 파울 확률 −30%' },
-  clean:    { name:'클린 태클러',    cat:'수비', color:'#94d82d',
+  clean:    { tier:3, name:'클린 태클러',    cat:'수비', color:'#94d82d',
               desc:'거칠지 않게 끊는다.\n파울 확률 −50% · 경고 확률 −40%' },
-  presser:  { name:'압박의 화신',    cat:'수비', color:'#ff922b',
+  presser:  { tier:3, name:'압박의 화신',    cat:'수비', color:'#ff922b',
               desc:'쉬지 않고 달라붙는다.\n압박 추격 속도 +8%' },
-  sweeper:  { name:'스위퍼',        cat:'수비', color:'#15aabf',
+  sweeper:  { tier:3, name:'스위퍼',        cat:'수비', color:'#15aabf',
               desc:'흘러나온 공을 먼저 줍는다.\n루즈볼 가로채기 반경 1.4 → 1.9' },
 
   /* ── 체력 · 세트피스 · 골키퍼 ── */
-  hearts:   { name:'두 개의 심장',   cat:'체력', color:'#f06595',
+  hearts:   { tier:2, name:'두 개의 심장',   cat:'체력', color:'#f06595',
               desc:'90분을 끝까지 뛴다.\n체력 소모 −30% · 체력 60 이하 속도 패널티 없음' },
-  fkmaster: { name:'프리킥 마스터',  cat:'세트피스', color:'#fcc419',
+  fkmaster: { tier:3, name:'프리킥 마스터',  cat:'세트피스', color:'#fcc419',
               desc:'직접 프리킥을 제대로 감는다.\n스윗스팟 58~82% → 50~90% · 선방률 추가 −6%p' },
-  pkmaster: { name:'페널티 전문가',  cat:'세트피스', color:'#f783ac',
+  pkmaster: { tier:3, name:'페널티 전문가',  cat:'세트피스', color:'#f783ac',
               desc:'페널티를 놓치지 않는다.\nPK 선방률 −12%p' },
-  gkgod:    { name:'선방의 신',      cat:'골키퍼', color:'#4c6ef5', gk:true,
+  gkgod:    { tier:2, name:'선방의 신',      cat:'골키퍼', color:'#4c6ef5', gk:true,
               desc:'골키퍼 전용. 어떻게든 막아낸다.\n선방률 +8%p' },
 };
 const TRAIT_IDS = Object.keys(TRAITS);
+function traitCost(id) { const t = TRAITS[id]; return TRAIT_TIER_COST[(t && t.tier) || 3]; }
+// 등급별 목록 (뽑기에서 쓴다)
+function traitsOfTier(tier) { return TRAIT_IDS.filter(id => (TRAITS[id].tier || 3) === tier); }
 
 /* ── 아이콘 — 전부 코드로 그린다 (24×24, currentColor) ── */
 const TRAIT_SVG = {
@@ -1580,23 +1642,40 @@ function traitOwned(id) { return traitInv[id] || 0; }
 function renderTraitShop() {
   const el = document.getElementById('traitShopBody');
   if (!el) return;
-  const cats = [];
-  TRAIT_IDS.forEach(id => { const c = TRAITS[id].cat; if (cats.indexOf(c) < 0) cats.push(c); });
-  let h = '<div style="font-size:11px;color:#5b6472;line-height:1.7;margin-bottom:4px">'
-    + '특성은 <b>선수당 하나</b>만 장착됩니다. 사 두면 <b>내 선수 → 선수를 눌러</b> 원하는 선수에게 붙일 수 있습니다.<br>'
-    + '떼어내면 다시 보유함으로 돌아옵니다. OVR·가격에는 영향이 없습니다.</div>';
-  cats.forEach(cat => {
-    h += '<div class="tr-cat">' + cat + '</div><div class="tr-grid">';
-    TRAIT_IDS.filter(id => TRAITS[id].cat === cat).forEach(id => {
-      const t = TRAITS[id], own = traitOwned(id), can = cp >= TRAIT_PRICE;
+  let h = '<div class="pp-bar">'
+    + '<div style="width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(180,124,245,.18);color:#d9b8ff">'
+    + traitIconHTML('burst', 20, '#d9b8ff') + '</div>'
+    + '<div><div class="v">' + powerPoints.toLocaleString() + ' PP</div>'
+    + '<div class="l">' + PP_NAME + '</div></div>'
+    + '<button class="pp-pull" onclick="traitPull()"' + (powerPoints < TRAIT_PULL_COST ? ' disabled' : '') + '>'
+    + '🎲 특성 뽑기 ' + TRAIT_PULL_COST + ' PP</button></div>';
+  h += '<div style="font-size:11px;color:#5b6472;line-height:1.7;margin-bottom:4px">'
+    + 'PP 는 <b>내 선수 → 선수를 눌러 분해</b>하면 나옵니다. 비싼 선수일수록 많이 나옵니다.<br>'
+    + '뽑기는 3티어 ' + Math.round(TRAIT_PULL_ODDS[3]*100) + '% · 2티어 ' + Math.round(TRAIT_PULL_ODDS[2]*100)
+    + '% · 1티어 ' + Math.round(TRAIT_PULL_ODDS[1]*100) + '% 입니다.<br>'
+    + '안 쓰는 특성은 <b>분해</b>해서 PP 로 되돌릴 수 있습니다 (1티어 ' + TRAIT_SCRAP_PP[1]
+    + ' · 2티어 ' + TRAIT_SCRAP_PP[2] + ' · 3티어 ' + TRAIT_SCRAP_PP[3] + ' PP).<br>'
+    + '특성은 <b>선수당 하나</b>만 장착됩니다. 떼어내면 보유함으로 돌아오지만 '
+    + fmtEok(TRAIT_UNEQUIP_CP) + ' CP 가 듭니다. OVR·가격에는 영향이 없습니다.</div>';
+
+  [1, 2, 3].forEach(tier => {
+    const ids = traitsOfTier(tier);
+    if (!ids.length) return;
+    h += '<div class="tr-cat" style="color:' + TRAIT_TIER_COLOR[tier] + '">'
+      + TRAIT_TIER_NAME[tier] + ' — 개당 ' + TRAIT_TIER_COST[tier] + ' PP</div><div class="tr-grid">';
+    ids.forEach(id => {
+      const t = TRAITS[id], own = traitOwned(id), cost = traitCost(id), can = powerPoints >= cost;
       h += '<div class="tr-card">'
         + '<div class="ic" style="background:' + t.color + '18">' + traitIconHTML(id, 24) + '</div>'
         + '<div style="flex:1;min-width:0">'
-        + '<div class="tr-nm" style="color:' + t.color + '">' + t.name + (t.gk ? ' <span style="font-size:8px;color:#8b93a1">GK</span>' : '') + '</div>'
+        + '<div class="tr-nm" style="color:' + t.color + '">' + t.name
+        + (t.gk ? ' <span style="font-size:8px;color:#8b93a1">GK</span>' : '') + '</div>'
         + '<div class="tr-ds">' + t.desc + '</div>'
         + '<div class="tr-row"><span class="tr-own">보유 ' + own + '</span>'
+        + (own > 0 ? '<button class="tr-scrap" onclick="scrapTrait(\'' + id + '\')">분해 +'
+            + traitScrapPP(id) + '</button>' : '')
         + '<button class="tr-buy" onclick="buyTrait(\'' + id + '\')"' + (can ? '' : ' disabled') + '>'
-        + fmtEok(TRAIT_PRICE) + ' CP</button></div>'
+        + cost + ' PP</button></div>'
         + '</div></div>';
     });
     h += '</div>';
@@ -1604,15 +1683,106 @@ function renderTraitShop() {
   el.innerHTML = h;
 }
 
+/* 보유한 특성을 갈아서 PP 로 되돌린다 (등급 무관 10 PP) */
+function scrapTrait(id) {
+  const t = TRAITS[id]; if (!t) return;
+  if (traitOwned(id) <= 0) return;
+  const gain = traitScrapPP(id);
+  showModal('[' + t.name + '] 1개를 분해합니다.\n+' + gain + ' PP (보유 ' + traitOwned(id) + '개)', [
+    { label:'분해', cls:'confirm', fn: () => {
+        if (traitOwned(id) <= 0) return;
+        traitInv[id] = traitOwned(id) - 1;
+        if (traitInv[id] <= 0) delete traitInv[id];
+        powerPoints += gain;
+        renderTraitShop(); saveGame();
+        showModal('분해 완료!\n+' + gain + ' PP (보유 ' + powerPoints + ' PP)', [{label:'확인', cls:'ok'}]);
+      } },
+    { label:'취소', cls:'ok' }
+  ]);
+}
+
 function buyTrait(id) {
   const t = TRAITS[id]; if (!t) return;
-  if (cp < TRAIT_PRICE) { showModal('CP가 부족합니다! (필요: ' + fmtEok(TRAIT_PRICE) + ' CP)', [{label:'확인', cls:'ok'}]); return; }
-  showModal('[' + t.name + '] 특성을 구매하시겠습니까?\n' + fmtEok(TRAIT_PRICE) + ' CP', [
+  const cost = traitCost(id);
+  if (powerPoints < cost) {
+    showModal(PP_NAME + '가 부족합니다! (필요: ' + cost + ' PP / 보유: ' + powerPoints + ' PP)\n내 선수에서 선수를 분해하면 PP 가 나옵니다.', [{label:'확인', cls:'ok'}]);
+    return;
+  }
+  showModal('[' + t.name + '] 특성을 구매하시겠습니까?\n' + cost + ' PP (보유 ' + powerPoints + ' PP)', [
     { label:'구매', cls:'confirm', fn: () => {
-        cp -= TRAIT_PRICE;
+        powerPoints -= cost;
         traitInv[id] = traitOwned(id) + 1;
-        updateCPDisplay(); renderTraitShop(); saveGame();
+        renderTraitShop(); saveGame();
         showModal('[' + t.name + '] 구매 완료!\n내 선수에서 원하는 선수에게 장착하세요.', [{label:'확인', cls:'ok'}]);
+      } },
+    { label:'취소', cls:'ok' }
+  ]);
+}
+
+/* ─── 특성 뽑기 ─── */
+let traitPulling = false;
+function traitPull() {
+  if (traitPulling) return;
+  if (powerPoints < TRAIT_PULL_COST) {
+    showModal(PP_NAME + '가 부족합니다! (필요: ' + TRAIT_PULL_COST + ' PP)', [{label:'확인', cls:'ok'}]);
+    return;
+  }
+  traitPulling = true;
+  powerPoints -= TRAIT_PULL_COST;
+  // 등급 → 그 등급 안에서 균등
+  const r = Math.random();
+  let tier = 3, acc = 0;
+  for (const k of [1, 2, 3]) { acc += TRAIT_PULL_ODDS[k]; if (r < acc) { tier = k; break; } }
+  const pool = traitsOfTier(tier);
+  const id = pool[Math.floor(Math.random() * pool.length)];
+  traitInv[id] = traitOwned(id) + 1;
+  saveGame();
+
+  let ov = document.getElementById('traitPullOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'traitPullOv'; ov.className = 'pull-ov'; document.body.appendChild(ov); }
+  ov.innerHTML = '<div class="pull-card spin" id="pullCard">'
+    + '<div style="font-size:44px;color:#5a4a7a">?</div></div>'
+    + '<div class="pull-ds">뽑는 중...</div>';
+  ov.classList.add('on');
+  ov.onclick = null;
+
+  setTimeout(() => {
+    const t = TRAITS[id];
+    ov.innerHTML = '<div class="pull-card hit" style="border-color:' + t.color + ';box-shadow:0 0 28px ' + t.color + '55">'
+      + traitIconHTML(id, 64)
+      + '<div class="pull-nm" style="color:' + t.color + '">' + t.name + '</div>'
+      + '<div class="pull-tier" style="color:' + TRAIT_TIER_COLOR[tier] + '">' + TRAIT_TIER_NAME[tier] + '</div>'
+      + '</div>'
+      + '<div class="pull-ds">' + t.desc + '</div>'
+      + '<div style="font-size:11px;color:#777">남은 ' + PP_NAME + ' ' + powerPoints + ' PP · 화면을 누르면 닫힙니다</div>';
+    ov.onclick = () => { ov.classList.remove('on'); traitPulling = false; renderTraitShop(); };
+  }, 1100);
+}
+
+/* ─── 선수 분해 → 파워포인트 ─── */
+function dismantlePlayer(uid) {
+  const card = collection.find(c => c.uid === uid);
+  if (!card) return;
+  const p = PLAYERS.find(pl => pl.id === card.id);
+  if (!p) return;
+  if (p.basic) { showModal('기본 선수는 분해할 수 없습니다.', [{label:'확인', cls:'ok'}]); return; }
+  const inUse = (squadSlots || []).indexOf(uid) >= 0 || (benchSlots || []).indexOf(uid) >= 0;
+  if (inUse) { showModal('스쿼드·벤치에 배치된 선수는 분해할 수 없습니다.', [{label:'확인', cls:'ok'}]); return; }
+  const eok = getEnhancedPriceEok(p.price, card.enhLevel || 1);
+  const pp = ppOfCard(card);
+  const back = card.trait ? TRAITS[card.trait] : null;    // 장착한 특성은 돌려준다
+  showModal(p.name + ' 을(를) 분해하시겠습니까?\n' + fmtEok(eok) + ' CP 선수 → ' + pp + ' PP'
+    + (back ? '\n장착한 [' + back.name + '] 은 보유함으로 돌아옵니다.' : '')
+    + '\n\n카드는 사라지고 CP 는 받지 않습니다.', [
+    { label:'분해', cls:'confirm', fn: () => {
+        const i = collection.findIndex(c => c.uid === uid);
+        if (i === -1) return;
+        if (collection[i].trait) { const tid = collection[i].trait; traitInv[tid] = traitOwned(tid) + 1; }
+        collection.splice(i, 1);
+        powerPoints += pp;
+        closePlayerDetail();
+        renderCollection(); saveGame();
+        showModal('분해 완료!\n+' + pp + ' PP (보유 ' + powerPoints + ' PP)', [{label:'확인', cls:'ok'}]);
       } },
     { label:'취소', cls:'ok' }
   ]);
@@ -1656,7 +1826,7 @@ function openTraitPicker(uid) {
       + (card.trait ? '장착 중' : '이 선수의 고유 특성') + '</div></div>'
       + (card.trait ? '<div onclick="unequipTrait(' + uid + ')" style="padding:5px 10px;border-radius:8px;'
           + 'background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.5);font-size:10px;'
-          + 'font-weight:900;color:#ff9b9b;cursor:pointer">떼어내기</div>' : '')
+          + 'font-weight:900;color:#ff9b9b;cursor:pointer">떼어내기 ' + fmtEok(TRAIT_UNEQUIP_CP) + '</div>' : '')
       + '</div>'
     : '';
 
@@ -1690,13 +1860,25 @@ function equipTrait(uid, id) {
 function unequipTrait(uid) {
   const card = collection.find(c => c.uid === uid); if (!card || !card.trait) return;
   const id = card.trait;
-  traitInv[id] = traitOwned(id) + 1;
-  delete card.trait;
-  closeTraitPicker();
-  saveGame();
-  try { showPlayerDetailByUid(uid); } catch(e) {}
-  try { renderCollection(); } catch(e) {}
-  showModal('[' + TRAITS[id].name + '] 을(를) 떼어냈습니다.', [{label:'확인', cls:'ok'}]);
+  if (cp < TRAIT_UNEQUIP_CP) {
+    showModal('CP 가 부족합니다!\n특성을 떼어내려면 ' + fmtEok(TRAIT_UNEQUIP_CP) + ' CP 가 듭니다. (보유 ' + fmtEok(Math.floor(cp)) + ' CP)',
+      [{label:'확인', cls:'ok'}]);
+    return;
+  }
+  showModal('[' + TRAITS[id].name + '] 을(를) 떼어냅니다.\n비용 ' + fmtEok(TRAIT_UNEQUIP_CP) + ' CP\n특성은 보유함으로 돌아옵니다.', [
+    { label:'떼어내기', cls:'confirm', fn: () => {
+        if (!card.trait || cp < TRAIT_UNEQUIP_CP) return;
+        cp -= TRAIT_UNEQUIP_CP;
+        traitInv[id] = traitOwned(id) + 1;
+        delete card.trait;
+        closeTraitPicker();
+        updateCPDisplay(); saveGame();
+        try { showPlayerDetailByUid(uid); } catch(e) {}
+        try { renderCollection(); } catch(e) {}
+        showModal('[' + TRAITS[id].name + '] 을(를) 떼어냈습니다.\n−' + fmtEok(TRAIT_UNEQUIP_CP) + ' CP', [{label:'확인', cls:'ok'}]);
+      } },
+    { label:'취소', cls:'ok' }
+  ]);
 }
 
 const PACK_TYPES = {
@@ -3115,6 +3297,7 @@ function showPlayerDetail(idx) {
         ${enhBtnHtml}
         ${trainBtnHtml}
         <button class="pd-btn" onclick="sellPlayer(${card.uid})" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff">판매 (${sellPriceDisplay})</button>
+        <button class="pd-btn" onclick="dismantlePlayer(${card.uid})" style="background:linear-gradient(135deg,#5b2b8a,#8b5cf6);color:#fff">분해 (+${ppOfCard(card)} PP)</button>
         <button class="pd-btn close" onclick="closePlayerDetail()">닫기</button>
       </div>
       <div id="enhResult"></div>
@@ -3607,10 +3790,14 @@ function updateSellBar() {
   });
   const ce = document.getElementById('csbCnt');
   if (ce) ce.textContent = n;
+  let pp = 0;
+  sellPicked.forEach(uid => { const c = collection.find(x => x.uid === uid); if (c) pp += ppOfCard(c); });
   const se = document.getElementById('csbSum');
-  if (se) se.textContent = '판매가 ' + fmtEok(Math.round(sum)) + ' CP (수수료 20%)';
+  if (se) se.textContent = '판매 ' + fmtEok(Math.round(sum)) + ' CP · 분해 ' + pp + ' PP';
   const be = document.querySelector('.csb-b.sell');
   if (be) be.className = 'csb-b sell' + (n ? '' : ' off');
+  const pe = document.querySelector('.csb-b.scrap');
+  if (pe) pe.className = 'csb-b scrap' + (n ? '' : ' off');
   const ae = document.getElementById('csbAll');
   if (ae) {
     const list = visibleSellable();
@@ -3657,6 +3844,51 @@ function doBulkSell() {
   renderCollection();
   updateSellBar();
   showModal('선수 ' + cnt + '명 판매 완료!\n+' + fmtEok(Math.round(sum)) + ' CP',
+    [{label:'확인', cls:'ok'}]);
+}
+
+/* ══ 다중 선택 분해 ══ */
+function confirmBulkDismantle() {
+  const n = sellPicked.size;
+  if (!n) { showModal('분해할 선수를 먼저 선택해주세요.', [{label:'확인', cls:'ok'}]); return; }
+  let pp = 0, back = 0;
+  const names = [];
+  sellPicked.forEach(uid => {
+    const c = collection.find(x => x.uid === uid);
+    if (!c || isSellLocked(c)) return;
+    pp += ppOfCard(c);
+    if (c.trait) back++;
+    const p = PLAYERS.find(pl => pl.id === c.id);
+    if (p && names.length < 4) names.push(p.name + ((c.enhLevel||1) > 1 ? ' ' + c.enhLevel + '강' : ''));
+  });
+  const list = names.join(', ') + (n > names.length ? ' 외 ' + (n - names.length) + '명' : '');
+  showModal('선수 ' + n + '명을 분해합니다.\n' + list
+    + '\n\n받는 ' + PP_NAME + ': ' + pp + ' PP'
+    + (back ? '\n장착한 특성 ' + back + '개는 보유함으로 돌아옵니다.' : '')
+    + '\n\n카드는 사라지고 CP 는 받지 않습니다.', [
+    {label:'분해', cls:'confirm', fn: doBulkDismantle},
+    {label:'취소', cls:'cancel'}
+  ]);
+}
+
+function doBulkDismantle() {
+  let pp = 0, cnt = 0;
+  sellPicked.forEach(uid => {
+    const idx = collection.findIndex(x => x.uid === uid);
+    if (idx < 0) return;
+    const c = collection[idx];
+    if (isSellLocked(c)) return;
+    pp += ppOfCard(c);
+    if (c.trait) { traitInv[c.trait] = traitOwned(c.trait) + 1; }
+    collection.splice(idx, 1);
+    cnt++;
+  });
+  powerPoints += pp;
+  sellPicked.clear();
+  saveGame();
+  renderCollection();
+  updateSellBar();
+  showModal('선수 ' + cnt + '명 분해 완료!\n+' + pp + ' PP (보유 ' + powerPoints + ' PP)',
     [{label:'확인', cls:'ok'}]);
 }
 
@@ -13490,7 +13722,7 @@ function saveGame() {
       tmPlayers, tmLastRefresh, tmSold,
       pachTickets, pachBoard, pachOpened, pachHints, pachHinted,
       svTickets, svPoints, svActive, svBoostRuns, svRevived,
-      traitInv,
+      traitInv, powerPoints,
       scTickets, scCount, lcTickets, lcCount, lcBoard, lcPicked, lcLucky, lcPhase, lcHint, ulBlind, worldCleared, worldClaimed, worldRegionClaimed, transTokens, achClaimed, achStats, attDays, attLast, mailClaimed,
       dailyDone, dailyDay, dailyClaim,
       clubName, playerLv, levelPts, mpSpentAcc, levelPending,
@@ -13545,6 +13777,7 @@ function loadGame() {
   if (typeof s.svActive  === 'boolean') svActive = s.svActive;
   if (typeof s.svBoostRuns === 'number') svBoostRuns = s.svBoostRuns;
   if (typeof s.svRevived === 'boolean') svRevived = s.svRevived;
+  if (typeof s.powerPoints === 'number') powerPoints = Math.max(0, s.powerPoints | 0);
   if (s.traitInv && typeof s.traitInv === 'object') {
     traitInv = {};
     for (const k in s.traitInv) if (TRAITS[k] && s.traitInv[k] > 0) traitInv[k] = s.traitInv[k] | 0;
