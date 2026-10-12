@@ -162,7 +162,179 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
 }.item-pack:hover{transform:scale(1.05)}.item-pack .ip-svg{width:100%;height:100%;position:absolute;top:0;left:0;z-index:2;pointer-events:none}.item-pack .ip-inner{width:100%;height:100%;position:absolute;top:0;left:0;overflow:hidden;
   clip-path:polygon(50% 0%,97% 8%,100% 15%,100% 78%,50% 100%,0% 78%,0% 15%,3% 8%)}.item-pack .ip-bg{position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse at 40% 30%,rgba(212,175,55,.12) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,#0f0f18 0%,#08080d 100%)}.item-pack .ip-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;text-align:center}.item-pack .ip-season{font-size:18px;font-weight:900;letter-spacing:3px;color:#d4af37}.item-pack .ip-sub{font-size:6px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.2);margin-top:2px}.item-badge{position:absolute;top:-4px;right:-4px;z-index:10;background:#ef4444;color:#1a2233;font-size:10px;font-weight:900;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}.items-empty{text-align:center;padding:40px;color:#555;font-size:13px}.placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:calc(100% - 60px);text-align:center;padding-bottom:80px}.placeholder .ph-icon{font-size:48px;opacity:.15;margin-bottom:12px}.placeholder .ph-title{font-size:16px;font-weight:800;color:#444}.placeholder .ph-desc{font-size:12px;color:#333;margin-top:6px}
 
+/* ═══ 강화 연출 ═══ */
+.efx-ov{position:fixed;inset:0;z-index:199;display:none;align-items:center;justify-content:center;flex-direction:column;overflow:hidden}
+.efx-ov.on{display:flex}
+.efx-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 42%,#13182b 0%,#06070d 70%);transition:background .45s ease}
+.efx-bg.win{background:radial-gradient(ellipse at 50% 42%,#fffdf2 0%,#ffe289 40%,#e09a12 100%)}
+.efx-bg.lose{background:radial-gradient(ellipse at 50% 42%,#2a0d10 0%,#07070a 72%)}
+.efx-bg.crit{background:radial-gradient(ellipse at 50% 42%,#fdf2ff 0%,#dfa6ff 36%,#6d12c8 100%)}
+.efx-stage{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:14px}
+.efx-lvl{margin-top:10px}
+.efx-card{position:relative;width:220px;height:300px;transform:scale(.88);opacity:0;transition:transform .3s cubic-bezier(.2,1.6,.4,1),opacity .3s}
+.efx-card.on{transform:scale(1);opacity:1}
+.efx-real,.efx-ghostclip{position:absolute;inset:0}
+.efx-ghostclip{pointer-events:none;will-change:clip-path;contain:paint;
+  clip-path:polygon(0% 0%,100% 0%,100% 100%,0% 100%,0% 0%,0% 0%,0% 100%,100% 100%,100% 0%,0% 0%)}
+.efx-ghost{position:absolute;inset:0;pointer-events:none;background:var(--gc,#fff);
+  clip-path:polygon(50% 0%,97% 8%,100% 15%,100% 78%,50% 100%,0% 78%,0% 15%,3% 8%)}
+.efx-ring{position:absolute;left:0;right:0;top:0;bottom:0;border:2px solid var(--gc,#fff);border-radius:3px;
+  box-shadow:0 0 13px var(--gc,#fff),inset 0 0 20px 5px var(--gc,#fff);
+  opacity:0;pointer-events:none;will-change:left,top}
+@keyframes efxSh{0%,100%{transform:translate(0,0)}25%{transform:translate(-2px,1px)}50%{transform:translate(2px,-1px)}75%{transform:translate(-1px,-2px)}}
+@keyframes efxShB{0%,100%{transform:translate(0,0)}20%{transform:translate(-6px,3px)}40%{transform:translate(6px,-4px)}60%{transform:translate(-5px,-3px)}80%{transform:translate(4px,4px)}}
+.efx-stage.sh{animation:efxSh .12s linear infinite}
+.efx-stage.shb{animation:efxShB .09s linear infinite}
+.efx-lvl{display:flex;align-items:center;justify-content:center;height:52px;position:relative;width:100%}
+.efx-lvl-num{position:absolute;font-size:38px;font-weight:900;letter-spacing:2px;line-height:1;
+  padding:4px 20px 6px;border-radius:13px;background:rgba(7,9,18,.72);border:2px solid currentColor;
+  text-shadow:0 0 18px currentColor;box-shadow:0 0 26px rgba(0,0,0,.45),0 0 30px currentColor;
+  transition:transform .32s cubic-bezier(.3,1.5,.4,1),opacity .32s,filter .32s}
+@keyframes efxIn{0%{transform:translateY(46px) scale(1.9);opacity:0;filter:blur(6px)}
+  60%{transform:translateY(0) scale(1.18);opacity:1;filter:blur(0)}100%{transform:translateY(0) scale(1);opacity:1}}
+.efx-lvl-num.in{animation:efxIn .42s cubic-bezier(.2,1.4,.4,1) both}
+.efx-lvl-num.out{transform:translateY(-52px) scale(.72);opacity:0;filter:blur(5px)}
+.efx-lvl-num.down{transform:translateY(26px) scale(.78);opacity:0;filter:blur(4px)}
+.efx-msg{font-size:34px;font-weight:900;letter-spacing:3px;opacity:0;transform:scale(1.7);
+  transition:opacity .22s,transform .3s cubic-bezier(.2,1.5,.4,1)}
+.efx-msg.show{opacity:1;transform:scale(1)}
+.efx-msg.success{color:#1a1206;text-shadow:0 2px 0 rgba(255,255,255,.65),0 0 26px rgba(255,255,255,.9)}
+.efx-msg.fail{color:#ff5a5a;text-shadow:0 0 26px rgba(239,68,68,.75)}
+.efx-sub{font-size:13px;font-weight:800;opacity:0;transition:opacity .35s;margin-top:-4px}
+.efx-sub.show{opacity:1}
+.efx-skip{position:fixed;bottom:24px;left:0;right:0;text-align:center;z-index:310;font-size:11px;
+  font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);pointer-events:none;opacity:0;transition:opacity .4s}
+.efx-skip.on{opacity:1}
+.efx-btns{display:flex;gap:10px;margin-top:6px;opacity:0;transition:opacity .35s}
+.efx-btns.show{opacity:1}
+.efx-btns button{padding:11px 24px;border-radius:9px;font-size:13px;font-weight:800;cursor:pointer;border:none}
+.efx-again{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+.efx-done{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#ddd}
+.efx-bg.win~.efx-stage .efx-btns .efx-done{background:rgba(0,0,0,.14);border-color:rgba(0,0,0,.22);color:#3a2d08}
+.efx-bg.crit~.efx-stage .efx-btns .efx-done{background:rgba(0,0,0,.26);border-color:rgba(255,255,255,.45);color:#fff}
+@keyframes efxCritPop{0%{opacity:0;transform:scale(.7)}18%{opacity:.85;transform:scale(1.06)}100%{opacity:0;transform:scale(1.5)}}
+.efx-critpop{position:fixed;inset:0;z-index:3;pointer-events:none;
+  background:radial-gradient(circle at 50% 44%,rgba(190,110,255,.95) 0%,rgba(150,50,255,.45) 28%,transparent 62%);
+  animation:efxCritPop .7s ease-out forwards}
+.efx-msg.crit{color:#2b0640;text-shadow:0 2px 0 rgba(255,255,255,.7),0 0 30px rgba(255,255,255,.95)}
+@keyframes efxShard{to{transform:translate(var(--sx),var(--sy)) rotate(var(--sr));opacity:0}}
+.efx-shard{position:absolute;background:#fff;pointer-events:none;
+  box-shadow:0 0 10px rgba(255,255,255,.8);animation:efxShard .62s ease-out forwards}
+@keyframes efxShieldPop{0%{transform:scale(.4);opacity:0}45%{transform:scale(1.25);opacity:1}100%{transform:scale(1);opacity:1}}
+.efx-shield{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:84px;animation:efxShieldPop .5s cubic-bezier(.2,1.5,.4,1) both;filter:drop-shadow(0 0 22px rgba(212,175,55,.9))}
+
 /* ─── Pack Opening Overlay ─── */
+/* ═══ 팩 오프닝 연출 ═══ */
+.pk-stage{position:fixed;inset:0;z-index:205;pointer-events:none;overflow:hidden}
+.pk-skiphint{position:fixed;bottom:26px;left:0;right:0;text-align:center;z-index:260;
+  font-size:11px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,.35);pointer-events:none;
+  opacity:0;transition:opacity .4s}
+.pk-skiphint.on{opacity:1;animation:pkHintPulse 1.8s ease-in-out infinite}
+@keyframes pkHintPulse{0%,100%{opacity:.3}50%{opacity:.7}}
+
+/* 봉투 */
+.pk-env{position:fixed;left:50%;top:50%;width:208px;height:286px;margin:-143px 0 0 -104px;z-index:230;
+  perspective:900px;pointer-events:none}
+.pk-env .half{position:absolute;top:0;width:50%;height:100%;overflow:hidden;
+  transition:transform .55s cubic-bezier(.6,-.3,.4,1.4),opacity .55s}
+.pk-env .half.l{left:0;width:calc(50% + 1px);transform-origin:right center}
+.pk-env .half.r{right:0;transform-origin:left center}
+.pk-env .face{position:absolute;top:0;width:208px;height:100%;border-radius:14px;
+  background:linear-gradient(150deg,#141b2e 0%,#1d2740 45%,#0f1524 100%);
+  box-shadow:inset 0 0 0 2px var(--pkc,#d4af37),0 10px 40px rgba(0,0,0,.7)}
+.pk-env .half.l .face{left:0} .pk-env .half.r .face{right:0}
+.pk-env .seal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  font-size:34px;font-weight:900;letter-spacing:4px;color:var(--pkc,#d4af37);
+  text-shadow:0 0 22px var(--pkc,#d4af37)}
+.pk-env .sub{position:absolute;left:0;right:0;top:calc(50% + 34px);text-align:center;
+  font-size:9.5px;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,.38)}
+.pk-env.in{animation:pkEnvIn .5s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes pkEnvIn{from{transform:scale(.4) translateY(40px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.pk-env.wob{animation:pkWob 1.1s ease-in-out infinite}
+@keyframes pkWob{0%,100%{transform:rotate(-1.6deg) scale(1)}50%{transform:rotate(1.6deg) scale(1.025)}}
+.pk-env.rip .half.l{transform:translateX(-120%) rotate(-26deg);opacity:0}
+.pk-env.rip .half.r{transform:translateX(120%) rotate(26deg);opacity:0}
+
+/* 빛기둥 */
+.pk-rays{position:fixed;left:50%;top:50%;width:1100px;height:1100px;margin:-550px 0 0 -550px;z-index:206;
+  pointer-events:none;opacity:0;transition:opacity .7s;
+  /* 전에는 하드한 줄무늬에 blur(7px) 를 먹였는데, 1400px 짜리를 매 프레임 흐리게 다시 그리느라
+     저사양 기기에서 버벅였다. 색 정지점을 부드럽게 둬서 필터 없이 같은 느낌을 낸다. */
+  background:repeating-conic-gradient(from 0deg,
+    transparent 0deg, var(--pkc,#d4af37) 5deg, transparent 10deg, transparent 19deg);
+  -webkit-mask-image:radial-gradient(circle,transparent 0%,rgba(0,0,0,.9) 28%,transparent 62%);
+          mask-image:radial-gradient(circle,transparent 0%,rgba(0,0,0,.9) 28%,transparent 62%);
+  transform:rotate(var(--pkr,0deg))}
+/* 회전 대신 밝기만 아주 느리게 숨 쉬게 한다 (합성만 하므로 거의 공짜) */
+.pk-rays.on{animation:pkBreathe 4.2s ease-in-out infinite}
+@keyframes pkBreathe{0%,100%{opacity:calc(var(--pka,.18) * .72)}50%{opacity:var(--pka,.18)}}
+
+/* 바닥 글로우 */
+.pk-pool{position:fixed;left:50%;bottom:-180px;width:720px;height:420px;margin-left:-360px;z-index:206;
+  pointer-events:none;opacity:0;transition:opacity .8s;
+  background:radial-gradient(ellipse at center,var(--pkc,#d4af37) 0%,transparent 68%)}
+.pk-pool.on{opacity:.20}
+
+/* 섬광 */
+.pk-flash{position:fixed;inset:0;z-index:255;pointer-events:none;background:#fff;opacity:0}
+.pk-flash.go{animation:pkFlash .42s ease-out forwards}
+@keyframes pkFlash{0%{opacity:.92}100%{opacity:0}}
+
+/* 화면 흔들림 */
+.pk-shake{animation:pkShake .34s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes pkShake{20%{transform:translate(-1.5px,.5px)}45%{transform:translate(2px,-1px)}
+  70%{transform:translate(-1.5px,1px)}100%{transform:none}}
+.pk-shake.big{animation-duration:.5s}
+@keyframes pkShakeBig{18%{transform:translate(-3px,1px)}42%{transform:translate(4px,-1.5px)}
+  66%{transform:translate(-2.5px,1.5px)}100%{transform:none}}
+.pk-shake.big{animation-name:pkShakeBig}
+
+/* 워크아웃 */
+.pk-walk{position:fixed;left:50%;bottom:11%;transform:translateX(-50%);z-index:232;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;opacity:0}
+.pk-walk img{width:290px;max-height:52vh;object-fit:contain;object-position:center bottom;
+  /* drop-shadow 두 겹은 저사양에서 비싸다. 한 겹만 쓰고 뒤에 글로우를 따로 깐다. */
+  filter:brightness(0) drop-shadow(0 0 34px var(--pkc,#d4af37))}
+.pk-walk.go{animation:pkWalk 2.05s cubic-bezier(.22,.7,.3,1) forwards}
+@keyframes pkWalk{
+  0%{opacity:0;transform:translateX(-50%) scale(.26) translateY(60px)}
+  22%{opacity:1}
+  62%{opacity:1;transform:translateX(-50%) scale(1.06) translateY(0)}
+  80%{opacity:1;transform:translateX(-50%) scale(1.02) translateY(0)}
+  100%{opacity:0;transform:translateX(-50%) scale(.55) translateY(-120px)}}
+.pk-dim{position:fixed;inset:0;z-index:231;pointer-events:none;opacity:0;transition:opacity .45s;
+  background:radial-gradient(ellipse at 50% 72%,rgba(0,0,0,.25) 0%,rgba(0,0,0,.82) 62%)}
+.pk-dim.on{opacity:1}
+.pk-dim.lite{background:rgba(0,0,0,.72)}
+/* 반전 직전의 '정적' — 화면이 가라앉으며 숨을 고른다 */
+.pk-hush{position:fixed;inset:0;z-index:233;pointer-events:none;background:#05070e;
+  opacity:0;transition:opacity .75s ease-in}
+.pk-hush.on{opacity:.88}
+.pk-walk .nm{margin-top:-6px;font-size:30px;font-weight:900;letter-spacing:5px;color:#fff;
+  text-shadow:0 0 28px var(--pkc,#d4af37),0 2px 10px rgba(0,0,0,.8);opacity:0}
+.pk-walk.go .nm{animation:pkWalkNm 2.05s ease-out forwards}
+@keyframes pkWalkNm{0%,40%{opacity:0;transform:translateY(16px)}60%{opacity:1;transform:translateY(0)}
+  85%{opacity:1}100%{opacity:0}}
+
+/* 카드 홀로그램 */
+.pk-holo{position:absolute;inset:0;z-index:40;pointer-events:none;overflow:hidden;border-radius:12px}
+.pk-holo::after{content:'';position:absolute;top:-60%;left:-140%;width:70%;height:220%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.72),transparent);
+  transform:rotate(14deg);animation:pkHolo 2.2s ease-in-out 2}
+@keyframes pkHolo{0%{left:-140%}55%{left:160%}100%{left:160%}}
+.pk-holo.hot::after{animation:pkHolo 1.5s ease-in-out 3;background:linear-gradient(100deg,transparent,rgba(255,255,255,.95),transparent)}
+
+/* 힌트 박스 강화 */
+.hint-box{position:relative}
+.hint-box.show{animation:pkHintPop .5s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes pkHintPop{0%{opacity:0;transform:scale(.5) translateY(14px)}
+  60%{opacity:1;transform:scale(1.12) translateY(0)}100%{opacity:1;transform:scale(1)}}
+.hint-box .bar{position:absolute;left:50%;top:50%;width:0;height:1px;margin-left:0;
+  background:linear-gradient(90deg,transparent,var(--pkc,#d4af37),transparent);
+  animation:pkBar .55s ease-out forwards}
+@keyframes pkBar{0%{width:0;margin-left:0;opacity:1}100%{width:260px;margin-left:-130px;opacity:0}}
+
 .reveal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(8,8,13,.98);flex-direction:column;align-items:center;justify-content:center;gap:16px;overflow-y:auto;padding:20px}.reveal-overlay.active{display:flex}.hint-box{opacity:0;transform:scale(.5);transition:all .5s ease;font-size:20px;font-weight:900;color:#fff;text-align:center}.hint-box.show{opacity:1;transform:scale(1)}.hint-box .label{font-size:10px;color:#9aa8bd;letter-spacing:2px;margin-bottom:6px;text-transform:uppercase}.hint-box .value{font-size:28px}.hint-box .flag-reveal{width:50px;height:34px;border-radius:4px;object-fit:cover;border:1px solid rgba(255,255,255,.2)}.card-reveal{opacity:0;transform:scale(.3) rotateY(180deg);transition:all .8s cubic-bezier(.17,.67,.35,1.2)}.card-reveal.show{opacity:1;transform:scale(1) rotateY(0)}.tier-bg{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 1s;z-index:201}.tier-bg.show{opacity:1}.tier-bg.t114{background:radial-gradient(circle,rgba(156,163,175,.15) 0%,transparent 60%)}.tier-bg.t115{background:radial-gradient(circle,rgba(59,130,246,.15) 0%,transparent 60%)}.tier-bg.t116{background:radial-gradient(circle,rgba(168,85,247,.18) 0%,transparent 60%)}.tier-bg.t117{background:radial-gradient(circle,rgba(245,158,11,.2) 0%,transparent 60%)}.tier-bg.t118{background:radial-gradient(circle,rgba(239,68,68,.2) 0%,transparent 60%)}.tier-bg.t119{background:radial-gradient(circle,rgba(255,215,232,.30) 0%,rgba(212,175,55,.14) 35%,transparent 68%)}.tier-bg.ticon{background:radial-gradient(circle,rgba(212,175,55,.3) 0%,transparent 50%)}.tier-bg.tul{background:radial-gradient(circle,rgba(245,230,163,.20) 0%,rgba(11,42,122,.16) 40%,transparent 68%)}.price-tag{margin-top:12px;padding:6px 16px;border-radius:8px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);font-size:14px;font-weight:800;color:#d4af37;text-align:center;opacity:0;transition:opacity .5s}.price-tag.show{opacity:1}.action-btns{display:flex;gap:12px;margin-top:16px;opacity:0;transition:opacity .5s}.action-btns.show{opacity:1}.action-btn{padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .2s}.action-btn.again{background:linear-gradient(135deg,#d4af37,#c5981a);color:#1a1a1a}.action-btn.close{background:rgba(20,40,80,.09);color:#64748b;border:1px solid rgba(20,40,80,.2)}
 
 /* ─── Effects ─── */
@@ -1507,6 +1679,8 @@ const TRAITS = {
               desc:'감아차기가 더 크게 휘고 키퍼가 더 못 읽는다.\n감아차기 선방률 추가 −7%p · 휘는 폭 +40%' },
   target:   { tier:1, name:'타겟',          cat:'공격', color:'#ffd43b',
               desc:'박스 안에서의 결정력이 다르다.\n17m 안쪽 슛 선방률 −12%p' },
+  header:   { tier:2, name:'파워헤더',       cat:'공격', color:'#f06595',
+              desc:'공중볼 다툼에서 이기고 헤딩이 강하다.\n공중 경합 +9 · 헤딩 슛 선방률 −11%p · 헤딩 정확도 +26%' },
   onetouch: { tier:2, name:'원터치 피니셔',  cat:'공격', color:'#ff5fa2',
               desc:'받자마자 때리는 슛이 날카롭다.\n패스 받고 0.8초 안에 쏜 슛 선방률 −10%p' },
   clutch:   { tier:3, name:'해결사',        cat:'공격', color:'#e03131',
@@ -1530,7 +1704,7 @@ const TRAITS = {
   maestro:  { tier:3, name:'지휘자',        cat:'패스', color:'#748ffc',
               desc:'긴 패스가 정확하고 빠르다.\n26m 이상 패스 속도 +12% · 보정 +50%' },
   crosser:  { tier:3, name:'크로스 마스터',  cat:'패스', color:'#38d9a9',
-              desc:'크로스를 박스 중앙에 정확히 떨군다.\n크로스 낙하 오차 −55%' },
+              desc:'받을 선수 머리 위로 정확히 떨군다.\n크로스 조준 오차 −66%' },
 
   /* ── 수비 ── */
   tackler:  { tier:2, name:'태클 마스터',    cat:'수비', color:'#fa5252',
@@ -1548,7 +1722,7 @@ const TRAITS = {
   fkmaster: { tier:3, name:'프리킥 마스터',  cat:'세트피스', color:'#fcc419',
               desc:'직접 프리킥을 제대로 감는다.\n스윗스팟 58~82% → 50~90% · 선방률 추가 −6%p' },
   pkmaster: { tier:3, name:'페널티 전문가',  cat:'세트피스', color:'#f783ac',
-              desc:'페널티를 놓치지 않는다.\nPK 선방률 −12%p' },
+              desc:'박스 안에서 수비를 끌어들여 넘어진다.\n박스 안 태클 유도 ×2.8 · 파울 판정 ×2.4 · PK 선방률 −12%p' },
   gkgod:    { tier:2, name:'선방의 신',      cat:'골키퍼', color:'#4c6ef5', gk:true,
               desc:'골키퍼 전용. 어떻게든 막아낸다.\n선방률 +8%p' },
 };
@@ -1564,6 +1738,7 @@ const TRAIT_SVG = {
   // 휘어 들어가는 궤적
   curl:'<path d="M4 20c0-9 5-14 14-14" stroke-width="2"/><path d="M13 4.5l5 1.5-2.5 4.5" stroke-width="2" stroke-linejoin="round"/><circle cx="4.5" cy="19.5" r="2.2" fill="currentColor" stroke="none"/>',
   // 과녁
+  header:'<circle cx="12" cy="7.2" r="3.4" stroke-width="1.8"/><path d="M8.6 10.4C7 11.6 6 13.4 6 15.4V21" stroke-width="1.9" stroke-linecap="round"/><path d="M15.4 10.4C17 11.6 18 13.4 18 15.4V21" stroke-width="1.9" stroke-linecap="round"/><path d="M12 2.2 14.1 0M12 2.2 9.9 0M12 2.2 12 -0.4" stroke-width="1.5" stroke-linecap="round" opacity=".75"/>',
   target:'<circle cx="12" cy="12" r="8.5" stroke-width="1.8"/><circle cx="12" cy="12" r="4.5" stroke-width="1.6"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" stroke-width="1.6"/>',
   // 발등에 바로 맞는 공 + 충격
   onetouch:'<circle cx="15" cy="9" r="3.4" stroke-width="1.8"/><path d="M3 18h6l2-3" stroke-width="2" stroke-linejoin="round"/><path d="M19 4l2-2M20 9h3M18.5 14l2.2 2" stroke-width="1.6"/><path d="M9 15l3 3" stroke-width="1.6" opacity=".6"/>',
@@ -2129,6 +2304,194 @@ function switchTab(name) {
 
 function pickPlayer(){const r=Math.random();let c=0,t="114";for(const[k,p] of Object.entries(PROB)){c+=p;if(r<c){t=k;break;}}const pool=PLAYERS.filter(p=>p.tier===t && !p.season);return pool[Math.floor(Math.random()*pool.length)];}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+/* ══════════ 팩 오프닝 연출 엔진 ══════════
+   화면 아무 데나 누르면 즉시 다음 단계로 건너뛴다(pkSkip).
+   연출 강도는 등급으로 정한다: 1 = 평범, 2 = 좋음, 3 = 워크아웃. */
+let pkSkip = false, pkEls = [];
+
+/* ── 저사양 기기 자동 감지 ──
+   연출이 무거우면 프레임이 밀린다. 봉투가 뜨는 동안 실제 프레임 간격을 재서
+   느린 기기면 '가벼운 모드' 로 떨어뜨린다. 한 번 느리다고 판정되면 계속 유지한다
+   (기기 성능은 중간에 좋아지지 않는다). */
+let pkLite = false, pkLiteManual = null;
+try {
+  const v = localStorage.getItem('fclPkLite');
+  if (v === '1') { pkLite = true; }
+  if (v === '1' || v === '0') pkLiteManual = (v === '1');
+} catch (e) {}
+
+/* 평균 FPS 로는 못 잡는다 — 평소엔 50fps 가 나오고 카드가 뜨는 순간에만 0.2~0.4초 뚝 끊기기 때문.
+   그래서 연출 내내 '프레임 간격' 을 지켜보다가 큰 끊김이 있으면 다음 판부터 가볍게 간다. */
+let pkWatch = null;
+function pkWatchStart() {
+  if (pkLiteManual !== null) return;        // 사용자가 직접 정했으면 건드리지 않는다
+  pkWatch = { worst: 0, bad: 0, last: performance.now(), on: true };
+  const tick = () => {
+    if (!pkWatch || !pkWatch.on) return;
+    const n = performance.now(), dt = n - pkWatch.last; pkWatch.last = n;
+    if (dt > pkWatch.worst) pkWatch.worst = dt;
+    if (dt > 80) pkWatch.bad++;
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+function pkWatchEnd() {
+  if (!pkWatch) return;
+  const w = pkWatch; pkWatch = null; w.on = false;
+  if (pkLiteManual !== null) return;
+  const slow = (w.worst > 140 || w.bad >= 3);
+  if (slow && !pkLite) { pkLite = true; try { localStorage.setItem('fclPkLite', '1'); } catch (e) {} }
+}
+
+/* 상점 개봉창의 수동 스위치 */
+function togglePkLite() {
+  pkLite = !pkLite; pkLiteManual = pkLite;
+  try { localStorage.setItem('fclPkLite', pkLite ? '1' : '0'); } catch (e) {}
+  paintPkLiteBtn();
+}
+function paintPkLiteBtn() {
+  const b = document.getElementById('pkLiteRowBtn');
+  if (!b) return;
+  b.textContent = pkLite ? '🪶 가벼운 연출 ON' : '✨ 화려한 연출';
+  b.style.color = pkLite ? '#7dffd4' : '#d4af37';
+  b.style.borderColor = pkLite ? 'rgba(125,255,212,.6)' : 'rgba(212,175,55,.5)';
+}
+
+/* 연출 등급은 OVR 티어가 아니라 '카드 값어치(억 CP)' 로 가른다.
+   같은 OVR 이라도 강화 단계에 따라 체감 가치가 다르기 때문. */
+const PK_MID_EOK  = 2000;    // 이 아래는 일반 연출
+const PK_HIGH_EOK = 4500;    // 이 위는 최고 연출(워크아웃)
+/* 2단계 확정 연출 색. 3단계도 '처음엔' 이 색으로 간다 —
+   그래야 2단계인 줄 알았다가 뒤집히는 맛이 산다. */
+const PK_MID_COLOR = '#f59e0b';
+
+function pkLevel(eok, blind) {
+  if (blind) return 3;                                   // UL 가림막은 항상 최고 연출
+  if (eok > PK_HIGH_EOK) return 3;
+  if (eok >= PK_MID_EOK) return 2;
+  return 1;
+}
+function pkSeasonTag(player) {
+  return player.season === 'bar' ? 'BARÇA' : player.season === 'ul' ? 'UL'
+       : player.season === 'tl' ? 'TL' : (player.icon ? 'ICON' : 'FWC');
+}
+/* 봉투 색 — 어떤 팩을 깠는지만 알려주고 등급은 숨긴다 */
+function pkPackColor(player) {
+  return player.season === 'ul' ? '#f5e6a3' : player.season === 'tl' ? '#ff9ec4'
+       : player.season === 'bar' ? '#e0175c' : '#4aa3ff';
+}
+
+function pkEl(cls, html) {
+  const e = document.createElement('div');
+  e.className = cls; if (html) e.innerHTML = html;
+  document.body.appendChild(e); pkEls.push(e); return e;
+}
+function pkClear() { pkEls.forEach(e => { try { e.remove(); } catch (x) {} }); pkEls = []; }
+
+/* 스킵을 받아들이는 대기. 누르면 남은 시간을 건너뛴다. */
+function pkWait(ms) {
+  if (pkSkip) return Promise.resolve();
+  return new Promise(r => {
+    let done = false;
+    const fin = () => { if (done) return; done = true; clearInterval(iv); clearTimeout(to); r(); };
+    const to = setTimeout(fin, ms);
+    const iv = setInterval(() => { if (pkSkip) fin(); }, 40);
+  });
+}
+function pkArmSkip() {
+  pkSkip = false;
+  const h = pkEl('pk-skiphint', '화면을 누르면 건너뜁니다');
+  setTimeout(() => h.classList.add('on'), 700);
+  const fn = () => { pkSkip = true; h.classList.remove('on'); };
+  document.addEventListener('pointerdown', fn, { capture: true });
+  pkEls.push({ remove: () => document.removeEventListener('pointerdown', fn, { capture: true }) });
+}
+
+function pkFlash(strength) {
+  const f = pkEl('pk-flash'); void f.offsetWidth; f.style.opacity = '';
+  f.style.background = strength >= 3 ? '#fff' : 'rgba(255,255,255,.85)';
+  f.classList.add('go');
+  setTimeout(() => { try { f.remove(); } catch (e) {} }, 500);
+}
+function pkShake(big) {
+  const t = document.getElementById('revealOverlay'); if (!t) return;
+  t.classList.remove('pk-shake', 'big'); void t.offsetWidth;
+  t.classList.add('pk-shake'); if (big) t.classList.add('big');
+  setTimeout(() => t.classList.remove('pk-shake', 'big'), big ? 560 : 380);
+}
+function pkRays(color, alpha) {
+  if (pkLite) return null;                    // 저사양 — 전면 레이어를 안 깐다
+  const r = pkEl('pk-rays'); r.style.setProperty('--pkc', color);
+  r.style.setProperty('--pka', alpha);
+  r.style.setProperty('--pkr', (Math.random() * 19).toFixed(1) + 'deg');
+  setTimeout(() => r.classList.add('on'), 30);
+  const p = pkEl('pk-pool'); p.style.setProperty('--pkc', color);
+  setTimeout(() => p.classList.add('on'), 30);
+  return r;
+}
+
+/* 봉투가 나타나 흔들리다 찢어진다. 탭하면 바로 찢는다. */
+async function pkEnvelope(player) {
+  const col = pkPackColor(player);
+  const tag = pkSeasonTag(player);
+  const env = pkEl('pk-env',
+      '<div class="half l"><div class="face"><div class="seal">' + tag + '</div>'
+    + '<div class="sub">TAP TO OPEN</div></div></div>'
+    + '<div class="half r"><div class="face"><div class="seal">' + tag + '</div>'
+    + '<div class="sub">TAP TO OPEN</div></div></div>');
+  env.style.setProperty('--pkc', col);
+  env.classList.add('in');
+  await pkWait(500);
+  env.classList.remove('in'); env.classList.add('wob');
+  await pkWait(900);
+  // 찢기
+  env.classList.remove('wob'); env.classList.add('rip');
+  pkFlash(1); pkShake(false);
+  try { LvSnd.whistle && LvSnd.whistle([0.15]); } catch (e) {}
+  await pkWait(420);
+  try { env.remove(); } catch (e) {}
+}
+
+/* 고티어 — 선수 실루엣이 빛 속에서 걸어나왔다가 카드로 수렴 */
+async function pkWalkout(player, color) {
+  const src = (typeof IMGS !== 'undefined' && IMGS[player.id]) ? IMGS[player.id] : '';
+  if (!src) return;
+  // 이미지를 못 불러오면 깨진 아이콘이 크게 뜨므로 아예 건너뛴다
+  const ok = await new Promise(r => {
+    const im = new Image();
+    const t = setTimeout(() => r(false), 900);
+    im.onload = () => { clearTimeout(t); r(im.naturalWidth > 4); };
+    im.onerror = () => { clearTimeout(t); r(false); };
+    im.src = src;
+  });
+  if (!ok) { await pkWait(420); return; }
+  const dim = pkEl(pkLite ? 'pk-dim lite' : 'pk-dim'); setTimeout(() => dim.classList.add('on'), 20);
+  document.querySelectorAll('.pk-skiphint').forEach(e => e.classList.remove('on'));
+  // 암막 뒤에서 빛기둥까지 계속 칠할 이유가 없다
+  const hid = [...document.querySelectorAll('.pk-rays.on')];
+  hid.forEach(e => e.classList.remove('on'));
+  const w = pkEl('pk-walk', '<img src="' + src + '" alt=""><div class="nm">'
+    + (player.name || '').toUpperCase() + '</div>');
+  w.style.setProperty('--pkc', color);
+  void w.offsetWidth; w.classList.add('go');
+  await pkWait(880); pkFlash(3); pkShake(true);
+  await pkWait(1120);
+  try { w.remove(); } catch (e) {}
+  dim.classList.remove('on');
+  hid.forEach(e => e.classList.add('on'));
+  setTimeout(() => { try { dim.remove(); } catch (e) {} }, 500);
+}
+
+/* 카드 위에 지나가는 광택 */
+function pkHolo(cardEl, level) {
+  if (pkLite || !cardEl || level < 2) return;
+  const inner = cardEl.firstElementChild || cardEl;
+  if (getComputedStyle(inner).position === 'static') inner.style.position = 'relative';
+  const h = document.createElement('div');
+  h.className = 'pk-holo' + (level >= 3 ? ' hot' : '');
+  inner.appendChild(h);
+}
 function spawnParticles(color,count=20){const cx=window.innerWidth/2,cy=window.innerHeight/2;for(let i=0;i<count;i++){const el=document.createElement('div');el.className='particle';el.style.left=cx+'px';el.style.top=cy+'px';el.style.background=color;el.style.setProperty('--tx',(Math.random()-.5)*400+'px');el.style.setProperty('--ty',(Math.random()-.5)*400+'px');el.style.width=(3+Math.random()*6)+'px';el.style.height=el.style.width;document.body.appendChild(el);setTimeout(()=>el.remove(),1500);}}
 function spawnFireworks(duration=1800){
   // Small side firework pops (for 117)
@@ -2260,7 +2623,12 @@ const ae=document.createElement('div');ae.className='action-btns';ae.innerHTML='
 await sleep(100);ce.classList.add('show');if(isIcon){await sleep(300);spawnParticles('#d4af37',30);spawnParticles('#f5e6a3',20);}await sleep(800);pe.classList.add('show');ae.classList.add('show');
 collection.push({...player, enhLevel:1, uid:Date.now()+Math.random()});renderItems();animating=false;}
 
-function closeReveal(){document.getElementById('revealOverlay').classList.remove('active');document.getElementById('tierBg').className='tier-bg';}
+function closeReveal(){
+  const ov=document.getElementById('revealOverlay');
+  ov.classList.remove('active','pk-shake','big');
+  document.getElementById('tierBg').className='tier-bg';
+  pkClear(); pkSkip=false;
+}
 function closeRevealAndOpen(){
   if((packInv.fwc1||0)<=0){
     closeReveal();
@@ -3214,6 +3582,22 @@ const ENH_CONFIG = [
 
 const ENH_BADGE_COLORS = {1:'rgba(255,255,255,.4)',2:'#cd7f32',3:'#c0c0c0',4:'#d4af37',5:'#64c8ff',6:'#ffffff',7:'#ffd7e8',8:'#f5d67b'};
 
+/* 강화 토큰은 카드의 '기본 OVR'(강화 전 소재 OVR)에 따라 비싸진다.
+   강화 반영 OVR 로 매기면 강화할수록 다음 비용이 또 올라가는 이중 과금이 되고,
+   같은 카드인데 단계마다 배수가 바뀌어 플레이어가 예측할 수 없다. */
+const ENH_OVR_MULT = {114:1.0, 115:1.2, 116:1.4, 117:1.7, 118:2.0, 119:2.5, 120:3.2};
+function enhOvrMult(ovr) {
+  if (!ovr || ovr <= 114) return 1.0;          // 114 미만(기본 지급 카드)은 기준가
+  if (ovr >= 120) return ENH_OVR_MULT[120];    // 120 초과 카드가 생겨도 여기서 멈춘다
+  return ENH_OVR_MULT[ovr] || 1.0;
+}
+// level 강 → level+1 강 한 번 시도에 드는 토큰
+function enhTokenCost(level, ovr) {
+  const c = ENH_CONFIG[level];
+  if (!c) return 0;
+  return Math.max(1, Math.round(c.costTokens * enhOvrMult(ovr)));
+}
+
 function getEnhBadgeHTML(level) {
   if (level <= 1) return '<div class="enh-badge enh-1">1</div>';
   return '<div class="enh-badge enh-' + level + '">' + level + '</div>';
@@ -3248,7 +3632,7 @@ function showPlayerDetail(idx) {
   let enhInfoHtml = '';
   let enhBtnHtml = '';
   if (config) {
-    enhInfoHtml = '<div class="pd-enh-info">' + level + '강 → <span>' + (level+1) + '강</span> | 확률 <span>' + fmtPct(config.prob) + '%</span> | 토큰 <span>' + config.costTokens + '개</span> (보유: ' + enhanceTokens + '개)</div>';
+    enhInfoHtml = '<div class="pd-enh-info">' + level + '강 → <span>' + (level+1) + '강</span> | 확률 <span>' + fmtPct(config.prob) + '%</span> | 토큰 <span>' + enhTokenCost(level, p.ovr) + '개</span> (보유: ' + enhanceTokens + '개)</div>';
     enhBtnHtml = '<button class="pd-btn enhance" onclick="openEnhScreen(' + card.uid + ')">강화</button>';
   } else {
     enhInfoHtml = '<div class="pd-enh-info" style="color:#64c8ff">최대 강화 달성!</div>';
@@ -3507,8 +3891,11 @@ function openEnhScreen(uid) {
       <span class="enh-to" style="color:${enhColors[nextLevel]}">${enhNames[nextLevel]}</span>
     </div>
     <div class="enh-prob">성공 확률: <span>${fmtPct(config.prob)}%</span></div>
+    ${enhCritChance(level) > 0 ? `<div style="font-size:10px;color:#b05cff;font-weight:800;margin-top:2px">
+      ⚡ 크리티컬 ${fmtPct(enhCritChance(level))}% — 2단계 상승 (${level}강 → ${level+2}강)</div>` : ''}
     <div style="font-size:10px;color:#ef4444;margin-top:2px">실패 시 1~4등급 하락 (보호권 사용 시 유지)</div>
-    <div class="enh-cost">토큰 ${config.costTokens}개 필요 (보유: ${enhanceTokens}개)</div>
+    <div class="enh-cost">토큰 ${enhTokenCost(level, p.ovr)}개 필요 (보유: ${enhanceTokens}개)
+      ${enhOvrMult(p.ovr) > 1 ? `<span style="color:#7d8aa8;font-size:10px"> · OVR ${p.ovr} ×${enhOvrMult(p.ovr)}</span>` : ''}</div>
     ${config.costTrans ? `<div class="enh-cost" style="color:${transTokens>=config.costTrans?'#f5d67b':'#ef4444'}">
       ◆ ${TRANS_NAME} ${config.costTrans}개 필요 (보유: ${transTokens}개)</div>` : ''}
     <div style="font-size:10px;color:#888;margin-top:2px">가치: ${curPrice} → ${nextPrice} CP</div>
@@ -3554,6 +3941,22 @@ function attachUlBlindRow() {
     + 'color:#5a6b82;font-size:11px;font-weight:700;cursor:pointer"></button>';
   box.insertBefore(row, btns);
   paintUlBlindBtn();
+  attachPkLiteRow();
+}
+
+/* 연출 무게 스위치 — 기기가 버거우면 자동으로 켜지지만 직접 끌 수도 있다 */
+function attachPkLiteRow() {
+  const box = document.querySelector('#modal .modal-box');
+  const btns = document.getElementById('modalBtns');
+  if (!box || !btns || document.getElementById('pkLiteRow')) return;
+  const row = document.createElement('div');
+  row.id = 'pkLiteRow';
+  row.style.cssText = 'display:flex;justify-content:center;margin:6px 0 2px';
+  row.innerHTML = '<button id="pkLiteRowBtn" onclick="togglePkLite()" style="padding:5px 14px;'
+    + 'border-radius:7px;background:rgba(6,11,28,.85);border:1px solid rgba(212,175,55,.5);'
+    + 'color:#d4af37;font-size:11px;font-weight:700;cursor:pointer"></button>';
+  box.insertBefore(row, btns);
+  paintPkLiteBtn();
 }
 const TRANS_NAME = '초월석';   // 8강 전용 재화. 상점에서 팔지 않는다 (이름은 여기만 고치면 전부 바뀐다)
 let transTokens = 0;
@@ -3567,6 +3970,203 @@ function skipEnhance() { if (enhRunning) enhSkip = true; }
 // enhSkip 이 켜져 있으면 즉시 반환하는 sleep
 function enhWait(ms) { return enhSkip ? Promise.resolve() : sleep(ms); }
 
+/* ══════════════ 강화 연출 ══════════════
+   흰빛이 카드를 아래서부터 덮는다 → 다 덮이면 잠깐 정적 → 성패가 갈린다.
+   ghost 는 카드를 그대로 복제해 brightness(0) invert(1) 로 흰 실루엣을 만든 것.
+   덕분에 시즌마다 다른 카드 모양을 따로 처리하지 않아도 윤곽이 정확히 맞는다. */
+
+// 흰빛이 차오르는 총 시간. 멈칫거리는 시간까지 포함해서 이만큼 걸린다.
+const EFX_CHARGE_MS = 5000;
+// 크리티컬이면 이 지점(4초)에서 흰빛이 보라색으로 뒤집힌다.
+const EFX_CRIT_AT = 0.80;
+const EFX_WHITE = '#ffffff';
+const EFX_PURPLE = '#b05cff';
+
+/* 흰빛을 사방 테두리에서 안쪽으로 채운다.
+   바깥 사각형을 시계방향, 안쪽 사각형을 반시계방향으로 이어 구멍 뚫린 도넛을 만든 것.
+   테두리 두께 t 를 px 로 다뤄 위아래·좌우가 똑같이 두꺼워진다. */
+const EFX_CW = 220, EFX_CH = 300, EFX_TMAX = 110;   // 110 이면 좌우가 가운데서 만난다
+function efxPoly(t) {
+  const L = Math.min(50, t / EFX_CW * 100), T = Math.min(50, t / EFX_CH * 100);
+  const R = 100 - L, B = 100 - T, f = (n) => n.toFixed(3) + '%';
+  return 'polygon(0% 0%,100% 0%,100% 100%,0% 100%,0% 0%,'
+    + f(L) + ' ' + f(T) + ',' + f(L) + ' ' + f(B) + ','
+    + f(R) + ' ' + f(B) + ',' + f(R) + ' ' + f(T) + ',' + f(L) + ' ' + f(T) + ')';
+}
+
+/* 크리티컬 — 성공한 판 중 일부가 2단계 올라간다.
+   결과가 EFX_CRIT_CAP 을 넘지 않을 때만 터진다. 7·8강은 한 방에 건너뛰게 두면
+   희소성이 무너지고, 8강은 초월석 게이트도 반드시 지나야 하기 때문. */
+const ENH_CRIT = {1:0.12, 2:0.10, 3:0.08, 4:0.05};
+const EFX_CRIT_CAP = 6;                      // 크리티컬로 도달할 수 있는 최대 강화 등급
+function enhCritChance(level) { return (level + 2 <= EFX_CRIT_CAP) ? (ENH_CRIT[level] || 0) : 0; }
+
+let efxOv = null, efxSkip = false, efxDone = null;
+
+function efxArm() {
+  efxSkip = false;
+  if (efxDone) { document.removeEventListener('pointerdown', efxDone, true); efxDone = null; }
+  efxDone = () => { efxSkip = true; };
+  document.addEventListener('pointerdown', efxDone, true);
+}
+function efxDisarm() {
+  if (efxDone) { document.removeEventListener('pointerdown', efxDone, true); efxDone = null; }
+}
+// efxSkip 이 켜지면 남은 시간을 버린다
+function efxWait(ms) {
+  if (efxSkip) return Promise.resolve();
+  return new Promise(r => {
+    let fin = false;
+    const go = () => { if (fin) return; fin = true; clearInterval(iv); clearTimeout(to); r(); };
+    const to = setTimeout(go, ms);
+    const iv = setInterval(() => { if (efxSkip) go(); }, 40);
+  });
+}
+
+// 카드 한 장을 지정한 강화 등급으로 그린다
+function efxCardHTML(card, p, lvl) {
+  const tmp = Object.assign({}, card, { enhLevel: lvl });
+  const pT = withTrait(p, card);
+  return (p.season === 'ul')
+    ? buildULCardHTML(pT, lvl, card.trainLevel || 0)
+    : buildRevealCardHTML(pT, cardOvrB(tmp), lvl, card.trainLevel || 0);
+}
+
+function efxOpen(card, p, lvl) {
+  if (efxOv) { try { efxOv.remove(); } catch (e) {} }
+  efxOv = document.createElement('div');
+  efxOv.className = 'efx-ov';
+  efxOv.innerHTML =
+    '<div class="efx-bg"></div>' +
+    '<div class="efx-stage">' +
+      '<div class="efx-card">' +
+        '<div class="efx-real"></div><div class="efx-ghostclip"><div class="efx-ghost"></div></div>'
+        + '<div class="efx-ring"></div>' +
+      '</div>' +
+      '<div class="efx-lvl"></div>' +
+      '<div class="efx-msg"></div>' +
+      '<div class="efx-sub"></div>' +
+      '<div class="efx-btns"></div>' +
+    '</div>' +
+    '<div class="efx-skip">화면을 누르면 건너뜁니다</div>';
+  document.body.appendChild(efxOv);
+  const es = document.getElementById('enhScreen');
+  if (es) es.classList.remove('active');          // 강화 화면(z 260)이 연출을 덮지 않게
+  efxOv.querySelector('.efx-real').innerHTML = efxCardHTML(card, p, lvl);
+  efxSetLvl(lvl, false);
+  efxOv.classList.add('on');
+  return efxOv;
+}
+function efxClose() {
+  efxDisarm();
+  try { pkClear(); } catch (e) {}
+  if (efxOv) { try { efxOv.remove(); } catch (e) {} efxOv = null; }
+}
+
+// 큰 등급 표시를 갈아끼운다. dir: 'up' 성공 / 'down' 하락 / false 최초
+function efxSetLvl(lvl, dir) {
+  const box = efxOv && efxOv.querySelector('.efx-lvl');
+  if (!box) return;
+  const col = ENH_BADGE_COLORS[lvl] || '#fff';
+  const old = box.querySelector('.efx-lvl-num:not(.out):not(.down)');
+  if (old) {
+    old.classList.add(dir === 'down' ? 'down' : 'out');
+    setTimeout(() => { try { old.remove(); } catch (e) {} }, 420);
+  }
+  const el = document.createElement('div');
+  el.className = 'efx-lvl-num' + (dir ? ' in' : '');
+  el.style.color = col;
+  el.textContent = lvl + '강';
+  box.appendChild(el);
+}
+
+function efxShake(level) {
+  const st = efxOv && efxOv.querySelector('.efx-stage');
+  if (!st) return;
+  st.classList.remove('sh', 'shb');
+  if (level === 1) st.classList.add('sh');
+  else if (level === 2) st.classList.add('shb');
+}
+
+/* 흰빛 차오름. 중간에 2~3번 멈칫거려서 "안 차는 거 아냐?" 하게 만든다.
+   crit 이면 EFX_CRIT_AT 지점에서 흰빛이 보라색으로 순간 뒤집힌다.
+   멈칫하는 시간까지 합쳐 정확히 total 만큼 걸리도록 움직이는 시간을 미리 깎아둔다. */
+function efxCharge(total, crit) {
+  const clip  = efxOv.querySelector('.efx-ghostclip');
+  const card  = efxOv.querySelector('.efx-card');
+  const ring  = efxOv.querySelector('.efx-ring');
+
+  // 멈칫은 크리티컬 전환 전에만 — 보라로 뒤집히는 순간을 끊지 않는다
+  const holds = [];
+  const n = 2 + (Math.random() < 0.5 ? 0 : 1);
+  for (let i = 0; i < n; i++) holds.push({ at: 0.20 + Math.random() * 0.48, dur: 110 + Math.random() * 190, used: false });
+  holds.sort((a, b) => a.at - b.at);
+  const holdSum = holds.reduce((a, h) => a + h.dur, 0);
+  const moveMs = Math.max(600, total - holdSum);
+
+  const set = (e) => {
+    const t = e * EFX_TMAX;
+    const L = Math.min(50, t / EFX_CW * 100), T = Math.min(50, t / EFX_CH * 100);
+    clip.style.clipPath = efxPoly(t);
+    ring.style.left = ring.style.right = L.toFixed(3) + '%';
+    ring.style.top  = ring.style.bottom = T.toFixed(3) + '%';
+    // 처음엔 링이 카드 바깥 모서리에 걸치므로 서서히 띄운다
+    ring.style.opacity = e >= 0.985 ? '0' : Math.min(1, e * 4).toFixed(2);
+  };
+  return new Promise(res => {
+    let t0 = performance.now(), pauseTo = 0, wall = 0, move = 0, lastSh = -1, flipped = false;
+    const flip = () => {
+      flipped = true;
+      card.style.setProperty('--gc', EFX_PURPLE);   // 껍질과 테두리 링이 함께 보라로
+      const pop = document.createElement('div');
+      pop.className = 'efx-critpop';
+      efxOv.appendChild(pop);
+      setTimeout(() => { try { pop.remove(); } catch (e) {} }, 760);
+      efxShake(2);
+    };
+    const step = (now) => {
+      if (efxSkip) { if (crit && !flipped) flip(); set(1); efxShake(0); return res(); }
+      const dt = Math.min(60, now - t0); t0 = now;
+      wall += dt;
+      if (crit && !flipped && wall >= total * EFX_CRIT_AT) flip();
+      if (now < pauseTo) { requestAnimationFrame(step); return; }
+      move += dt;
+      const prog = Math.min(1, move / moveMs);
+      const h = holds.find(x => !x.used && prog >= x.at);
+      if (h) { h.used = true; pauseTo = now + h.dur; }
+      const e = Math.pow(prog, 0.72);            // 끝으로 갈수록 느려진다
+      set(e);
+      if (!flipped) {
+        const sh = e > 0.82 ? 2 : e > 0.42 ? 1 : 0;
+        if (sh !== lastSh) { efxShake(sh); lastSh = sh; }
+      }
+      if (prog >= 1) { efxShake(0); return res(); }
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+}
+
+// 흰 껍질이 파편으로 터져 흩어진다 (실패)
+function efxShatter() {
+  const cardEl = efxOv && efxOv.querySelector('.efx-card');
+  if (!cardEl || pkLite) return;
+  for (let i = 0; i < 16; i++) {
+    const sh = document.createElement('div');
+    sh.className = 'efx-shard';
+    const w = 8 + Math.random() * 22;
+    sh.style.width = w + 'px';
+    sh.style.height = (6 + Math.random() * 18) + 'px';
+    sh.style.left = (Math.random() * 190) + 'px';
+    sh.style.top = (Math.random() * 270) + 'px';
+    sh.style.setProperty('--sx', ((Math.random() - 0.5) * 320) + 'px');
+    sh.style.setProperty('--sy', (60 + Math.random() * 260) + 'px');
+    sh.style.setProperty('--sr', ((Math.random() - 0.5) * 540) + 'deg');
+    cardEl.appendChild(sh);
+    setTimeout(() => { try { sh.remove(); } catch (e) {} }, 700);
+  }
+}
+
 async function doEnhance(uid) {
   if (isBasicCard(collection.find(c => c.uid === uid))) {
     showModal('기본 선수는 강화할 수 없습니다.', [{label:'확인', cls:'ok'}]);
@@ -3579,8 +4179,9 @@ async function doEnhance(uid) {
   if (level >= 8) return;
   
   const config = ENH_CONFIG[level];
-  if (enhanceTokens < config.costTokens) {
-    showModal('강화 토큰이 부족합니다! (필요: ' + config.costTokens + '개)', [{label:'확인', cls:'ok'}]);
+  const needTokens = enhTokenCost(level, p.ovr);
+  if (enhanceTokens < needTokens) {
+    showModal('강화 토큰이 부족합니다! (필요: ' + needTokens + '개)', [{label:'확인', cls:'ok'}]);
     return;
   }
   // 8강은 초월석이 있어야 시도할 수 있다. 상점에서 살 수 없는 재화라 돈으로 밀어붙일 수 없다.
@@ -3591,127 +4192,155 @@ async function doEnhance(uid) {
     return;
   }
   
-  // 연출 중에는 같은 버튼이 "건너뛰기" 로 바뀐다
-  const goBtn = document.getElementById('enhGoBtn');
-  enhRunning = true;
-  enhSkip = false;
-  goBtn.disabled = false;
-  goBtn.style.opacity = '1';
-  goBtn.textContent = '한 번 더 눌러 건너뛰기';
-  goBtn.setAttribute('onclick', 'skipEnhance()');
-  
-  // Check shield checkbox
+  // 보호권 체크 상태를 먼저 읽는다 (화면이 가려지기 전에)
   const shieldEl = document.getElementById('useShield');
   if (shieldEl) shieldSticky = shieldEl.checked;
   const useShield = shieldSticky && protectTickets > 0;
-  
-  enhanceTokens -= config.costTokens;
+
+  enhRunning = true;
+  enhanceTokens -= needTokens;
   if (config.costTrans) transTokens -= config.costTrans;
   if (useShield) protectTickets -= 1;
   if (protectTickets <= 0) shieldSticky = false;   // 다 쓰면 자동 해제
   updateTokenDisplay();
-  
-  const animArea = document.getElementById('enhAnimArea');
-  const roll = Math.random();
-  const success = roll < config.prob;
-  
-  // Suspense animation - 3 seconds of tension
-  animArea.innerHTML = '<div style="font-size:36px" id="enhSpinner">⬆</div>';
-  const spinner = document.getElementById('enhSpinner');
-  
-  // Phase 1: Slow glow pulse
-  spinner.style.animation = 'enhSpin 1s ease-in-out infinite';
-  spinner.style.color = '#10b981';
-  await enhWait(800);
-  
-  // Phase 2: Speed up
-  spinner.style.animation = 'enhSpin 0.5s ease-in-out infinite';
-  await enhWait(800);
-  
-  // Phase 3: Faster + shake
-  spinner.style.animation = 'enhSpin 0.25s linear infinite';
-  animArea.classList.add('enh-suspense');
-  await enhWait(1000);
-  
-  // Phase 4: Brief pause (peak tension)
-  spinner.style.animation = 'none';
-  spinner.style.transform = 'scale(1.3)';
-  spinner.style.transition = 'transform 0.3s';
-  await enhWait(500);
+
+  const success = Math.random() < config.prob;
+  const crit = success && Math.random() < enhCritChance(level);
+  const upTo = crit ? level + 2 : level + 1;
+
+  // 실패 하락폭은 미리 굴려둔다 (연출이 등급을 한 칸씩 떨어뜨려야 해서)
+  let newLvl = level, actualDrop = 0;
+  if (!success && !useShield) {
+    const r = Math.random();
+    const drop = r < 0.20 ? 1 : r < 0.60 ? 2 : r < 0.90 ? 3 : 4;
+    newLvl = Math.max(1, level - drop);
+    actualDrop = level - newLvl;
+  }
+
+  /* ── 연출 ── */
+  efxOpen(card, p, level);
+  efxArm();
+  pkWatchStart();                 // 느린 기기면 다음 번부터 가벼운 연출로
+  const skipHint = efxOv.querySelector('.efx-skip');
+  const bg   = efxOv.querySelector('.efx-bg');
+  const cEl  = efxOv.querySelector('.efx-card');
+  const gclip= efxOv.querySelector('.efx-ghostclip');
+  const ring = efxOv.querySelector('.efx-ring');
+  const msg  = efxOv.querySelector('.efx-msg');
+  const sub  = efxOv.querySelector('.efx-sub');
+  const btns = efxOv.querySelector('.efx-btns');
+
+  await efxWait(40); cEl.classList.add('on');
+  setTimeout(() => skipHint.classList.add('on'), 500);
+  await efxWait(320);
+
+  // ① 흰빛이 카드를 아래서부터 덮는다 (크리티컬이면 4초 지점에서 보라색으로 뒤집힌다)
+  cEl.style.setProperty('--gc', EFX_WHITE);
+  await efxCharge(EFX_CHARGE_MS, crit);
+
+  // ② 다 덮인 채로 잠깐 정적 — 여기가 제일 조마조마한 구간
+  ring.style.opacity = '0';
+  await efxWait(380);
+
   enhRunning = false;
-  
-  // Result!
-  animArea.innerHTML = '';
-  animArea.classList.remove('enh-suspense');
-  
-  const resultEl = document.createElement('div');
-  resultEl.className = 'enh-big-result';
-  
+  skipHint.classList.remove('on');
+
   if (success) {
-    card.enhLevel = level + 1;
+    card.enhLevel = upTo;
     achBump('enhOk');
-    addLevelPoints(5, 'enhance');
-    resultEl.classList.add('success');
-    resultEl.textContent = '강화 성공!';
-    animArea.appendChild(resultEl);
-    await enhWait(100);
-    resultEl.classList.add('show');
-    spawnParticles(level+1>=4?'#d4af37':'#10b981', 25);
-    
-    // Show price change
-    const priceEl = document.createElement('div');
-    priceEl.className = 'enh-price-change';
-    const newPrice = getEnhancedPrice(p.price, card.enhLevel);
-    priceEl.textContent = '새 가치: ' + newPrice + ' CP';
-    animArea.appendChild(priceEl);
-    await enhWait(300);
-    priceEl.classList.add('show');
+    addLevelPoints(crit ? 10 : 5, 'enhance');
+
+    // ③ 환한 배경 + 폭죽
+    const winCol = ENH_BADGE_COLORS[upTo] || '#d4af37';
+    pkFlash(3);
+    bg.classList.add(crit ? 'crit' : 'win');
+    pkRays(crit ? '#7b19d8' : '#c8820a', crit ? 0.17 : 0.13);
+    if (!pkLite) spawnFireworks(crit ? 2800 : (upTo >= 7 ? 2400 : 1600));
+    spawnParticles(crit ? '#3b0066' : '#8a4b00', pkLite ? 8 : 22);   // 밝은 배경에선 진한 색이 보인다
+    spawnParticles(crit ? EFX_PURPLE : winCol, pkLite ? 8 : 22);
+    await efxWait(340);
+    if (!pkLite) spawnParticles(crit ? '#ff4ddb' : '#b4003f', crit ? 26 : 18);   // 2단 — 터지는 맛
+    await efxWait(100);
+
+    // ④ 껍질이 걷히고 새 등급의 카드가 드러난다
+    efxOv.querySelector('.efx-real').innerHTML = efxCardHTML(card, p, card.enhLevel);
+    gclip.style.transition = 'clip-path .45s cubic-bezier(.4,0,.2,1)';
+    gclip.style.clipPath = efxPoly(0);           // 껍질이 테두리 쪽으로 되감긴다
+
+    msg.className = 'efx-msg ' + (crit ? 'crit' : 'success');
+    msg.textContent = crit ? '크리티컬!' : '강화 성공!';
+    await efxWait(60); msg.classList.add('show');
+
+    // ⑤ 등급 교체 — 크리티컬은 두 번 쾅쾅 올려야 2단계가 체감된다
+    await efxWait(260);
+    efxSetLvl(level + 1, 'up');
+    if (crit) {
+      await efxWait(330);
+      pkFlash(2);
+      efxSetLvl(level + 2, 'up');
+      spawnParticles(EFX_PURPLE, pkLite ? 8 : 20);
+    }
+    sub.style.color = crit ? '#2b0640' : '#4a3a0c';
+    sub.textContent = (crit ? '2단계 상승! 새 가치: ' : '새 가치: ')
+      + getEnhancedPrice(p.price, card.enhLevel) + ' CP';
+    await efxWait(320); sub.classList.add('show');
+
   } else {
     achBump('enhFail');
+    msg.className = 'efx-msg fail';
+
     if (useShield) {
-      // Shield protected: no drop
-      resultEl.classList.add('fail');
-      resultEl.innerHTML = '강화 실패...<div style="font-size:14px;color:#d4af37;font-weight:800;margin-top:6px">🛡 보호권 발동! 등급 유지</div>';
-      animArea.appendChild(resultEl);
-      await enhWait(100);
-      resultEl.classList.add('show');
+      // 흰 껍질이 방패에 막혀 튕겨 나간다
+      const sd = document.createElement('div');
+      sd.className = 'efx-shield'; sd.textContent = '🛡';
+      cEl.appendChild(sd);
+      await efxWait(260);
+      efxShatter();
+      gclip.style.transition = 'opacity .3s'; gclip.style.opacity = '0';
+      msg.textContent = '강화 실패...';
+      await efxWait(60); msg.classList.add('show');
+      sub.style.color = '#d4af37';
+      sub.textContent = '🛡 보호권 발동! ' + level + '강 유지';
+      await efxWait(300); sub.classList.add('show');
+      setTimeout(() => { try { sd.remove(); } catch (e) {} }, 900);
+
     } else {
-      // Failure: drop levels by roll
-      const r = Math.random();
-      let drop = 1;
-      if (r < 0.20) drop = 1;
-      else if (r < 0.60) drop = 2;
-      else if (r < 0.90) drop = 3;
-      else drop = 4;
-      const newLvl = Math.max(1, level - drop);
-      const actualDrop = level - newLvl;
-      card.enhLevel = newLvl;
-      resultEl.classList.add('fail');
-      resultEl.innerHTML = '강화 실패...<div style="font-size:14px;color:#ef4444;font-weight:800;margin-top:6px">' + actualDrop + '등급 하락 → ' + newLvl + '강</div>';
-      animArea.appendChild(resultEl);
-      await enhWait(100);
-      resultEl.classList.add('show');
+      // 껍질이 깨져 흩어지고, 등급이 한 칸씩 떨어진다
+      bg.classList.add('lose');
+      efxShatter();
+      gclip.style.transition = 'opacity .3s'; gclip.style.opacity = '0';
+      efxShake(2);
+      msg.textContent = '강화 실패...';
+      await efxWait(80); msg.classList.add('show');
+      await efxWait(300);
+      efxShake(0);
+
+      for (let L = level - 1; L >= newLvl; L--) {
+        efxSetLvl(L, 'down');
+        card.enhLevel = L;
+        efxOv.querySelector('.efx-real').innerHTML = efxCardHTML(card, p, L);
+        await efxWait(260);
+      }
+      sub.style.color = '#ef4444';
+      sub.textContent = actualDrop + '등급 하락 → ' + newLvl + '강';
+      await efxWait(120); sub.classList.add('show');
     }
   }
-  
+
   renderCollection();
   renderSquad();   // 스쿼드에 배치된 카드라면 팀 OVR도 같이 갱신
   saveGame();
 
-  // Change button to retry or back
-  await enhWait(800);
-  enhRunning = false;
-  enhSkip = false;
-  goBtn.style.display = 'none';
-  const btnsArea = document.createElement('div');
-  btnsArea.style.cssText = 'display:flex;gap:10px;margin-top:8px';
-  const currentLvl = card.enhLevel || 1;
-  if (currentLvl >= 8) shieldSticky = false;   // 8강 도달하면 자동 해제
-  if (currentLvl < 8) {
-    btnsArea.innerHTML = '<button class="enh-go-btn" style="padding:10px 24px;font-size:13px" onclick="openEnhScreen(' + card.uid + ')">다시 강화</button>';
-  }
-  btnsArea.innerHTML += '<button class="enh-back-btn" onclick="closeEnhScreen()">돌아가기</button>';
-  animArea.parentElement.appendChild(btnsArea);
+  // 버튼
+  await efxWait(500);
+  efxDisarm();
+  const cur = card.enhLevel || 1;
+  if (cur >= 8) shieldSticky = false;   // 8강 도달하면 자동 해제
+  btns.innerHTML = (cur < 8
+      ? '<button class="efx-again" onclick="efxClose();openEnhScreen(' + card.uid + ')">다시 강화</button>' : '')
+    + '<button class="efx-done" onclick="efxClose();closeEnhScreen()">돌아가기</button>';
+  await efxWait(40); btns.classList.add('show');
+  pkWatchEnd();
 }
 
 function getSellPrice(eok) {
@@ -4208,23 +4837,38 @@ async function openPackType(packType) {
   area.innerHTML = '';
   tierBg.className = 'tier-bg';
 
-  await sleep(300);
   // UL 가림막: 국적·포지션을 감춘 채 진행한다
   const ulHide = (ulBlind && player.season === 'ul');
+  /* 연출 세기는 '이 카드가 얼마짜리인가' 로 정한다.
+     강화 등급이 가격을 좌우하므로 연출을 시작하기 전에 미리 굴려 둔다. */
+  const enhLvl = rollEnhLevel(pt, player);
+  const cardEok = getEnhancedPriceEok(player.price, enhLvl);
+  const pkLv = pkLevel(cardEok, ulHide);         // 1 평범 / 2 좋음 / 3 워크아웃
+  const pkCol = ulHide ? UL_BLIND_COLOR : tColor;
+
+  pkClear(); pkArmSkip(); pkWatchStart();
+  await pkEnvelope(player);                       // ① 봉투 등장 → 찢기
+  pkRays(pkPackColor(player), 0.11);              // ② 빛기둥 (아직 등급은 숨김)
+  await pkWait(160);
+
   const fb = document.createElement('div'); fb.className = 'hint-box';
   fb.innerHTML = ulHide
     ? '<div class="label">NATION</div><div class="value" style="color:#5a6b82">?</div>'
     : '<div class="label">NATION</div><img class="flag-reveal" src="'+FLAGS[player.nation]+'" style="display:block;margin:0 auto">';
-  area.appendChild(fb); await sleep(100); fb.classList.add('show');
+  fb.insertAdjacentHTML('beforeend', '<div class="bar"></div>');
+  fb.style.setProperty('--pkc', pkPackColor(player));
+  area.appendChild(fb); await pkWait(60); fb.classList.add('show');
 
-  await sleep(1000);
+  await pkWait(780);
   const pb = document.createElement('div'); pb.className = 'hint-box';
   pb.innerHTML = ulHide
     ? '<div class="label">POSITION</div><div class="value" style="color:#5a6b82">?</div>'
     : '<div class="label">POSITION</div><div class="value">'+player.pos+'</div>';
-  area.appendChild(pb); await sleep(100); pb.classList.add('show');
+  pb.insertAdjacentHTML('beforeend', '<div class="bar"></div>');
+  pb.style.setProperty('--pkc', pkPackColor(player));
+  area.appendChild(pb); await pkWait(60); pb.classList.add('show');
 
-  await sleep(1000);
+  await pkWait(780);
   const sb = document.createElement('div'); sb.className = 'hint-box';
   const tn = player.season === 'bar' ? 'BARÇA' : player.season === 'ul' ? 'UL' : player.season === 'tl' ? 'TL' : (player.icon ? 'ICON' : 'FWC');
   // 가림막이 켜져 있으면 티어색이 정답을 알려주므로 UL 고정색으로 통일한다
@@ -4232,21 +4876,72 @@ async function openPackType(packType) {
   sb.innerHTML = '<div class="label">SEASON</div><div class="value" style="'
     + (player.season === 'bar' ? 'background:linear-gradient(90deg,#e0175c,#4d8fe8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent' : 'color:'+sbColorUse)
     + '">'+tn+'</div>';
-  area.appendChild(sb); await sleep(100); sb.classList.add('show');
+  sb.insertAdjacentHTML('beforeend', '<div class="bar"></div>');
+  sb.style.setProperty('--pkc', pkPackColor(player));
+  area.appendChild(sb); await pkWait(60); sb.classList.add('show');
 
-  tierBg.className = 'tier-bg ' + (ulHide ? 'tul' : 't' + player.tier) + ' show';
+  await pkWait(620);
 
-  await sleep(1200);
+  /* ③ 등급 확정.
+     1·2단계는 여기서 끝나지만, 3단계는 '2단계인 척' 하고 한 번 더 뒤집는다. */
+  const fake = pkLv >= 3;                       // 반전을 쓸 것인가
+  const showLv = fake ? 2 : pkLv;               // 지금 보여 줄 겉등급
+  const showCol = showLv === 2 ? PK_MID_COLOR : pkCol;
+
+  pkFlash(showLv); pkShake(showLv >= 2);
+  pkClear(); pkArmSkip();
+  pkRays(showCol, showLv === 2 ? 0.16 : 0.11);
+  if (!fake) tierBg.className = 'tier-bg ' + (ulHide ? 'tul' : 't' + player.tier) + ' show';
+  await pkWait(260);
+
+  if (fake) {
+    /* ③-b 가짜 마무리 — 2단계처럼 작은 폭죽까지 띄워 놓고 */
+    if (!pkLite) spawnFireworks(900);
+    spawnParticles(PK_MID_COLOR, pkLite ? 6 : 14);
+    await pkWait(640);
+
+    /* ③-c 정적 — 빛이 꺼지고 화면이 가라앉는다. 숨을 들이켜는 소리만 올라간다. */
+    pkEls.forEach(e => { if (e.classList) e.classList.remove('on'); });
+    tierBg.className = 'tier-bg';
+    const hush = pkEl('pk-hush'); setTimeout(() => hush.classList.add('on'), 20);
+    await pkWait(980);
+
+    /* ③-d 반전 */
+    try { hush.remove(); } catch (e) {}
+    pkClear(); pkArmSkip();
+    pkFlash(3); pkShake(true);
+    pkRays(pkCol, 0.20);
+    tierBg.className = 'tier-bg ' + (ulHide ? 'tul' : 't' + player.tier) + ' show';
+    await pkWait(300);
+  }
+
+  /* ④ 워크아웃 — 3단계만.
+     ※ UL 가림막일 때는 실루엣과 이름이 곧 정답이라 워크아웃을 하지 않는다. */
+  if (pkLv >= 3 && ulHide) {
+    await pkWait(160); pkFlash(3); pkShake(true); await pkWait(560);
+  } else if (pkLv >= 3) {
+    area.innerHTML = '';
+    await pkWalkout(player, pkCol);
+  } else { await pkWait(pkLv === 2 ? 420 : 240); }
+
+  /* ⑤ 값어치별 불꽃 — 카드 직전 */
   if (ulHide) {
-    // 가림막 중에는 티어별 연출이 곧 정답이라 하나로 통일한다. 대기 시간도 같게 둔다.
-    spawnFireworks(1600); await sleep(700);
-  } else if (player.tier === "117") { spawnFireworks(1600); await sleep(500); } else if (player.tier === "118" || player.tier === "icon") { spawnFire(player.icon, 3000); await sleep(600); } else if (player.tier === "119") { spawnBigFire(); await sleep(800); } else if (player.tier === "120") { spawnUltraFire(); await sleep(1300); }
-  spawnParticles(ulHide ? UL_BLIND_COLOR : tColor, player.icon ? 40 : 20);
+    // 가림막 중에는 연출이 곧 정답이라 하나로 통일한다.
+    spawnFireworks(1600);
+  } else if (pkLite) {
+    /* 저사양 — 수백 개짜리 불꽃(울트라 97개·빅 63개)은 끊긴다. 가벼운 폭죽으로 대체. */
+    if (pkLv >= 2) spawnFireworks(pkLv >= 3 ? 1500 : 1100);
+  } else if (pkLv >= 3) {
+    if (cardEok > PK_HIGH_EOK * 2.2 || player.icon) spawnUltraFire(); else spawnBigFire();
+  } else if (pkLv === 2) {
+    if (cardEok >= (PK_MID_EOK + PK_HIGH_EOK) / 2) spawnFire(player.icon, 2600);
+    else spawnFireworks(1500);
+  }
+  spawnParticles(pkCol, pkLite ? 8 : (pkLv >= 3 ? 34 : pkLv === 2 ? 22 : 14));
 
   area.innerHTML = '';
   const isIcon = player.icon;
   const labels = player.gk ? GK_LABELS : STAT_LABELS;
-  const enhLvl = rollEnhLevel(pt, player);
   const statB = getStatBonus(enhLvl);
   const ovrB = getOvrBonus(enhLvl);
   const sH = player.stats.map((v,i) => '<div style="flex:1;text-align:center;padding:2px 0;'+(i<5?'border-right:1px solid rgba(0,0,0,.06)':'')+'"><div style="font-size:13px;font-weight:900;color:#1a1a1a">'+(v+statB)+'</div><div style="font-size:6px;font-weight:700;color:#aaa;margin-top:1px">'+labels[i]+'</div></div>').join('');
@@ -4283,14 +4978,18 @@ async function openPackType(packType) {
   ae.innerHTML = '<button class="action-btn again" onclick="reopenPack(\''+packType+'\')">OPEN AGAIN</button><button class="action-btn close" onclick="closeReveal()">CLOSE</button>';
   area.appendChild(ae);
 
-  await sleep(100); ce.classList.add('show');
-  if (isIcon) { await sleep(300); spawnParticles('#d4af37',30); }
-  await sleep(800); pe.classList.add('show'); ae.classList.add('show');
+  await pkWait(60); ce.classList.add('show');
+  if (pkLv < 3) pkFlash(1);            // 3단계는 반전에서 이미 번쩍였다 — 또 하면 하얗게 날아간다
+  pkHolo(ce, pkLv);
+  if (isIcon) { await pkWait(280); spawnParticles('#d4af37',30); }
+  await pkWait(700); pe.classList.add('show'); ae.classList.add('show');
+  pkEls.forEach(e => { if (e.classList && e.classList.contains('pk-skiphint')) e.classList.remove('on'); });
 
   collection.push({...player, enhLevel: enhLvl, uid: Date.now()+Math.random()});
   addLevelPoints(3, 'pack');
   renderItems();
   saveGame();
+  pkWatchEnd();
   animating = false;
 }
 
@@ -4327,33 +5026,85 @@ async function bulkOpenPacksType(packType, qty) {
   area.innerHTML = '';
   tierBg.className = 'tier-bg';
 
-  // Full reveal animation for best player
-  await sleep(300);
-  const fb = document.createElement('div'); fb.className = 'hint-box';
-  fb.innerHTML = '<div class="label">BEST PULL · NATION</div><img class="flag-reveal" src="'+FLAGS[bestPlayer.nation]+'" style="display:block;margin:0 auto">';
-  area.appendChild(fb); await sleep(100); fb.classList.add('show');
+  /* ── 일괄 개봉도 낱개와 같은 연출을 쓴다. 기준은 '가장 비싼 카드'(bestPrice). ── */
+  const pkLv = pkLevel(bestPrice, false);
+  const pkCol = tColor;
 
-  await sleep(800);
-  const pb = document.createElement('div'); pb.className = 'hint-box';
-  pb.innerHTML = '<div class="label">POSITION</div><div class="value">'+bestPlayer.pos+'</div>';
-  area.appendChild(pb); await sleep(100); pb.classList.add('show');
+  pkClear(); pkArmSkip(); pkWatchStart();
+  await pkEnvelope(bestPlayer);                      // ① 봉투
+  pkRays(pkPackColor(bestPlayer), 0.11);
+  await pkWait(160);
 
-  await sleep(800);
-  const sb = document.createElement('div'); sb.className = 'hint-box';
-  const tn = bestPlayer.season === 'bar' ? 'BARÇA' : bestPlayer.season === 'ul' ? 'UL' : bestPlayer.season === 'tl' ? 'TL' : (bestPlayer.icon ? 'ICON' : 'FWC');
-  const sbColor2 = bestPlayer.season === 'bar' ? 'transparent' : bestPlayer.season === 'ul' ? '#7dffd4' : bestPlayer.season === 'tl' ? '#fff' : '#1e3a8a';
-  const sbExtra2 = bestPlayer.season === 'bar' ? 'background:linear-gradient(90deg,#e0175c,#4d8fe8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent' : '';
-  sb.innerHTML = '<div class="label">SEASON</div><div class="value" style="display:inline-block;padding:6px 18px;border:2px solid #d4af37;border-radius:6px;background:rgba(212,175,55,.08);color:'+sbColor2+';'+sbExtra2+'">'+tn+'</div>';
-  area.appendChild(sb); await sleep(100); sb.classList.add('show');
+  // ② 힌트 — 가장 비싼 카드 기준
+  const _hint = (label, inner) => {
+    const e = document.createElement('div'); e.className = 'hint-box';
+    e.innerHTML = '<div class="label">' + label + '</div>' + inner + '<div class="bar"></div>';
+    e.style.setProperty('--pkc', pkPackColor(bestPlayer));
+    area.appendChild(e); return e;
+  };
+  const fb = _hint('BEST PULL · NATION',
+    '<img class="flag-reveal" src="' + FLAGS[bestPlayer.nation] + '" style="display:block;margin:0 auto">');
+  await pkWait(60); fb.classList.add('show');
 
-  tierBg.className = 'tier-bg t' + bestPlayer.tier + ' show';
+  await pkWait(780);
+  const pb = _hint('POSITION', '<div class="value">' + bestPlayer.pos + '</div>');
+  await pkWait(60); pb.classList.add('show');
 
-  await sleep(1000);
-  if (bestPlayer.tier === "117") { spawnFireworks(1400); await sleep(400); } else if (bestPlayer.tier === "118" || bestPlayer.tier === "icon") { spawnFire(bestPlayer.icon, 2500); await sleep(500); } else if (bestPlayer.tier === "119") { spawnBigFire(); await sleep(700); } else if (bestPlayer.tier === "120") { spawnUltraFire(); await sleep(1200); }
-  spawnParticles(tColor, bestPlayer.icon ? 40 : 20);
+  await pkWait(780);
+  const tn = bestPlayer.season === 'bar' ? 'BARÇA' : bestPlayer.season === 'ul' ? 'UL'
+           : bestPlayer.season === 'tl' ? 'TL' : (bestPlayer.icon ? 'ICON' : 'FWC');
+  const sbColor2 = bestPlayer.season === 'bar' ? 'transparent' : bestPlayer.season === 'ul' ? '#7dffd4'
+                 : bestPlayer.season === 'tl' ? '#fff' : '#1e3a8a';
+  const sbExtra2 = bestPlayer.season === 'bar'
+    ? 'background:linear-gradient(90deg,#e0175c,#4d8fe8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent' : '';
+  const sb = _hint('SEASON', '<div class="value" style="display:inline-block;padding:6px 18px;border:2px solid #d4af37;'
+    + 'border-radius:6px;background:rgba(212,175,55,.08);color:' + sbColor2 + ';' + sbExtra2 + '">' + tn + '</div>');
+  await pkWait(60); sb.classList.add('show');
+
+  await pkWait(620);
+
+  /* ③ 등급 확정 — 3단계는 2단계인 척했다가 뒤집는다 (낱개와 동일) */
+  const fake = pkLv >= 3;
+  const showLv = fake ? 2 : pkLv;
+  pkFlash(showLv); pkShake(showLv >= 2);
+  pkClear(); pkArmSkip();
+  pkRays(showLv === 2 ? PK_MID_COLOR : pkCol, showLv === 2 ? 0.16 : 0.11);
+  if (!fake) tierBg.className = 'tier-bg t' + bestPlayer.tier + ' show';
+  await pkWait(260);
+
+  if (fake) {
+    if (!pkLite) spawnFireworks(900);
+    spawnParticles(PK_MID_COLOR, pkLite ? 6 : 14);
+    await pkWait(640);
+    pkEls.forEach(e => { if (e.classList) e.classList.remove('on'); });
+    tierBg.className = 'tier-bg';
+    const hush = pkEl('pk-hush'); setTimeout(() => hush.classList.add('on'), 20);
+    await pkWait(980);
+    try { hush.remove(); } catch (e) {}
+    pkClear(); pkArmSkip();
+    pkFlash(3); pkShake(true);
+    pkRays(pkCol, 0.20);
+    tierBg.className = 'tier-bg t' + bestPlayer.tier + ' show';
+    await pkWait(300);
+  }
+
+  // ④ 워크아웃
+  if (pkLv >= 3) { area.innerHTML = ''; await pkWalkout(bestPlayer, pkCol); }
+  else { await pkWait(pkLv === 2 ? 420 : 240); }
+
+  // ⑤ 값어치별 불꽃
+  if (pkLite) {
+    if (pkLv >= 2) spawnFireworks(pkLv >= 3 ? 1500 : 1100);
+  } else if (pkLv >= 3) {
+    if (bestPrice > PK_HIGH_EOK * 2.2 || bestPlayer.icon) spawnUltraFire(); else spawnBigFire();
+  } else if (pkLv === 2) {
+    if (bestPrice >= (PK_MID_EOK + PK_HIGH_EOK) / 2) spawnFire(bestPlayer.icon, 2600);
+    else spawnFireworks(1500);
+  }
+  spawnParticles(pkCol, pkLite ? 8 : (pkLv >= 3 ? 34 : pkLv === 2 ? 22 : 14));
 
   area.innerHTML = '';
-  
+
   const isIcon = bestPlayer.icon;
   const labels = bestPlayer.gk ? GK_LABELS : STAT_LABELS;
   const sH = bestPlayer.stats.map((v,i) => '<div style="flex:1;text-align:center;padding:2px 0;'+(i<5?'border-right:1px solid rgba(0,0,0,.06)':'')+'"><div style="font-size:13px;font-weight:900;color:#1a1a1a">'+(v+statB)+'</div><div style="font-size:6px;font-weight:700;color:#aaa;margin-top:1px">'+labels[i]+'</div></div>').join('');
@@ -4372,15 +5123,18 @@ async function bulkOpenPacksType(packType, qty) {
   ce.innerHTML = '<div style="width:220px;height:300px;position:relative;filter:drop-shadow(0 4px 24px rgba(0,0,0,.5)) drop-shadow(0 0 '+(isIcon?20:12)+'px '+tColor+'40)"><svg style="width:100%;height:100%;position:absolute;top:0;left:0;z-index:20;pointer-events:none" viewBox="0 0 220 300" fill="none"><defs><linearGradient id="gx" x1="0" y1="0" x2="220" y2="300" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="20%" stop-color="#d4af37"/><stop offset="40%" stop-color="#f5d67b"/><stop offset="60%" stop-color="#c5981a"/><stop offset="80%" stop-color="#f5e6a3"/><stop offset="100%" stop-color="#d4af37"/></linearGradient><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f5e6a3"/><stop offset="50%" stop-color="#d4af37"/><stop offset="100%" stop-color="#f5e6a3"/></linearGradient></defs><polygon points="110,1 213,24 219,45 219,234 110,299 1,234 1,45 7,24" fill="none" stroke="url(#gx)" stroke-width="2.5"/><polygon points="110,5 210,27 216,46 216,232 110,295 4,232 4,46 10,27" fill="none" stroke="url(#gx)" stroke-width=".5" opacity=".25"/>'+orn+'</svg><div style="width:100%;height:100%;position:absolute;top:0;left:0;overflow:hidden;clip-path:polygon(50% 0%,97% 8%,100% 15%,100% 78%,50% 100%,0% 78%,0% 15%,3% 8%)"><div style="position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse at 30% 20%,rgba(30,58,138,.5) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(88,28,135,.3) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(15,23,42,1) 0%,#0a0a12 100%)"></div><div style="position:absolute;top:61%;left:0;right:0;bottom:0;z-index:3;background:linear-gradient(180deg,rgba(255,255,255,.97) 0%,#fff 10%)"></div><div style="position:absolute;top:61%;left:6%;right:6%;height:1.5px;z-index:12;background:linear-gradient(90deg,transparent,#d4af37 20%,#f5e6a3 50%,#d4af37 80%,transparent)"></div><div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:900;letter-spacing:3px;color:rgba(212,175,55,.55);z-index:10">'+(isIcon?'FWC · ICON':'FWC')+'</div><div style="position:absolute;top:28px;left:14px;z-index:10"><div style="font-size:30px;font-weight:900;color:#fff;line-height:1;text-shadow:0 0 20px '+tColor+'40">'+(bestPlayer.ovr+ovrB)+'</div><div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:1px;margin-top:1px">'+bestPlayer.pos+'</div><img src="'+FLAGS[bestPlayer.nation]+'" style="width:22px;height:15px;margin-top:6px;border-radius:2px;border:.5px solid rgba(255,255,255,.15)"></div>'+enhBadgeHTML+'<img src="'+IMGS[bestPlayer.id]+'" style="position:absolute;top:20px;left:50%;transform:translateX(-44%);width:155px;height:158px;object-fit:contain;object-position:center bottom;z-index:4;filter:drop-shadow(0 2px 10px rgba(0,0,0,.5))"><div style="position:absolute;top:calc(61% - 8px);left:0;right:0;text-align:center;padding:6px 8px 5px;font-size:13px;font-weight:900;letter-spacing:2.5px;text-transform:uppercase;color:#1a1a1a;z-index:10;background:rgba(255,255,255,.97);border-top:2px solid #d4af37;border-bottom:2px solid #d4af37">'+bestPlayer.name+'</div><div style="position:absolute;top:calc(61% + 30px);left:0;right:0;display:flex;justify-content:center;z-index:10;padding:0 14px">'+sH+'</div><div style="position:absolute;top:calc(61% + 64px);left:0;right:0;display:flex;justify-content:center;align-items:center;gap:20px;z-index:10;font-size:10px;font-weight:800;color:#555"><span>'+bestPlayer.foot+'</span><span>'+bestPlayer.club+'</span></div><div style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);z-index:15"><svg width="28" height="24" viewBox="0 0 28 24" fill="none"><path d="M5 1h18l5 8-14 14L0 9l5-8z" fill="#d4af37" opacity=".15"/><path d="M5 1h18l5 8-14 14L0 9l5-8z" stroke="#d4af37" stroke-width="1.2"/></svg></div></div></div>';
   }
   area.appendChild(ce);
-  await sleep(100); ce.classList.add('show');
-  if (isIcon) { await sleep(300); spawnParticles('#d4af37',30); }
+  await pkWait(100); ce.classList.add('show');
+  if (pkLv < 3) pkFlash(1);            // 3단계는 반전에서 이미 번쩍였다
+  pkHolo(ce, pkLv);
+  if (isIcon) { await pkWait(300); spawnParticles('#d4af37',30); }
   
   // Price
-  await sleep(600);
+  await pkWait(600);
   const pe = document.createElement('div'); pe.className = 'price-tag';
   pe.innerHTML = (getEnhancedPrice(bestPlayer.price, enhLvl) || '미정') + ' CP<div style="font-size:11px;color:#aaa;font-weight:700;margin-top:2px">급여 ' + (bestPlayer.salary||0) + '</div>';
   area.appendChild(pe);
-  await sleep(200); pe.classList.add('show');
+  await pkWait(200); pe.classList.add('show');
+  pkEls.forEach(e => { if (e.classList && e.classList.contains('pk-skiphint')) e.classList.remove('on'); });
   
   // All results
   const allR = document.createElement('div'); allR.className = 'bulk-results';
@@ -4403,6 +5157,7 @@ async function bulkOpenPacksType(packType, qty) {
 
   renderItems();
   saveGame();
+  pkWatchEnd();
   animating = false;
 }
 
@@ -6698,9 +7453,9 @@ function lvDoShoot(curl, pw) {
   const _fkHi = hasTrait(p, 'fkmaster') ? 0.90 : 0.82;
   const sweet = fkKind === 'fk' && pwv >= _fkLo && pwv <= _fkHi;
   const tooHard = fkKind === 'fk' && pwv > 0.92;
-  const acc = 1 - Math.min(0.5, (125 - (p.ovr || 100)) * 0.012);
-  let jit = (1 - acc) * (Math.random() - 0.5) * 0.9;
+  let jit = lvShotJit(p);
   if (curl) jit *= 0.25;                       // 감아차기는 더 정확하다
+  if (fkKind === 'pk') jit *= 0.30;            // PK 는 조준이 거의 안 흔들린다
   // 약발로 차면 흔들린다 (약발 5 = 양발이라 차이 없음)
   if (wfPen) jit += (Math.random() - 0.5) * 0.028 * wfPen;
   jit += (Math.random() - 0.5) * 0.2 * Math.max(0, pwr - 1);            // 세게 찰수록 조금 흔들린다
@@ -7144,7 +7899,19 @@ const LvSnd = {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return false;
       try { this.ctx = new AC(); } catch (e) { return false; }
-      this.out = this.ctx.createGain(); this.out.gain.value = this.on ? 0.9 : 0; this.out.connect(this.ctx.destination);
+      this.out = this.ctx.createGain(); this.out.gain.value = this.on ? 0.9 : 0;
+      /* 여러 소리가 겹치면 진폭이 1.0 을 넘어 찌그러진다(실측: 반전음+드론+카드음 = 1.000).
+         DynamicsCompressor 는 조용한 소리까지 10dB 가량 깎아먹어서, 큰 소리만 둥글게 눌러 주는
+         소프트 클리퍼를 쓴다. 0.7 아래는 손대지 않고 그 위만 부드럽게 접는다. */
+      try {
+        const ws = this.ctx.createWaveShaper(), N = 2048, cv = new Float32Array(N), T = 0.7;
+        for (let i = 0; i < N; i++) {
+          const x = (i / (N - 1)) * 2 - 1, a = Math.abs(x);
+          cv[i] = a <= T ? x : Math.sign(x) * (T + (1 - T) * Math.tanh((a - T) / (1 - T)));
+        }
+        ws.curve = cv; ws.oversample = '2x';
+        this.lim = ws; this.out.connect(ws); ws.connect(this.ctx.destination);
+      } catch (e) { this.out.connect(this.ctx.destination); }
       // 갈색 잡음 4초 — 관중 소리의 재료
       const sr = this.ctx.sampleRate, n = sr * 4, b = this.ctx.createBuffer(1, n, sr), d = b.getChannelData(0);
       let last = 0; for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1; last = (last + 0.02 * w) / 1.02; d[i] = last * 3.2; }
@@ -7212,6 +7979,7 @@ const LvSnd = {
   },
   cheer(big) { this.noise(big ? 3.4 : 1.6, 500, big ? 1500 : 1000, 0.7, big ? 2.2 : 0.9, 0.12); },
   ooh()      { this.noise(1.3, 380, 560, 1.4, 1.3, 0.25); },
+
 };
 function lvToggleSnd() { LvSnd.init(); LvSnd.setOn(!LvSnd.on); }
 
@@ -7369,6 +8137,34 @@ const lvMy = m => m / LV_M.W * 100;          // 폭 방향 미터 → 내부
 const LV_GOAL0 = 50 - lvMy(7.32) / 2;        // 골대 (7.32m) — 44.62
 const LV_GOAL1 = 50 + lvMy(7.32) / 2;        //                 55.38
 const LV_GHALF = lvMy(7.32) / 2;             // 골대 반폭 5.38
+
+/* ══ 슛 조준 흔들림 ══
+   예전 계수 0.9 에서는 OVR 118 기준 흔들림이 ±0.038 뿐이었다.
+   조준점 자체가 이미 골문 안쪽(중앙에서 3.3)을 보고 있어서, 사실상 모든 슛이 골대 안으로 들어왔다.
+   실측: 경기당 슛 6회 중 빗나간 슛 0.03회 → 골킥·코너·스로인이 경기당 0회.
+   흔들림은 '방향'에 더해지므로 먼 거리일수록 크게 벌어진다(= 중거리가 더 자주 빗나간다). */
+const LV_SHOT_JIT = 2.7;
+function lvShotJit(p, k) {
+  const acc = 1 - Math.min(0.5, (125 - ((p && p.ovr) || 100)) * 0.012);
+  return (1 - acc) * (Math.random() - 0.5) * LV_SHOT_JIT * (k === undefined ? 1 : k);
+}
+
+/* ══ 키퍼 쳐내기 ══
+   전엔 선방이 전부 '포구' 라 세컨드볼도 코너도 나오지 않았다.
+   PARRY_BASE: 선방했을 때 못 잡고 쳐낼 기본 확률 (세게·구석으로 올수록 올라간다)
+   PARRY_OUT : 쳐낸 공이 옆줄 밖으로 나가 코너가 되는 비율 (나머지는 박스 앞으로 흘러나온다) */
+const LV_PARRY_BASE = 0.55;
+const LV_PARRY_OUT  = 0.70;
+/* 유효슛이 줄어든 만큼 선방률을 낮춰 득점 수를 맞춘다 (음수 = 더 잘 들어감) */
+const LV_SAVE_ADJ = -0.16;
+/* 수비수가 몸으로 막은 슛이 깔끔히 소유되지 않고 튕겨 나갈 확률 */
+const LV_BLOCK_DEFLECT = 0.80;
+/* 옆줄 30 안쪽에서 걷어낼 때, 아예 터치 밖으로 차낼 확률 */
+const LV_CLEAR_OUT = 0.45;
+/* 빠른 공을 가로챌 때 깔끔히 못 잡고 튕겨낼 확률 */
+const LV_MISCTRL = 0.35;
+/* 공격 시 측면 자원이 터치라인 쪽으로 더 벌어지는 폭 */
+const LV_WIDTH = 7;
 let lvFirstKick = 'us';      // 전반 킥오프 팀 — 후반은 반대 팀이 찬다
 function lvClockPaint() {
   const c = document.getElementById('lvClock');
@@ -7738,8 +8534,7 @@ function lvAct(t) {
     const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
     const power = Math.min(1.35, 0.7 + d / 28);
     const sp = lvShot(p) * power;
-    const acc = 1 - Math.min(0.5, (125 - (p.ovr || 100)) * 0.012);
-    const jitter = (1 - acc) * (Math.random() - 0.5) * 0.9;
+    const jitter = lvShotJit(p);
     lvBall.from = { side:'us', idx: own.idx }; lvBall.cool = 10;
     lvBall.own = null; lvBall.to = -1;
     lvBall.vx = dx * sp; lvBall.vy = (dy + jitter) * sp;
@@ -7833,7 +8628,11 @@ function lvTick() {
     /* 로빙은 떠 있는 동안 땅에 끌리지 않는다. 전에는 공중에서도 굴러가듯 감속해서
        목표까지 못 가고 중간에 떨어졌다. 착지하는 순간 툭 멈춘다. */
     if (lvBall.air > 1) { /* 공중 — 감속 없음 */ }
-    else if (lvBall.air === 1 && !lvBall.shot) { lvBall.vx *= 0.25; lvBall.vy *= 0.25; }   // 로빙 패스만 툭 떨어진다 (슛은 그대로 날아간다)
+    else if (lvBall.air === 1 && !lvBall.shot) {
+      // 떨어지는 공은 먼저 공중볼 경합(헤딩)에 붙인다
+      if (!lvLock && !lvSet && lvHeadDuel()) { lvPaint(); return; }
+      lvBall.vx *= 0.25; lvBall.vy *= 0.25;                     // 로빙 패스만 툭 떨어진다 (슛은 그대로 날아간다)
+    }
     else if (lvBall.shot) {                        // 슛은 공중으로 날아가니 조금만 느려진다
       lvBall.vx *= 0.99; lvBall.vy *= 0.99;
       if (Math.hypot(lvBall.vx, lvBall.vy) < 0.45) lvBall.shot = false;   // 힘이 다하면 구르는 공
@@ -7854,6 +8653,7 @@ function lvTick() {
         const side = lvBall.saveBy;
         const arr = side === 'us' ? mtUs : mtThem;
         const gi = arr.findIndex(p => p.gk);
+        if (gi >= 0 && lvBall.parry) { lvDoParry(side, gi, true); lvPaint(); return; }
         if (gi >= 0) {
           arr[gi].cx = lvBall.x; arr[gi].cy = lvBall.y;      // 몸 날려 잡은 자리
           lvBall.own = { side, idx: gi };
@@ -7885,6 +8685,9 @@ function lvTick() {
     let take = null, bd = 1.9;                 // 공 줍는 거리 약 2m
     [['us', mtUs], ['them', mtThem]].forEach(function (e) {
       const sd = e[0], arr = e[1];
+      /* 높이 뜬 공은 받기로 된 선수도 공중에서 못 잡는다 — 떨어질 때 머리로 다툰다.
+         이게 없으면 크로스가 공중에서 그대로 트래핑돼 공중볼 경합이 아예 안 열렸다. */
+      if (lvBall.air > 0 && lvBall.lift && (lvBall.lift.peak || 0) >= 2.0) return;
       if (lvBall.air > 0 && !(lvBall.toSide === sd && lvBall.to >= 0)) return;
       arr.forEach((p, i) => {
         if (p.off) return;                               // 퇴장 선수는 공을 못 잡는다
@@ -7915,6 +8718,40 @@ function lvTick() {
         bd = d; take = { side: sd, idx: i };
       });
     });
+    /* 날아오는 슛을 잡거나 막아낼 때 — 깔끔하게 소유하지 못하는 경우가 있다.
+       (saveBy 는 위 forEach 안에서 이미 꺼지므로 여기서 참조하면 안 된다) */
+    if (take) {
+      const tp0 = (take.side === 'us' ? mtUs : mtThem)[take.idx];
+      const _deep = take.side === 'us' ? (tp0 && tp0.cx < 14) : (tp0 && tp0.cx > 86);
+      if (tp0 && tp0.gk && lvBall.parry) {                 // 키퍼 쳐내기
+        mtUs.forEach(q => q._dived = false); mtThem.forEach(q => q._dived = false);
+        lvDoParry(take.side, take.idx, true);
+        lvPaint(); return;
+      }
+      /* 슛 블로킹 — 몸으로 막은 공은 그냥 가져가지 못하고 튕겨 나간다.
+         실측: 유효슛의 66% 가 키퍼 앞에서 수비수에게 그냥 '주워' 졌다. 그래서 코너가 영영 안 나왔다. */
+      if (tp0 && !tp0.gk && lvBall.shot && lvBall.aim === 'on'
+          && lvBall.last && lvBall.last !== take.side && Math.random() < LV_BLOCK_DEFLECT) {
+        mtUs.forEach(q => q._dived = false); mtThem.forEach(q => q._dived = false);
+        lvAnim(take.side, take.idx, 'trap');
+        lvDoParry(take.side, take.idx, _deep);
+        lvPaint(); return;
+      }
+      /* 가로채기 실수 — 빠른 공에 발을 갖다 댄 수비는 깔끔히 세우지 못하고 튕겨낸다.
+         (받기로 된 선수의 트래핑은 그대로 둔다 — 내 패스가 자꾸 튀면 조작감이 망가진다) */
+      {
+        const _recv = lvBall.to === take.idx && (lvBall.toSide || 'us') === take.side;
+        const _v = Math.hypot(lvBall.vx, lvBall.vy);
+        if (tp0 && !tp0.gk && !_recv && !lvBall.shot && _v > 1.0
+            && lvBall.last && lvBall.last !== take.side && Math.random() < LV_MISCTRL) {
+          mtUs.forEach(q => q._dived = false); mtThem.forEach(q => q._dived = false);
+          lvAnim(take.side, take.idx, 'trap');
+          lvDoParry(take.side, take.idx, false);
+          lvPaint(); return;
+        }
+      }
+      lvBall.parry = false;                                // 다른 사람이 잡았으면 쳐내기 판정은 버린다
+    }
     if (take) {
       // 공을 잡은 시각 — '원터치 피니셔' 가 이 값을 본다
       { const tp0 = (take.side === 'us' ? mtUs : mtThem)[take.idx];
@@ -7966,21 +8803,41 @@ function lvTick() {
          · 공은 못 건드리고 몸만 걸린 슬라이딩 — 대부분 파울
          · 앞에서 공부터 깔끔하게 뺏은 슬라이딩 — 정상
          전엔 슬라이딩 성공률이 6배라 거의 다 깔끔히 뺏어서, 뒤에서 들어가도 파울이 잘 안 나왔다. */
+      /* 페널티 전문가 — 상대 박스 안에서 공을 잡고 있으면 수비가 걸고 넘어뜨릴 확률이 올라간다.
+         (PK 자체가 경기당 0.13회뿐이라, '잘 넣는다' 만으로는 아무 값어치가 없었다) */
+      let pkDraw = 1;
+      if (hasTrait(holder, 'pkmaster')) {
+        const _bx = lvMx(16.5), _b0 = 50 - lvMy(20.16), _b1 = 50 + lvMy(20.16);
+        const _in = mySide === 'us'
+          ? (holder.cx > 100 - _bx && holder.cy > _b0 && holder.cy < _b1)
+          : (holder.cx < _bx && holder.cy > _b0 && holder.cy < _b1);
+        if (_in) pkDraw = LV_PKDRAW;
+      }
       if (q.slide && !q.slide.fouled && Math.hypot(q.cx - holder.cx, q.cy - holder.cy) < 1.5) {
-        // 파울이 너무 잦아서 낮춘다 (앞에서 헛디딘 슬라이딩 0.7 → 0.40)
-        let pFoul = behind < 1 ? (ok ? 0.58 : 0.72) : (ok ? 0.06 : 0.40);
+        /* 파울이 너무 잦아서 또 낮춘다.
+           실측(슬라이딩 1회당): 앞 35.3% / 뒤 69.3% → 목표 앞 15% / 뒤 45%.
+           탈취율은 손대지 않는다 — 여긴 파울 판정만 있다. */
+        let pFoul = behind < 1 ? (ok ? 0.46 : 0.47) : (ok ? 0.03 : 0.17);
         if (hasTrait(q, 'tackler')) pFoul *= 0.70;         // 태클 마스터 — 덜 걸린다
         if (hasTrait(q, 'clean'))   pFoul *= 0.50;         // 클린 태클러
+        pFoul = Math.min(0.78, pFoul * pkDraw);
         q.slide.fouled = true;
-        if (Math.random() < pFoul) { lvFoul(mySide === 'us' ? 'them' : 'us', holder.cx, holder.cy, i, behind < 1); break; }
+        if (Math.random() < pFoul) {
+          if (pkDraw > 1) lvPopFor(holder, 'pkmaster');
+          lvFoul(mySide === 'us' ? 'them' : 'us', holder.cx, holder.cy, i, behind < 1); break;
+        }
       }
       // 서서 하는 태클도 뒤에서 들어가면 가끔 파울
       if (!q.slide && q.lunge > 0 && behind < 1 && !q._lf) {
         q._lf = true;
-        let pF2 = 0.20;
+        let pF2 = 0.10;
         if (hasTrait(q, 'tackler')) pF2 *= 0.70;
         if (hasTrait(q, 'clean'))   pF2 *= 0.50;
-        if (Math.random() < pF2) { lvFoul(mySide === 'us' ? 'them' : 'us', holder.cx, holder.cy, i, false); break; }
+        pF2 = Math.min(0.78, pF2 * pkDraw);
+        if (Math.random() < pF2) {
+          if (pkDraw > 1) lvPopFor(holder, 'pkmaster');
+          lvFoul(mySide === 'us' ? 'them' : 'us', holder.cx, holder.cy, i, false); break;
+        }
       }
       if (ok) {
         if (hasTrait(q, 'tackler')) lvPopFor(q, 'tackler');
@@ -8372,8 +9229,14 @@ function lvMove() {
         // 공 주변이 비면 지원하러 간다
         const dBall = Math.hypot(p.cx - lvBall.x, p.cy - lvBall.y);
         if (i === press1 && dBall > 12) { tx = lvBall.x + dir * 9; ty = lvBall.y + (p.cy > lvBall.y ? 10 : -10); }
-        // 골라인에 붙어 서지 않게 — 6야드 박스 안쪽으로는 안 들어간다
+        /* 측면 자원은 공격 때 터치라인 쪽으로 벌린다.
+           대형이 y 14~86 안에만 있어서 공이 옆줄(0·100)에 닿을 일이 아예 없었다
+           (실측: 경기 내내 공 y 범위 12.7~86.1, 스로인 0.1회/경기).
+           폭을 쓰면 측면 돌파·크로스 각도 모두 살아난다. */
+        if (p.wide) ty += (p.hy < 50 ? -1 : 1) * LV_WIDTH;
+        // 골라인·옆줄에 붙어 서지 않게
         tx = Math.max(9, Math.min(91, tx));
+        ty = Math.max(4, Math.min(96, ty));
       }
 
       let dx = tx - p.cx, dy = ty - p.cy;
@@ -8529,11 +9392,145 @@ function lvAiPenalty() {
   const ax = 0 - p.cx, ay = aimY - p.cy, d = Math.hypot(ax, ay) || 1, sp = lvShot(p);
   lvBall.from = { side:'them', idx: own.idx }; lvBall.cool = 10; lvBall.last = 'them';
   lvBall.own = null; lvBall.to = -1;
-  lvBall.vx = ax / d * sp; lvBall.vy = ay / d * sp;
+  lvBall.isPk = true;
+  lvBall.vx = ax / d * sp; lvBall.vy = (ay / d + lvShotJit(p, 0.30)) * sp;
   lvShotId++;
   lvBall.shot = true; lvBall.shotT = 0; lvBall.fkSweet = false;
   lvResolveShot(p, 'them');
   lvAnim('them', own.idx, 'kick');
+}
+
+/* ══ 공중볼 경합 (헤딩) ══
+   전엔 뜬 공을 '받기로 지정된 선수' 만 건드릴 수 있어서, 크로스가 떨어져도 다툼 자체가 없었다.
+   그래서 크로스 1,200회에 득점 0, 슛 0.6% 였다.
+   이제 낙하 지점 부근의 양 팀 선수가 경합해서 이긴 쪽이 머리로 처리한다. */
+const LV_HEAD_R = 5.5;            // 경합 반경 (실측: 크로스 낙하점에서 가장 가까운 선수가 평균 3.9 떨어져 있다)
+const LV_HEAD_BONUS = 9;          // 파워헤더 보정 (16 이었을 때 +0.54골/경기 = 1티어급이라 낮췄다)
+
+/* 공중볼 능력 — 포지션으로 키·제공권을 대신한다 (CB·ST 가 강하고 측면·작은 미드필더가 약하다) */
+function lvAirBase(p) {
+  const lb = p.lbl || '';
+  return /CB|ST|CF/.test(lb) ? 8 : /CDM|GK/.test(lb) ? 3
+       : /LB|RB|LWB|RWB|LW|RW|LM|RM|CAM/.test(lb) ? -6 : 0;
+}
+function lvAirPow(p) {
+  return (p.ovr || 100) + lvAirBase(p) + (hasTrait(p, 'header') ? LV_HEAD_BONUS : 0);
+}
+
+/* 뜬 공이 떨어지는 순간 호출. 헤딩으로 처리했으면 true. */
+function lvHeadDuel() {
+  if (!lvBall.lift || (lvBall.lift.peak || 0) < 2.0) return false;   // 낮은 패스는 그냥 발로
+  const bx = lvBall.x, by = lvBall.y;
+
+  // 키퍼가 코앞이면 그냥 걷어 잡는다 (크로스 캐치)
+  for (let k = 0; k < 2; k++) {
+    const sd = k ? 'them' : 'us';
+    const arr = sd === 'us' ? mtUs : mtThem;
+    const gi = arr.findIndex(p => p.gk);
+    if (gi < 0) continue;
+    const g = arr[gi];
+    const ownBox = sd === 'us' ? bx < 16 : bx > 84;
+    if (ownBox && Math.hypot(g.cx - bx, g.cy - by) < 2.8) {
+      lvBall.own = { side: sd, idx: gi }; lvBall.last = sd;
+      lvBall.air = 0; lvBall.lift = null; lvBall.vx = 0; lvBall.vy = 0;
+      lvBall.to = -1; lvBall.passTo = null; lvBall.shot = false; lvBall.homeK = 0;
+      lvAnim(sd, gi, 'catch'); LvSnd.ooh();
+      lvSay((sd === 'us' ? '' : '상대 ') + '키퍼가 걷어 잡았다');
+      return true;
+    }
+  }
+
+  const cands = [];
+  for (let k = 0; k < 2; k++) {
+    const sd = k ? 'them' : 'us';
+    const arr = sd === 'us' ? mtUs : mtThem;
+    arr.forEach((p, i) => {
+      if (p.gk || p.off) return;
+      const d = Math.hypot(p.cx - bx, p.cy - by);
+      if (d > LV_HEAD_R) return;
+      cands.push({ sd: sd, i: i, p: p, d: d, sc: lvAirPow(p) - d * 17 + Math.random() * 30 });
+    });
+  }
+  const deep = bx > 78 || bx < 22;                 // 양쪽 박스 근처
+  if (!cands.length) return false;
+  if (cands.length < 2 && !deep) return false;     // 중원에서 혼자면 그냥 발로 받는다
+  cands.sort(function (a, b) { return b.sc - a.sc; });
+  const w = cands[0];
+
+  mtUs.forEach(function (q) { q._dived = false; }); mtThem.forEach(function (q) { q._dived = false; });
+  lvBall.air = 0; lvBall.lift = null; lvBall.to = -1; lvBall.toSide = null;
+  lvBall.passTo = null; lvBall.homeK = 0; lvBall.arc = null; lvBall.curl = 0;
+  lvAnim(w.sd, w.i, 'kick');
+  if (hasTrait(w.p, 'header')) lvTraitPop(w.sd, w.i, 'header');
+
+  const atkGoal = w.sd === 'us' ? 100 : 0;
+  const dg = Math.abs(atkGoal - w.p.cx);
+
+  // ① 상대 골문 근처 — 헤딩 슛
+  if (dg < 17) {
+    const aimY = 50 + (Math.random() < 0.5 ? -1 : 1) * (1.2 + Math.random() * 3.2);
+    const ax = atkGoal - w.p.cx, ay = aimY - w.p.cy, d = Math.hypot(ax, ay) || 1;
+    const hd = hasTrait(w.p, 'header');
+    /* 헤딩은 발보다 약하다. 다만 0.75 미만으로 도착하면 '굴러온 공' 으로 보고 무조건 선방 처리되므로
+       (lvResolveShot 의 vArr 규칙) 그 밑으로 내려가지 않게 잡는다 — 전엔 헤딩 1,500회에 득점 0 이었다. */
+    const sp = lvShot(w.p) * (hd ? 0.96 : 0.88);
+    lvBall.from = { side: w.sd, idx: w.i }; lvBall.cool = 10; lvBall.last = w.sd;
+    lvBall.own = null; lvBall.fkSweet = false; lvBall.isPk = false;
+    lvBall.isHead = true;
+    lvBall.vx = ax / d * sp;
+    lvBall.vy = (ay / d + lvShotJit(w.p, hd ? 1.15 : 1.45)) * sp;   // 헤딩은 조준이 거칠다
+    lvShotId++; lvBall.shot = true; lvBall.shotT = 0;
+    lvStamCost(w.p, 0.6);
+    lvResolveShot(w.p, w.sd);
+    lvBall.lift = { t0: lvFrame, dur: 12, peak: 1.1 };
+    lvSay((w.sd === 'us' ? '' : '상대 ') + '헤딩 슛!');
+    return true;
+  }
+
+  // ② 자기 골문 근처 — 걷어내는 헤딩
+  const ownNear = w.sd === 'us' ? w.p.cx < 30 : w.p.cx > 70;
+  if (ownNear) { lvClear(w.p, w.i, w.sd); return true; }
+
+  // ③ 중원 — 머리로 떨궈 흘린다 (세컨드볼)
+  const fwd = w.sd === 'us' ? 1 : -1;
+  const ang = (Math.random() - 0.5) * 1.5;
+  const sp2 = 0.7 + Math.random() * 0.7;
+  lvBall.from = { side: w.sd, idx: w.i }; lvBall.cool = 6; lvBall.last = w.sd;
+  lvBall.own = null; lvBall.shot = false;
+  lvBall.vx = fwd * Math.cos(ang) * sp2; lvBall.vy = Math.sin(ang) * sp2;
+  lvSay((w.sd === 'us' ? '' : '상대 ') + '머리로 떨궜다');
+  return true;
+}
+
+/* ══ 걷어내기 (클리어링) ══
+   자기 진영에서 압박을 받고 줄 데가 없으면 그냥 질러버린다.
+   전엔 이 동작이 없어서 수비가 무조건 패스를 시도하다 뺏겼고,
+   공이 옆줄 밖으로 나갈 일도 없어 스로인이 경기당 0회였다.
+   side = 걷어내는 팀. 그 팀이 공격하는 방향(= 상대 골문 쪽)으로 멀리, 바깥쪽으로 찬다. */
+function lvClear(p, idx, side) {
+  const fwd = side === 'us' ? 1 : -1;                 // 우리는 +x, 상대는 -x 로 걷어낸다
+  const outY = p.cy < 50 ? -1 : 1;                    // 가까운 터치라인 쪽
+  /* 옆줄이 가까우면 아예 밖으로 차낸다 — 실제로도 급하면 터치로 내보내 한숨 돌린다.
+     이 경로가 없어서 스로인이 경기당 0.1회뿐이었다. */
+  const touchD = Math.min(p.cy, 100 - p.cy);
+  const toTouch = touchD < 30 && Math.random() < LV_CLEAR_OUT;
+  let lat, axm;
+  if (toTouch) { lat = outY * (2.2 + Math.random() * 1.6); axm = 0.45 + Math.random() * 0.5; }
+  else         { lat = outY * (0.55 + Math.random() * 0.85); axm = 1.1 + Math.random() * 0.5; }
+  const ax = fwd * axm, ay = lat;
+  const d = Math.hypot(ax, ay) || 1;
+  const sp = Math.max(1.7, Math.min(3.0, lvShot(p) * (0.80 + Math.random() * 0.30)));
+  lvBall.from = { side, idx }; lvBall.cool = 10; lvBall.last = side;
+  lvBall.own = null; lvBall.to = -1; lvBall.toSide = null; lvBall.passTo = null;
+  lvBall.homeK = 0; lvBall.shot = false; lvBall.curl = 0; lvBall.arc = null;
+  lvBall.vx = ax / d * sp; lvBall.vy = ay / d * sp;
+  const airT = Math.round(26 + Math.random() * 16);
+  lvBall.air = airT;
+  lvBall.lift = { t0: lvFrame, dur: airT, peak: 3.4 + Math.random() * 2.2 };
+  lvStamCost(p, 0.6);
+  lvAnim(side, idx, 'kick');
+  lvSay((side === 'us' ? '' : '상대 ') + (toTouch ? '터치 밖으로 걷어냈다!' : '걷어냈다!'));
+  return true;
 }
 
 /* 상대 수비도 슬라이딩을 한다.
@@ -8542,6 +9539,13 @@ function lvAiTackle() {
   if (lvSet || lvKick || !lvBall.own || lvBall.own.side !== 'us') return;
   const holder = mtUs[lvBall.own.idx];
   if (!holder || holder.gk) return;             // 공 잡은 키퍼에겐 슬라이딩 안 한다
+  /* 페널티 전문가 — 박스 안에서 몸을 들이밀어 수비가 발을 뻗게 만든다.
+     파울 확률만 올려서는 '수비가 박스 안에서 슬라이딩하는 일 자체'가 드물어 값어치가 없었다. */
+  let pkBait = 1;
+  if (hasTrait(holder, 'pkmaster')) {
+    const _bx = lvMx(16.5), _b0 = 50 - lvMy(20.16), _b1 = 50 + lvMy(20.16);
+    if (holder.cx > 100 - _bx && holder.cy > _b0 && holder.cy < _b1) pkBait = LV_PKBAIT;
+  }
   mtThem.forEach(q => {
     if (q.gk || q.slide) return;
     const d = Math.hypot(q.cx - holder.cx, q.cy - holder.cy);
@@ -8554,8 +9558,8 @@ function lvAiTackle() {
     const rel = hv > 0.05 ? ((q.cx - holder.cx) * holder.vx + (q.cy - holder.cy) * holder.vy) / (hv * (d || 1)) : 1;
     const behind = rel < -0.35 ? 0.25 : 1;
     // 붙어 있으면 서서 태클로 발을 뻗는다 — 앞에서는 자주, 뒤에서는 가끔
-    if (d < 2.0 && !q.lunge && Math.random() < 0.05 * (behind < 1 ? 0.3 : 1)) { q.lunge = 9; lvAnim('them', mtThem.indexOf(q), 'tackle'); return; }
-    if (Math.random() < 0.026 * behind) {                 // 슬라이딩 시도 빈도 (파울이 너무 잦아 하향)
+    if (d < 2.0 && !q.lunge && Math.random() < 0.05 * (behind < 1 ? 0.3 : 1) * pkBait) { q.lunge = 9; lvAnim('them', mtThem.indexOf(q), 'tackle'); return; }
+    if (Math.random() < 0.026 * behind * pkBait) {        // 슬라이딩 시도 빈도 (파울이 너무 잦아 하향)
       q.slide = { tx: holder.cx + (holder.vx || 0) * 4, ty: holder.cy + (holder.vy || 0) * 4, t: 11 };
       const idx = mtThem.indexOf(q);
       lvAnim('them', idx, 'slide');
@@ -8639,6 +9643,40 @@ function lvCardShow(red, nm, side, straight) {
 }
 
 /* 파울 판정 — 박스 안이면 PK, 밖이면 프리킥 */
+/* 페널티 전문가 — 박스 안에서 공을 잡고 있을 때
+   PKBAIT: 수비가 발을 뻗거나 슬라이딩해 올 확률 배수 (유도)
+   PKDRAW: 그렇게 들어온 태클이 파울로 불릴 확률 배수 */
+const LV_PKBAIT = 2.8;
+const LV_PKDRAW = 2.4;
+
+/* 키퍼가 잡지 못하고 쳐낸다. 옆줄 밖이면 코너, 아니면 박스 앞으로 흘러나온 세컨드볼.
+   side = 막는 팀(키퍼 쪽), gi = 그 팀의 키퍼 인덱스 */
+function lvDoParry(side, gi, deep) {
+  const arr = side === 'us' ? mtUs : mtThem;
+  const who = arr[gi];
+  const top = side === 'them';                   // 막는 쪽이 상대면 우리가 공격하는(위쪽) 골문
+  const atkSide = top ? 'us' : 'them';
+  lvBall.parry = false; lvBall.saveBy = null; lvBall.aim = null;
+  if (who && who.gk) { who.cx = Math.max(1.2, Math.min(98.8, lvBall.x)); who.cy = lvBall.y; LvSnd.ooh(); }
+  // 골라인 근처에서 막았으면 옆줄 밖으로 걷어낼 수 있다 → 코너킥
+  if (deep && Math.random() < LV_PARRY_OUT) {
+    lvRestart('corner', atkSide, top ? 98.6 : 1.4, lvBall.y < 50 ? 2.6 : 97.4);
+    lvSay((side === 'us' ? '' : '상대 ') + (who && who.gk ? '키퍼가 쳐냈다' : '수비가 걷어냈다') + '! 코너킥');
+    return;
+  }
+  // 아니면 그 자리에서 튕겨 나온 세컨드볼
+  /* 튕기는 각을 넓게 — 옆줄 근처에서 막히면 그대로 터치 밖으로 나가 스로인이 된다 */
+  const ang = (Math.random() - 0.5) * 2.5;
+  const sp2 = 0.85 + Math.random() * 1.05;
+  if (deep) lvBall.x = top ? 98.2 : 1.8;
+  lvBall.vx = (top ? -1 : 1) * Math.cos(ang) * sp2;
+  lvBall.vy = Math.sin(ang) * sp2 * 1.5;
+  lvBall.own = null; lvBall.to = -1; lvBall.passTo = null;
+  lvBall.last = side; lvBall.cool = 5; lvBall.shot = false;
+  lvBall.lift = null; lvBall.homeK = 0; lvBall.arc = null; lvBall.curl = 0;
+  lvSay(who && who.gk ? '쳐냈다! 흘러나온 공' : '막혔다! 흘러나온 공');
+}
+
 function lvFoul(foulerSide, x, y, foulerIdx, hard) {
   const victim = foulerSide === 'us' ? 'them' : 'us';
   lvCard(foulerSide, foulerIdx, x, y, hard);
@@ -8684,6 +9722,7 @@ function lvKickFoot(p, side) {
 function lvResolveShot(shooter, side) {
   const goalX = side === 'us' ? 100 : 0;
   const gk = (side === 'us' ? mtThem : mtUs).find(p => p.gk);
+  const isHead = !!lvBall.isHead; lvBall.isHead = false;   // 이번 슛에만 쓰고 바로 끈다
   lvBall.saveBy = null; lvBall.aim = null;          // 이전 슛 결과가 남지 않게
   if (!gk) return;
   const vx = lvBall.vx;
@@ -8697,7 +9736,7 @@ function lvResolveShot(shooter, side) {
   const off = Math.abs(crossY - 50);                                          // 가운데서 얼마나 벗어났나
   /* 실제 축구는 박스 안 슛 득점률이 15~20% 정도다.
      게임이라 조금 후하게, 동급 상대 기준 박스 안 30% / 박스 밖 20% / 중거리 5% 를 목표로 잡았다. */
-  let save = 0.62
+  let save = 0.62 + LV_SAVE_ADJ
     + Math.max(0, dist - 10) * 0.018        // 멀리서 찬 건 막기 쉽다
     - off * 0.028                           // 구석으로 찰수록 어렵다 (골대 7.32m 기준)
     + ((gk.ovr || 100) - (shooter.ovr || 100)) * 0.006;   // OVR 차 반영 (25점 차 = 15%)
@@ -8715,6 +9754,8 @@ function lvResolveShot(shooter, side) {
   // 프리킥 마스터 / 페널티 전문가
   if (hasTrait(shooter, 'fkmaster') && lvBall.fkSweet) save -= 0.06;
   if (hasTrait(shooter, 'pkmaster') && lvBall.isPk) save -= 0.12;
+  // 헤딩 슛은 발보다 막기 쉽다. 파워헤더면 오히려 더 어렵다.
+  if (isHead) { save += 0.08; if (hasTrait(shooter, 'header')) save -= 0.11; }
   // 선방의 신 — 막는 쪽 골키퍼
   if (hasTrait(gk, 'gkgod')) save += 0.08;
   /* 발동한 슛 특성을 머리 위에 띄운다 (가장 앞의 하나만) */
@@ -8739,10 +9780,16 @@ function lvResolveShot(shooter, side) {
   const vArr = v0 * Math.pow(0.99, dd / Math.max(0.3, v0) * 1.05);   // 슛은 틱마다 1% 감속
   if (vArr < 0.75) save = 1;
   lvBall.aim = 'on';
+  lvBall.parry = false;
   if (Math.random() < save) {
     lvBall.saveBy = side === 'us' ? 'them' : 'us';
     lvBall.saveY = crossY;
     if (hasTrait(gk, 'gkgod')) lvPopFor(gk, 'gkgod');
+    // 세게 날아온 공·구석으로 온 공은 잡지 못하고 쳐낸다
+    let pPar = LV_PARRY_BASE + Math.min(0.22, Math.max(0, vArr - 0.9) * 0.45) + off * 0.018;
+    if (hasTrait(gk, 'gkgod')) pPar *= 0.6;        // 선방의 신은 잘 잡는다
+    if (vArr < 0.80) pPar = 0;                     // 느리게 굴러온 공은 그냥 잡는다
+    lvBall.parry = Math.random() < Math.min(0.72, pPar);
   }
 }
 
@@ -8751,26 +9798,58 @@ function lvResolveShot(shooter, side) {
    side: 차는 팀. 박스 중앙에 가장 가까운 동료를 받을 선수로 잡는다. */
 function lvCross(p, idx, side) {
   const arr = side === 'us' ? mtUs : mtThem;
-  const gl = side === 'us' ? 100 : 0, inb = side === 'us' ? -1 : 1;
-  // 크로스 마스터는 목표 지점이 거의 안 흔들린다
-  const _cj = hasTrait(p, 'crosser') ? 0.45 : 1;
-  if (hasTrait(p, 'crosser')) lvPopFor(p, 'crosser');
-  const tx = gl + inb * lvMx(10.5) + (Math.random() * 2 - 1) * 2.2 * _cj;
-  const ty = 50 + (Math.random() * 2 - 1) * 4.0 * _cj;    // 박스 한가운데 (PK 지점 부근)
-  let best = -1, bd = 1e9;
-  arr.forEach((q, i) => { if (i === idx || q.gk) return;
-    const d = Math.hypot(q.cx - tx, q.cy - ty); if (d < bd) { bd = d; best = i; } });
-  if (best < 0) return false;
-  const ax = tx - p.cx, ay = ty - p.cy, dist = Math.hypot(ax, ay) || 1;
-  const airT = Math.max(18, Math.min(40, Math.round(dist * 0.95)));
+  const foe = side === 'us' ? mtThem : mtUs;
+  const gl  = side === 'us' ? 100 : 0, inb = side === 'us' ? -1 : 1;
+  const cm  = hasTrait(p, 'crosser');
+
+  /* ① 받을 선수를 먼저 고른다 — 박스 안에서 비어 있고, 골문에 가깝고, 제공권이 좋은 쪽.
+     전에는 낙하 지점을 먼저 찍고 '거기서 가장 가까운 아무나' 를 받을 선수로 잡았다.
+     그래서 크로스 마스터(정확도 +)가 아무도 없는 박스 정중앙에 더 정확히 꽂는 특성이 돼 있었다
+     (실측: 낙하점~받는선수 거리가 3.85 → 4.48 로 오히려 멀어졌다). */
+  let best = -1, bs = -1e9;
+  arr.forEach((q, i) => {
+    if (i === idx || q.gk || q.off) return;
+    const dg = Math.abs(gl - q.cx);
+    if (dg > lvMx(22) || q.cy < 20 || q.cy > 80) return;          // 박스 언저리 안에 있는 선수만
+    let open = 1e9;
+    foe.forEach(u => { if (u.gk) return; open = Math.min(open, Math.hypot(u.cx - q.cx, u.cy - q.cy)); });
+    const sc = Math.min(open, 9) * 1.6                            // 비어 있을수록
+             + (lvMx(22) - dg) * 0.9                              // 골문에 가까울수록
+             + lvAirBase(q) * 1.1                                  // 제공권(포지션). 특성은 빼둔다 —
+                                                                     // 안 그러면 파워헤더가 크로스를 자기 쪽으로 끌어당겨 효과가 겹친다
+             - Math.abs(q.cy - 50) * 0.22;                        // 가운데일수록
+    if (sc > bs) { bs = sc; best = i; }
+  });
+  if (best < 0) return false;                                      // 박스에 아무도 없으면 크로스를 올리지 않는다
+  const r = arr[best];
+
+  /* ② 그 선수가 도착할 자리 위로 띄운다 (비행 시간만큼 앞질러서) */
+  let tx = r.cx, ty = r.cy, dist = Math.hypot(tx - p.cx, ty - p.cy) || 1;
+  let airT = Math.max(16, Math.min(42, Math.round(dist * 0.92)));
+  for (let k = 0; k < 3; k++) {
+    tx = r.cx + (r.vx || 0) * airT * 0.75;
+    ty = r.cy + (r.vy || 0) * airT * 0.75;
+    dist = Math.hypot(tx - p.cx, ty - p.cy) || 1;
+    airT = Math.max(16, Math.min(42, Math.round(dist * 0.92)));
+  }
+  // 조준 오차 — 크로스 마스터는 거의 안 흔들린다
+  const j = cm ? 0.34 : 1;
+  tx += (Math.random() * 2 - 1) * 2.0 * j;
+  ty += (Math.random() * 2 - 1) * 3.4 * j;
+  tx = Math.max(gl === 100 ? 86 : 1.5, Math.min(gl === 100 ? 98.5 : 14, tx));
+  ty = Math.max(16, Math.min(84, ty));
+  if (cm) lvPopFor(p, 'crosser');
+
+  dist = Math.hypot(tx - p.cx, ty - p.cy) || 1;
+  airT = Math.max(16, Math.min(42, Math.round(dist * 0.92)));
   const sp = dist / airT;
   lvBall.from = { side, idx }; lvBall.cool = 12; lvBall.last = side;
   lvBall.own = null; lvBall.to = best; lvBall.toSide = side; lvBall.homeK = 0;
   lvBall.air = airT; lvBall.passTo = { x: tx, y: ty };
   lvBall.lift = { t0: lvFrame, dur: airT, peak: Math.max(3.5, Math.min(7, dist * 0.22)) };
-  lvBall.vx = ax / dist * sp; lvBall.vy = ay / dist * sp;
+  lvBall.vx = (tx - p.cx) / dist * sp; lvBall.vy = (ty - p.cy) / dist * sp;
   lvAnim(side, idx, 'kick');
-  lvSay((side === 'us' ? '' : '상대 ') + '크로스 → 박스 중앙');
+  lvSay((side === 'us' ? '' : '상대 ') + '크로스 → ' + (r.nm || '박스 안'));
   return true;
 }
 
@@ -8823,7 +9902,7 @@ function lvAiDecide() {
     const ax = 0 - p.cx, ay = aimY - p.cy, d = Math.hypot(ax, ay) || 1;
     lvBall.from = { side:'them', idx: own.idx }; lvBall.cool = 10; lvBall.last = 'them';
     lvBall.own = null; lvBall.to = -1;
-    lvBall.vx = ax / d * sp; lvBall.vy = ay / d * sp;
+    lvBall.vx = ax / d * sp; lvBall.vy = (ay / d + lvShotJit(p)) * sp;
     lvShotId++;
     lvBall.shot = true; lvBall.shotT = 0; lvBall.homeK = 0; lvBall.fkSweet = false;
     lvStamCost(p, 1.1);
@@ -8860,6 +9939,11 @@ function lvAiDecide() {
      좋은 패스 각이 있을 때만 주고, 아니면 드리블로 벗겨낸다. */
   /* 오래 끌었거나 바짝 붙였으면, 점수가 낮아도 일단 내준다 (볼 순환) */
   const urgent = (p.carryT || 0) > 42 || press < 2.5;
+  /* 2.5) 걷어내기 — 자기 진영 깊은 곳(상대 골문은 x=100 쪽)에서 바짝 붙었는데 줄 데도 없으면 질러버린다.
+     전엔 이게 없어서 무리한 패스를 하다 그 자리에서 뺏겼다. */
+  if (!p.gk && p.cx > 56 && press < 3.4 && (best < 0 || bs < 5)) {
+    if (Math.random() < (p.cx > 80 ? 0.85 : p.cx > 68 ? 0.62 : 0.40)) { lvClear(p, own.idx, 'them'); return; }
+  }
   const wantPass = best >= 0 && (bs > 6 || (press < 3.2 && bs > 0) || (urgent && bs > -9));
   if (wantPass && best >= 0) {
     const q = mtThem[best];
