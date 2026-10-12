@@ -293,8 +293,13 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
 /* 워크아웃 */
 .pk-walk{position:fixed;left:50%;bottom:11%;transform:translateX(-50%);z-index:232;pointer-events:none;
   display:flex;flex-direction:column;align-items:center;opacity:0}
+.pk-walk .sil{width:290px;height:52vh;background:#000;
+  -webkit-mask-image:var(--src);-webkit-mask-size:contain;
+  -webkit-mask-repeat:no-repeat;-webkit-mask-position:center bottom;
+  mask-image:var(--src);mask-size:contain;mask-repeat:no-repeat;mask-position:center bottom;
+  /* drop-shadow 두 겹은 저사양에서 비싸다. 한 겹만 쓴다. */
+  filter:drop-shadow(0 0 34px var(--pkc,#d4af37))}
 .pk-walk img{width:290px;max-height:52vh;object-fit:contain;object-position:center bottom;
-  /* drop-shadow 두 겹은 저사양에서 비싸다. 한 겹만 쓰고 뒤에 글로우를 따로 깐다. */
   filter:brightness(0) drop-shadow(0 0 34px var(--pkc,#d4af37))}
 .pk-walk.go{animation:pkWalk 2.05s cubic-bezier(.22,.7,.3,1) forwards}
 @keyframes pkWalk{
@@ -311,10 +316,6 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
 .pk-hush{position:fixed;inset:0;z-index:233;pointer-events:none;background:#05070e;
   opacity:0;transition:opacity .75s ease-in}
 .pk-hush.on{opacity:.88}
-.pk-walk .nm{margin-top:-6px;font-size:30px;font-weight:900;letter-spacing:5px;color:#fff;
-  text-shadow:0 0 28px var(--pkc,#d4af37),0 2px 10px rgba(0,0,0,.8);opacity:0}
-.pk-walk.go .nm{animation:pkWalkNm 2.05s ease-out forwards}
-@keyframes pkWalkNm{0%,40%{opacity:0;transform:translateY(16px)}60%{opacity:1;transform:translateY(0)}
   85%{opacity:1}100%{opacity:0}}
 
 /* 카드 홀로그램 */
@@ -2376,10 +2377,47 @@ function pkSeasonTag(player) {
   return player.season === 'bar' ? 'BARÇA' : player.season === 'ul' ? 'UL'
        : player.season === 'tl' ? 'TL' : (player.icon ? 'ICON' : 'FWC');
 }
-/* 봉투 색 — 어떤 팩을 깠는지만 알려주고 등급은 숨긴다 */
-function pkPackColor(player) {
-  return player.season === 'ul' ? '#f5e6a3' : player.season === 'tl' ? '#ff9ec4'
-       : player.season === 'bar' ? '#e0175c' : '#4aa3ff';
+
+/* 봉투 겉모습 — 반드시 '깐 팩'으로만 정한다.
+   뽑힌 선수로 정하면 여러 시즌이 섞인 팩에서 봉투가 답을 미리 흘린다
+   (FWC 팩도 ICON 이 섞여 있어 같은 문제가 있었다). */
+const PK_MIX_PACK = { mixed:1, all:1, allw:1, tlbareven:1 };
+function pkEnvLook(pt) {
+  const ps = pt && pt.season;
+  if (ps && PK_MIX_PACK[ps]) return { tag: '? ? ?', col: '#8fa3c8' };   // 섞인 팩 — 중립
+  if (ps === 'ul')  return { tag: 'UL',    col: '#f5e6a3' };
+  if (ps === 'tl')  return { tag: 'TL',    col: '#ff9ec4' };
+  if (ps === 'bar') return { tag: 'BARÇA', col: '#e0175c' };
+  return { tag: 'FWC', col: '#4aa3ff' };
+}
+
+/* 워크아웃 이미지는 봉투 단계에서 미리 받아둔다.
+   예전에는 워크아웃 직전에 900ms 안에 받아야 했는데, 모바일에서 수백 KB 짜리
+   선수 사진을 그 안에 못 받으면 연출이 통째로 생략됐다 ("가끔 안 뜬다"의 원인). */
+let pkImgReady = null;
+
+/* 실루엣을 그리는 두 가지 방법.
+   ① 마스크 — 사진을 '모양'으로만 쓰므로 원본 픽셀이 화면에 나올 수가 없다. 기본값.
+   ② filter: brightness(0) — 합성이 한 프레임이라도 늦으면 원본 사진이 비친다.
+      마스크는 file:// 로 열면 보안 때문에 막히므로, 그 때만 ②로 물러난다. */
+let pkMaskOK = null;
+function pkCanMask() {
+  if (pkMaskOK !== null) return pkMaskOK;
+  pkMaskOK = (location.protocol !== 'file:')
+    && typeof CSS !== 'undefined' && CSS.supports
+    && (CSS.supports('mask-image', 'url(a.png)') || CSS.supports('-webkit-mask-image', 'url(a.png)'));
+  return pkMaskOK;
+}
+
+function pkPreload(src) {
+  pkImgReady = new Promise(r => {
+    if (!src) return r(false);
+    const im = new Image();
+    const t = setTimeout(() => r(false), 5000);
+    im.onload  = () => { clearTimeout(t); r(im.naturalWidth > 4); };
+    im.onerror = () => { clearTimeout(t); r(false); };
+    im.src = src;
+  });
 }
 
 function pkEl(cls, html) {
@@ -2432,9 +2470,9 @@ function pkRays(color, alpha) {
 }
 
 /* 봉투가 나타나 흔들리다 찢어진다. 탭하면 바로 찢는다. */
-async function pkEnvelope(player) {
-  const col = pkPackColor(player);
-  const tag = pkSeasonTag(player);
+async function pkEnvelope(look) {
+  const col = look.col;
+  const tag = look.tag;
   const env = pkEl('pk-env',
       '<div class="half l"><div class="face"><div class="seal">' + tag + '</div>'
     + '<div class="sub">TAP TO OPEN</div></div></div>'
@@ -2457,23 +2495,24 @@ async function pkEnvelope(player) {
 async function pkWalkout(player, color) {
   const src = (typeof IMGS !== 'undefined' && IMGS[player.id]) ? IMGS[player.id] : '';
   if (!src) return;
-  // 이미지를 못 불러오면 깨진 아이콘이 크게 뜨므로 아예 건너뛴다
-  const ok = await new Promise(r => {
-    const im = new Image();
-    const t = setTimeout(() => r(false), 900);
-    im.onload = () => { clearTimeout(t); r(im.naturalWidth > 4); };
-    im.onerror = () => { clearTimeout(t); r(false); };
-    im.src = src;
-  });
+  // 봉투 단계에서 걸어둔 프리로드를 기다린다. 못 받았으면 빈 검은 네모가 뜨므로 건너뛴다.
+  const ok = await (pkImgReady || Promise.resolve(false));
   if (!ok) { await pkWait(420); return; }
   const dim = pkEl(pkLite ? 'pk-dim lite' : 'pk-dim'); setTimeout(() => dim.classList.add('on'), 20);
   document.querySelectorAll('.pk-skiphint').forEach(e => e.classList.remove('on'));
   // 암막 뒤에서 빛기둥까지 계속 칠할 이유가 없다
   const hid = [...document.querySelectorAll('.pk-rays.on')];
   hid.forEach(e => e.classList.remove('on'));
-  const w = pkEl('pk-walk', '<img src="' + src + '" alt=""><div class="nm">'
-    + (player.name || '').toUpperCase() + '</div>');
+  const w = pkEl('pk-walk', pkCanMask() ? '<div class="sil"></div>' : '<img alt="">');
   w.style.setProperty('--pkc', color);
+  if (pkCanMask()) {
+    w.querySelector('.sil').style.setProperty('--src', 'url("' + src + '")');
+  } else {
+    // 필터 방식일 때는 디코딩이 끝난 뒤에 띄운다 — 안 그러면 원본이 한 프레임 비친다
+    const im = w.querySelector('img');
+    im.src = src;
+    try { if (im.decode) await im.decode(); } catch (e) {}
+  }
   void w.offsetWidth; w.classList.add('go');
   await pkWait(880); pkFlash(3); pkShake(true);
   await pkWait(1120);
@@ -4847,8 +4886,10 @@ async function openPackType(packType) {
   const pkCol = ulHide ? UL_BLIND_COLOR : tColor;
 
   pkClear(); pkArmSkip(); pkWatchStart();
-  await pkEnvelope(player);                       // ① 봉투 등장 → 찢기
-  pkRays(pkPackColor(player), 0.11);              // ② 빛기둥 (아직 등급은 숨김)
+  const envLook = pkEnvLook(pt);                  // 봉투는 '깐 팩'만 드러낸다
+  pkPreload(IMGS[player.id]);                     // 워크아웃 사진을 미리 받아둔다
+  await pkEnvelope(envLook);                      // ① 봉투 등장 → 찢기
+  pkRays(envLook.col, 0.11);                      // ② 빛기둥 (아직 등급은 숨김)
   await pkWait(160);
 
   const fb = document.createElement('div'); fb.className = 'hint-box';
@@ -4856,7 +4897,7 @@ async function openPackType(packType) {
     ? '<div class="label">NATION</div><div class="value" style="color:#5a6b82">?</div>'
     : '<div class="label">NATION</div><img class="flag-reveal" src="'+FLAGS[player.nation]+'" style="display:block;margin:0 auto">';
   fb.insertAdjacentHTML('beforeend', '<div class="bar"></div>');
-  fb.style.setProperty('--pkc', pkPackColor(player));
+  fb.style.setProperty('--pkc', envLook.col);
   area.appendChild(fb); await pkWait(60); fb.classList.add('show');
 
   await pkWait(780);
@@ -4865,7 +4906,7 @@ async function openPackType(packType) {
     ? '<div class="label">POSITION</div><div class="value" style="color:#5a6b82">?</div>'
     : '<div class="label">POSITION</div><div class="value">'+player.pos+'</div>';
   pb.insertAdjacentHTML('beforeend', '<div class="bar"></div>');
-  pb.style.setProperty('--pkc', pkPackColor(player));
+  pb.style.setProperty('--pkc', envLook.col);
   area.appendChild(pb); await pkWait(60); pb.classList.add('show');
 
   await pkWait(780);
@@ -4877,7 +4918,7 @@ async function openPackType(packType) {
     + (player.season === 'bar' ? 'background:linear-gradient(90deg,#e0175c,#4d8fe8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent' : 'color:'+sbColorUse)
     + '">'+tn+'</div>';
   sb.insertAdjacentHTML('beforeend', '<div class="bar"></div>');
-  sb.style.setProperty('--pkc', pkPackColor(player));
+  sb.style.setProperty('--pkc', envLook.col);
   area.appendChild(sb); await pkWait(60); sb.classList.add('show');
 
   await pkWait(620);
@@ -5031,15 +5072,17 @@ async function bulkOpenPacksType(packType, qty) {
   const pkCol = tColor;
 
   pkClear(); pkArmSkip(); pkWatchStart();
-  await pkEnvelope(bestPlayer);                      // ① 봉투
-  pkRays(pkPackColor(bestPlayer), 0.11);
+  const envLook = pkEnvLook(pt);                     // 봉투는 '깐 팩'만 드러낸다
+  pkPreload(IMGS[bestPlayer.id]);
+  await pkEnvelope(envLook);                         // ① 봉투
+  pkRays(envLook.col, 0.11);
   await pkWait(160);
 
   // ② 힌트 — 가장 비싼 카드 기준
   const _hint = (label, inner) => {
     const e = document.createElement('div'); e.className = 'hint-box';
     e.innerHTML = '<div class="label">' + label + '</div>' + inner + '<div class="bar"></div>';
-    e.style.setProperty('--pkc', pkPackColor(bestPlayer));
+    e.style.setProperty('--pkc', envLook.col);
     area.appendChild(e); return e;
   };
   const fb = _hint('BEST PULL · NATION',
