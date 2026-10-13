@@ -4097,26 +4097,36 @@ let tcSig = null;        // squadSlots 가 바뀐 걸 감지하는 서명
 let tcActive = {};       // { 구단: 단계 }
 let tcCount = {};        // { 구단: 선발 인원 }
 let tcUidBonus = {};     // { 카드uid: 보너스 }
+let tcUidClub = {};      // { 카드uid: 보너스를 준 구단 }
+let tcMembers = {};      // { 구단: 선발에 든 선수 이름 }
 
 function tcRecalc() {
-  tcCount = {}; tcActive = {}; tcUidBonus = {};
+  tcCount = {}; tcActive = {}; tcUidBonus = {}; tcMembers = {}; tcUidClub = {};
   const rows = [];
   for (let i = 0; i < squadSlots.length; i++) {
     const card = cardByUid(squadSlots[i]);
     if (!card) continue;
     const p = PLAYERS.find(pl => pl.id === card.id);
     if (!p) continue;
-    const cl = tcClubOf(p);
-    if (!TC_SET[cl]) continue;
-    tcCount[cl] = (tcCount[cl] || 0) + 1;
-    rows.push({ uid: card.uid, cl: cl });
+    const clubs = tcClubsOfCard(p);
+    if (!clubs.length) continue;
+    clubs.forEach(cl => {
+      tcCount[cl] = (tcCount[cl] || 0) + 1;
+      (tcMembers[cl] = tcMembers[cl] || []).push(p.name);
+    });
+    rows.push({ uid: card.uid, clubs: clubs });
   }
   for (const cl in tcCount) {
     for (let t = 0; t < TC_TIERS.length; t++) {
       if (tcCount[cl] >= TC_TIERS[t][0]) { tcActive[cl] = TC_TIERS[t][1]; break; }
     }
   }
-  rows.forEach(r => { if (tcActive[r.cl]) tcUidBonus[r.uid] = tcActive[r.cl]; });
+  /* 한 카드가 두 팀컬러에 걸치면 더 높은 단계 하나만 받는다 (중첩 금지) */
+  rows.forEach(r => {
+    let best = 0, bestCl = null;
+    r.clubs.forEach(cl => { if ((tcActive[cl] || 0) > best) { best = tcActive[cl]; bestCl = cl; } });
+    if (best) { tcUidBonus[r.uid] = best; tcUidClub[r.uid] = bestCl; }
+  });
 }
 function tcEnsure() {
   const sig = squadSlots.join(',');
@@ -6360,6 +6370,7 @@ function updateClubValue() {
 
 function renderSquad() {
   dedupeSquad();
+  tcEnsure();
   const c = document.getElementById('sqSlots');
   if (!c) return;
   const slots = FORMATIONS[currentFormation];
@@ -6380,7 +6391,7 @@ function renderSquad() {
         '<div class="sq-ov'+penClass+'">'+ovr+'</div>' +
         '<div class="sq-sl">'+(p.salary||0)+'</div>' +
         '<img src="'+IMGS[p.id]+'" draggable="false">' +
-        '<div class="sq-nm">'+p.name+'</div></div>';
+        '<div class="sq-nm">'+p.name+'</div>' + tcSlotBar(card) + '</div>';
     } else {
       squadSlots[i] = null;
       html += emptySlot(s, i);
@@ -6406,6 +6417,35 @@ function renderSquad() {
   renderTeamColor();
 }
 
+/* 이 카드가 지금 어느 팀컬러를 받고 있는지 슬롯 아래에 띠로 표시 */
+function tcSlotBar(card) {
+  const cl = card && tcUidClub[card.uid];
+  if (!cl) return '';
+  const kit = (typeof LIVE_KITS !== 'undefined' && LIVE_KITS[cl]) || null;
+  const col = kit ? kit.b : '#d4af37';
+  return '<div style="position:absolute;left:4px;right:4px;bottom:1px;height:3px;border-radius:2px;'
+    + 'background:' + col + ';box-shadow:0 0 5px ' + col + '"></div>';
+}
+
+/* 칩을 누르면 이 구단에 누가 들어갔고 누가 빠졌는지 보여준다 */
+function tcDetail(cl) {
+  const inList = (tcMembers[cl] || []);
+  const out = [];
+  squadSlots.forEach(u => {
+    const c = cardByUid(u); if (!c) return;
+    const p = PLAYERS.find(x => x.id === c.id); if (!p) return;
+    if (tcClubsOfCard(p).indexOf(cl) < 0) out.push(p.name + ' (' + (tcClubOf(p) || '-') + ')');
+  });
+  const lv = tcActive[cl] || 0;
+  const need = tcNextNeed(inList.length);
+  let msg = cl + ' · 선발 ' + inList.length + '명'
+    + (lv ? ' → ' + lv + '단계 (전능력 +' + lv + ')' : ' → 미발동');
+  if (need) msg += '\n' + need + '명까지 ' + (need - inList.length) + '명 남음';
+  msg += '\n\n[포함]\n' + (inList.join(', ') || '-');
+  if (out.length) msg += '\n\n[미포함]\n' + out.join('\n');
+  showModal(msg, [{ label: '확인', cls: 'ok' }]);
+}
+
 function renderTeamColor() {
   const el = document.getElementById('sqTeamColor');
   if (!el) return;
@@ -6420,15 +6460,16 @@ function renderTeamColor() {
     const n = tcCount[cl], lv = tcActive[cl] || 0;
     const kit = (typeof LIVE_KITS !== 'undefined' && LIVE_KITS[cl]) || null;
     const col = kit ? kit.b : '#8fa3c8';
+    const tap = ' onclick="tcDetail(\'' + cl.replace(/'/g, "\\'") + '\')" style="cursor:pointer;';
     if (lv) {
-      return '<div style="display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:14px;'
+      return '<div' + tap + 'display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:14px;'
         + 'background:' + col + '22;border:1px solid ' + col + ';font-size:10px;font-weight:800;color:#fff">'
         + '<span style="width:7px;height:7px;border-radius:50%;background:' + col + '"></span>'
         + cl + ' <span style="color:' + col + '">' + lv + '단계</span>'
         + '<span style="color:#9fb0c8;font-weight:700">' + n + '명 · 전능력 +' + lv + '</span></div>';
     }
     const need = tcNextNeed(n);
-    return '<div style="padding:4px 9px;border-radius:14px;background:rgba(255,255,255,.04);'
+    return '<div' + tap + 'padding:4px 9px;border-radius:14px;background:rgba(255,255,255,.04);'
       + 'border:1px solid rgba(255,255,255,.1);font-size:10px;font-weight:700;color:#7d8798">'
       + cl + ' ' + n + '명 <span style="color:#5e6675">· ' + need + '명까지 ' + (need - n) + '명</span></div>';
   }).join('');
@@ -6818,6 +6859,33 @@ const PKEY = (function () {
 })();
 /* 기본 지급 선수는 PKEY 에 없다 — id 가 곧 사람이라 그대로 쓴다 */
 function personKey(id) { return PKEY[id] || id; }
+
+/* ===== 한 선수가 거쳐간 구단 =====
+   레반도프스키는 FWC 바르샤 · TL 돌문 · UL 뮌헨 카드가 있다.
+   어느 카드를 쓰든 세 구단 팀컬러에 모두 들어간다.
+   라이브 카드는 현역 소속이 분명하니 자기 구단만 센다. */
+const PERSON_CLUBS = (function () {
+  const m = {};
+  PLAYERS.forEach(p => {
+    if (p.basic || p.season === 'live') return;
+    const cl = (p.club || p.ulClub || '');
+    if (!TC_SET[cl]) return;
+    const k = personKey(p.id);
+    (m[k] = m[k] || {})[cl] = 1;
+  });
+  const out = {};
+  for (const k in m) out[k] = Object.keys(m[k]);
+  return out;
+})();
+/* 이 카드가 기여하는 팀컬러 구단 목록 */
+function tcClubsOfCard(p) {
+  if (!p) return [];
+  const own = tcClubOf(p);
+  if (p.season === 'live' || p.basic) return TC_SET[own] ? [own] : [];
+  const list = PERSON_CLUBS[personKey(p.id)];
+  if (list && list.length) return list;
+  return TC_SET[own] ? [own] : [];
+}
 function personOfUid(uid) { const c = cardByUid(uid); return c ? personKey(c.id) : null; }
 /* 지금 라인업이 쓰고 있는 사람 집합. 비교 대상 칸은 제외한다. */
 function lineupPersons(exSquadIdx, exBenchIdx) {
@@ -6878,7 +6946,7 @@ function assignSquadPlayer(uid) {
     const isSwap = squadSlots.indexOf(uid) !== -1 || benchSlots.indexOf(uid) !== -1;
     if (!isSwap && lineupPersons(sqPickingSlot, -1)[personKey(card.id)]) {
       closeSquadPicker();
-      showModal(p.name + ' 선수는 이미 라인업에 있습니다.<br>같은 선수는 시즌이 달라도 한 명만 기용할 수 있습니다.',
+      showModal(p.name + ' 선수는 이미 라인업에 있습니다.\n같은 선수는 시즌이 달라도 한 명만 기용할 수 있습니다.',
         [{label:'확인', cls:'ok'}]);
       return;
     }
