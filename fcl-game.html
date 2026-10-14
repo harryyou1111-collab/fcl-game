@@ -1237,8 +1237,8 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
         <div class="coll-filterrow" id="collFilterRow">
           <button class="coll-filter-btn active" data-season="all" onclick="setCollSeason('all')">전체</button>
           <button class="coll-filter-btn" data-season="fwc" onclick="setCollSeason('fwc')">FWC</button>
-          <button class="coll-filter-btn" data-season="live" onclick="setCollSeason('live')">LIVE</div>
-          <div class="coll-filter-btn" data-season="tl" onclick="setCollSeason('tl')">TL</button>
+          <button class="coll-filter-btn" data-season="live" onclick="setCollSeason('live')">LIVE</button>
+          <button class="coll-filter-btn" data-season="tl" onclick="setCollSeason('tl')">TL</button>
           <button class="coll-filter-btn" data-season="bar" onclick="setCollSeason('bar')">BARÇA</button>
           <button class="coll-filter-btn" data-season="ul" onclick="setCollSeason('ul')">UL</button>
           <button class="coll-filter-btn" data-season="basic" onclick="setCollSeason('basic')">기본</button>
@@ -1526,7 +1526,7 @@ const GK_LABELS = ["DIV","POS","HAN","REF","KIC","PHY"];
 const TIER_COLORS = {"108":"#6b8e23","109":"#7da32b","110":"#8fb833","111":"#a3cc3d","112":"#b8e048","113":"#cdf25a","114":"#9ca3af","115":"#3b82f6","116":"#a855f7","117":"#f59e0b","118":"#ef4444","119":"#ffd7e8","120":"#7dffd4","icon":"#d4af37"};
 // 0.14*100 이 14.000000000000002 로 나오는 문제를 막는다.
 function fmtPct(p){ return Math.round(p * 1000) / 10; }
-let collection=[];let animating=false;let enhanceTokens=0;let protectTickets=0;let cp=0;let quantities={token:1,packlive1:1,pack:1,open:1,pack3:1,pack5:1,open3:1,open5:1,box:1,openbox:1,packtl1:1,opentl1:1,packul1:1,openul1:1,openfwc56:1,openall57:1,packmix1:1,openmix1:1,shield:1,packfwc13:1,packfwc35:1,packtl13:1,packmix35:1,packbar1:1,packbar35:1,openfwc13:1,openfwc35:1,opentl13:1,openmix35:1,openbar1:1,openbar35:1,openlegend:1,luckykey:1,buylb5:1,buylb15:1,buylb30:1,buylb45:1};
+let collection=[];let animating=false;let enhanceTokens=0;let protectTickets=0;let cp=0;let quantities={token:1,packlive1:1,pack:1,open:1,pack3:1,pack5:1,open3:1,open5:1,box:1,openbox:1,packtl1:1,opentl1:1,packul1:1,openul1:1,openfwc56:1,openall57:1,packmix1:1,openmix1:1,shield:1,packfwc13:1,packfwc35:1,packtl13:1,packmix35:1,packbar1:1,packbar35:1,openfwc13:1,openfwc35:1,opentl13:1,openmix35:1,openbar1:1,openbar35:1,openlegend:1,luckykey:1,buylb5:1,buylb15:1,buylb30:1,buylb45:1,openlb5:1,openlb15:1,openlb30:1,openlb45:1};
 
 
 /* ══════════════════════════════════════════════════════════════
@@ -1947,6 +1947,15 @@ function withTrait(p, card) {
 // 보유 특성 (상점에서 산 것). { laser: 2, ... }
 let traitInv = {};
 function traitOwned(id) { return traitInv[id] || 0; }
+/* 카드가 사라질 때 장착했던 특성을 보유함으로 되돌린다.
+   판매·일괄판매·훈련재료·합성재료·삭제 — 카드가 없어지는 모든 길에서 부른다. */
+function reclaimTrait(card) {
+  if (!card || !card.trait) return null;
+  const id = card.trait;
+  traitInv[id] = traitOwned(id) + 1;
+  delete card.trait;
+  return id;
+}
 
 /* ─── 상점 > 특성 탭 ─── */
 function renderTraitShop() {
@@ -2070,6 +2079,40 @@ function traitPull() {
 }
 
 /* ─── 선수 분해 → 파워포인트 ─── */
+/* 마일리지 영입 선수는 팔 수도 분해할 수도 없어서 쌓이기만 한다.
+   돌려받는 것 없이 목록에서 지우는 길만 열어둔다. */
+function deleteNoTradePlayer(uid) {
+  const card = collection.find(c => c.uid === uid);
+  if (!card) return;
+  const p = PLAYERS.find(pl => pl.id === card.id);
+  if (!p) return;
+  if (!isNoTrade(card)) {
+    showModal('이 선수는 판매나 분해로 처리할 수 있습니다.', [{label:'확인', cls:'ok'}]);
+    return;
+  }
+  const inUse = (squadSlots || []).indexOf(uid) >= 0 || (benchSlots || []).indexOf(uid) >= 0;
+  if (inUse) {
+    showModal('스쿼드·교체에 배치된 선수는 삭제할 수 없습니다.\n먼저 라인업에서 빼주세요.', [{label:'확인', cls:'ok'}]);
+    return;
+  }
+  showModal(p.name + ' 선수를 삭제하시겠습니까?\n돌려받는 것은 없고 되돌릴 수 없습니다.', [
+    {label:'삭제', cls:'confirm', fn: () => {
+      const idx = collection.findIndex(c => c.uid === uid);   // splice 직전에 다시 찾는다
+      if (idx === -1) return;
+      reclaimTrait(collection[idx]);
+      collection.splice(idx, 1);
+      if (typeof dedupeSquad === 'function') dedupeSquad();
+      closePlayerDetail();
+      renderCollection();
+      if (typeof renderSquad === 'function') renderSquad();
+      if (typeof updateClubValue === 'function') updateClubValue();
+      saveGame();
+      showModal(p.name + ' 선수를 삭제했습니다.', [{label:'확인', cls:'ok'}]);
+    }},
+    {label:'취소', cls:'cancel'}
+  ]);
+}
+
 function dismantlePlayer(uid) {
   const card = collection.find(c => c.uid === uid);
   if (!card) return;
@@ -2375,10 +2418,11 @@ function rollEnhLevel(pt, player) {
 }
 
 // TL (Team Legend) card HTML builder
-function buildTLCardHTML(player, enhLvl, trainLvl) {
+function buildTLCardHTML(player, enhLvl, trainLvl, extraB) {
+  extraB = extraB || 0;   // 팀컬러 등 카드 바깥 보너스
   const tB = (typeof getTrainBonus === 'function') ? getTrainBonus(trainLvl) : 0;
-  const statB = ((typeof getStatBonus === 'function') ? getStatBonus(enhLvl) : 0) + tB;
-  const ovrB = ((typeof getOvrBonus === 'function') ? getOvrBonus(enhLvl) : 0) + tB;
+  const statB = ((typeof getStatBonus === 'function') ? getStatBonus(enhLvl) : 0) + tB + extraB;
+  const ovrB = ((typeof getOvrBonus === 'function') ? getOvrBonus(enhLvl) : 0) + tB + extraB;
   const labels = player.gk ? GK_LABELS : STAT_LABELS;
   const sH = player.stats.map((v,i) =>
     '<div style="flex:1;text-align:center;padding:3px 0;'+(i<5?'border-right:1px solid rgba(255,255,255,.12)':'')+'"><div style="font-size:13px;font-weight:900;color:#fff">'+(v+statB)+'</div><div style="font-size:6px;font-weight:700;color:#888;margin-top:1px;letter-spacing:.3px">'+labels[i]+'</div></div>'
@@ -2833,10 +2877,11 @@ function closeRevealAndOpen(){
    블라우그라나 세로 줄무늬 + 금색 이름 밴드 + 하단 회오리 축구공.
    TL/FWC 와 상단 색만으로 즉시 구분된다.
    ══════════════════════════════════════════════════════════════ */
-function buildBarcaCardHTML(player, enhLvl, trainLvl) {
+function buildBarcaCardHTML(player, enhLvl, trainLvl, extraB) {
+  extraB = extraB || 0;   // 팀컬러 등 카드 바깥 보너스
   const tB = (typeof getTrainBonus === 'function') ? getTrainBonus(trainLvl) : 0;
-  const statB = ((typeof getStatBonus === 'function') ? getStatBonus(enhLvl) : 0) + tB;
-  const ovrB  = ((typeof getOvrBonus === 'function') ? getOvrBonus(enhLvl) : 0) + tB;
+  const statB = ((typeof getStatBonus === 'function') ? getStatBonus(enhLvl) : 0) + tB + extraB;
+  const ovrB  = ((typeof getOvrBonus === 'function') ? getOvrBonus(enhLvl) : 0) + tB + extraB;
   const labels = player.gk ? GK_LABELS : STAT_LABELS;
 
   const sH = player.stats.map((v,i) =>
@@ -2914,10 +2959,11 @@ function buildBarcaCardHTML(player, enhLvl, trainLvl) {
 }
 
 /* ── UL (UCL LEGACY) card HTML builder ──────────────────────── */
-function buildULCardHTML(player, enhLvl, trainLvl) {
+function buildULCardHTML(player, enhLvl, trainLvl, extraB) {
+  extraB = extraB || 0;   // 팀컬러 등 카드 바깥 보너스
   const tB    = (typeof getTrainBonus === 'function') ? getTrainBonus(trainLvl) : 0;
-  const statB = ((typeof getStatBonus === 'function') ? getStatBonus(enhLvl) : 0) + tB;
-  const ovrB  = ((typeof getOvrBonus === 'function') ? getOvrBonus(enhLvl) : 0) + tB;
+  const statB = ((typeof getStatBonus === 'function') ? getStatBonus(enhLvl) : 0) + tB + extraB;
+  const ovrB  = ((typeof getOvrBonus === 'function') ? getOvrBonus(enhLvl) : 0) + tB + extraB;
   const labels = player.gk ? GK_LABELS : STAT_LABELS;
 
   const sH = player.stats.map((v,i) =>
@@ -3108,10 +3154,13 @@ function attachULCover(cardEl, player) {
   };
 }
 
-function buildRevealCardHTML(p, ovrB, enhLvl, trainLvl){
+function buildRevealCardHTML(p, ovrB, enhLvl, trainLvl, extraB){
   ovrB = ovrB || 0; enhLvl = enhLvl || 1;
+  /* extraB = 팀컬러처럼 카드 바깥에서 붙는 보너스.
+     ovrB 는 호출부가 cardOvrB() 로 이미 포함해 넘기므로 스탯에만 더한다. */
+  extraB = extraB || 0;
   const tB = (typeof getTrainBonus === 'function') ? getTrainBonus(trainLvl) : 0;
-  const statB = ((typeof getStatBonus === 'function') ? getStatBonus(enhLvl) : 0) + tB;
+  const statB = ((typeof getStatBonus === 'function') ? getStatBonus(enhLvl) : 0) + tB + extraB;
   const isIcon = p.icon;
   const isTL = p.season === 'tl';
   const tColor = (typeof TIER_COLORS !== 'undefined' && TIER_COLORS[p.tier]) ? TIER_COLORS[p.tier] : '#d4af37';
@@ -3152,7 +3201,8 @@ function showRevealCardByUid(uid){
     document.body.appendChild(ov);
   }
   const pT = withTrait(p, card);
-  ov.innerHTML = '<div onclick="event.stopPropagation()">'+(p.season === 'ul' ? buildULCardHTML(pT, card.enhLevel||1, card.trainLevel||0) : buildRevealCardHTML(pT, ovrB, card.enhLevel||1, card.trainLevel||0))+'</div>' +
+  const tcB2 = (typeof teamColorB === 'function') ? teamColorB(card) : 0;
+  ov.innerHTML = '<div onclick="event.stopPropagation()">'+(p.season === 'ul' ? buildULCardHTML(pT, card.enhLevel||1, card.trainLevel||0, tcB2) : buildRevealCardHTML(pT, ovrB, card.enhLevel||1, card.trainLevel||0, tcB2))+'</div>' +
     '<div style="font-size:13px;font-weight:800;color:#d4af37">'+(getEnhancedPrice(p.price, card.enhLevel||1)||'미정')+' CP · 급여 '+(p.salary||0)+'</div>' +
     '<div style="font-size:11px;color:#888">아무 곳이나 눌러 닫기</div>';
   ov.style.display = 'flex';
@@ -3589,6 +3639,9 @@ function renderItems() {
         + '<div style="font-size:10px;color:#888;font-weight:800">' + bx.name + '</div>'
         + '<div style="font-size:10px;font-weight:800;color:' + (ok ? bx.color : '#b9c0c8') + '">🔑 '
         + bx.keys + (ok ? '' : ' (' + (bx.keys - luckyKeys) + ' 부족)') + '</div>'
+        + '<div class="qty-selector"><button class="qty-btn" onclick="changeQty(\'open' + bx.id + '\',-1)">-</button>'
+        + '<span class="qty-num" id="open' + bx.id + 'Qty">' + (quantities['open' + bx.id] || 1) + '</span>'
+        + '<button class="qty-btn" onclick="changeQty(\'open' + bx.id + '\',1)">+</button></div>'
         + '<button class="item-open-btn" onclick="confirmOpenLucky(\'' + bx.id + '\')"'
         + (ok ? '' : ' style="opacity:.5"') + '>상자 열기</button></div>';
     });
@@ -3654,7 +3707,7 @@ function confirmOpenType(packType, qtyKey) {
     }},
     {label:'취소', cls:'cancel'}
   ]);
-  if (packType === 'ul1') attachUlBlindRow();
+  if (packType === 'ul1') attachUlBlindRow(); else attachPkLiteRow();
 }
 
 
@@ -3766,8 +3819,11 @@ function showModal(text, buttons) {
     btn.onclick = () => { document.getElementById('modal').classList.remove('active'); if(b.fn) b.fn(); };
     btnsEl.appendChild(btn);
   });
-  const oldRow = document.getElementById('ulBlindRow');
-  if (oldRow) oldRow.remove();
+  // 이전 모달에 끼워 넣었던 스위치 줄은 모두 걷어낸다.
+  // (안 걷어내면 modal-box 가 하나뿐이라 다음 모달에도 그대로 따라붙는다)
+  ['ulBlindRow', 'pkLiteRow'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.remove();
+  });
   document.getElementById('modal').classList.add('active');
 }
 
@@ -3934,7 +3990,8 @@ function showPlayerDetail(idx) {
         ${enhBtnHtml}
         ${trainBtnHtml}
         ${isNoTrade(card)
-          ? `<div class="pd-btn" style="background:rgba(255,255,255,.06);color:#8b93a1;cursor:default">🔒 판매·분해 불가 (마일리지 영입)</div>`
+          ? `<div class="pd-btn" style="background:rgba(255,255,255,.06);color:#8b93a1;cursor:default">🔒 판매·분해 불가 (마일리지 영입)</div>
+             <button class="pd-btn" onclick="deleteNoTradePlayer(${card.uid})" style="background:linear-gradient(135deg,#7f1d1d,#b91c1c);color:#fff">삭제</button>`
           : `<button class="pd-btn" onclick="sellPlayer(${card.uid})" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff">판매 (${sellPriceDisplay})</button>
              <button class="pd-btn" onclick="dismantlePlayer(${card.uid})" style="background:linear-gradient(135deg,#5b2b8a,#8b5cf6);color:#fff">분해 (+${ppOfCard(card)} PP)</button>`}
         <button class="pd-btn close" onclick="closePlayerDetail()">닫기</button>
@@ -4026,7 +4083,7 @@ function doTrain(targetUid, matUid) {
 
   const go = () => {
     const i = collection.findIndex(c => c.uid === matUid);
-    if (i >= 0) collection.splice(i, 1);
+    if (i >= 0) { reclaimTrait(collection[i]); collection.splice(i, 1); }
     card.trainLevel = cur + 1;
     addLevelPoints(10, 'train');
     closeTrainPicker();
@@ -4790,6 +4847,7 @@ function doBulkSell() {
     const c = collection[idx];
     if (isSellLocked(c)) return;     // 마지막으로 한 번 더 확인
     sum += cardSellPrice(c);
+    reclaimTrait(c);
     collection.splice(idx, 1);
     cnt++;
   });
@@ -4870,6 +4928,7 @@ function sellPlayer(uid) {
       const idx = collection.findIndex(c => c.uid === uid); // splice 직전에 다시 찾는다
       if (idx === -1) return;
       cp += sellPrice;
+      reclaimTrait(collection[idx]);
       collection.splice(idx, 1);
       // 스쿼드에 배치돼 있었다면 그 자리도 비운다
       if (typeof squadSlots !== 'undefined') {
@@ -5687,30 +5746,57 @@ function confirmOpenLucky(id) {
     ]);
     return;
   }
-  showModal(b.name + '을(를) 열겠습니까?\n행운 열쇠 ' + b.keys + '개가 사용됩니다.\n(보유 상자 '
+  // 보유 상자 · 열쇠 둘 다로 묶음 수를 깎는다
+  const want = quantities['open' + id] || 1;
+  const qty = Math.max(1, Math.min(want, luckyBoxInv[id] || 0, Math.floor(luckyKeys / b.keys)));
+  const cut = qty < want
+    ? '\n(상자·열쇠가 모자라 ' + qty + '개만 엽니다)' : '';
+  showModal(b.name + (qty > 1 ? ' ' + qty + '개' : '') + '을(를) 열겠습니까?\n행운 열쇠 '
+    + (b.keys * qty) + '개가 사용됩니다.' + cut + '\n(보유 상자 '
     + luckyBoxInv[id] + '개 / 열쇠 ' + luckyKeys + '개)', [
-    {label:'열기', cls:'confirm', fn: () => doOpenLucky(id)},
+    {label:'열기', cls:'confirm', fn: () => doOpenLucky(id, qty)},
     {label:'취소', cls:'cancel'}
   ]);
 }
 
-async function doOpenLucky(id) {
+async function doOpenLucky(id, qty) {
   const b = luckyBoxById(id);
-  if (!b || luckyKeys < b.keys || (luckyBoxInv[id] || 0) < 1) return;
-  luckyKeys -= b.keys;
-  luckyBoxInv[id]--;
-  const r = pickLuckyReward(b);
-  grantSvReward(r);
-  if (b.bonus) grantSvReward(b.bonus);     // 확정 보상
-  updateKeyDisplay(); saveGame();
-  const pk = r.packs ? Object.keys(r.packs)[0] : null;
-  const items = [{ label: pk ? (r.packs[pk] > 1 ? r.packs[pk] + '개' : '획득!') : svRewardText(r),
-                   color: pk && PACK_ART[pk] ? PACK_ART[pk].c : b.color,
-                   icon: '💰',
-                   art: pk ? packArtHTML(pk, r.packs[pk]) : null }];
-  if (b.bonus) items.push({ label: svRewardText(b.bonus), color: '#f5d67b', icon: '◆' });
+  if (!b) return;
+  qty = Math.max(1, Math.min(qty || 1, luckyBoxInv[id] || 0, Math.floor(luckyKeys / b.keys)));
+  if (qty < 1) return;
+
+  luckyKeys -= b.keys * qty;
+  luckyBoxInv[id] -= qty;
+
+  /* 여러 개를 열면 같은 보상끼리 묶어서 한 번에 보여준다 */
+  const packGot = {}, plain = [];
+  for (let i = 0; i < qty; i++) {
+    const r = pickLuckyReward(b);
+    grantSvReward(r);
+    if (r.packs) { for (const k in r.packs) packGot[k] = (packGot[k] || 0) + r.packs[k]; }
+    else plain.push(r);
+    if (b.bonus) grantSvReward(b.bonus);   // 확정 보상은 상자마다
+  }
+  updateKeyDisplay(); updateCPDisplay(); updateTokenDisplay(); saveGame(); renderItems();
+
+  const items = Object.keys(packGot).map(k => {
+    const art = packArtHTML(k, packGot[k]);
+    const pt = PACK_TYPES[k];
+    return { label: art ? (packGot[k] > 1 ? packGot[k] + '개' : '획득!')
+                        : (pt ? pt.name + ' ' + pt.sub : k) + ' x' + packGot[k],
+             color: PACK_ART[k] ? PACK_ART[k].c : b.color, icon: '💰', art: art };
+  });
+  // 팩이 아닌 보상(CP 등)은 합쳐서 한 줄로
+  const merged = {};
+  plain.forEach(r => { for (const k in r) merged[k] = (merged[k] || 0) + r[k]; });
+  if (Object.keys(merged).length) items.push({ label: svRewardText(merged), color: b.color, icon: '💰' });
+  if (b.bonus) {
+    const bn = {}; for (const k in b.bonus) bn[k] = b.bonus[k] * qty;
+    items.push({ label: svRewardText(bn), color: '#f5d67b', icon: '◆' });
+  }
   await playBoxOpenFX({
-    title: b.name, color: b.color, keyLabel: '🔑' + b.keys, items: items
+    title: b.name + (qty > 1 ? ' x' + qty : ''), color: b.color,
+    keyLabel: '🔑' + (b.keys * qty), items: items
   });
 }
 
@@ -6631,10 +6717,16 @@ function showSquadDetail(uid, actions, slotLabel) {
     + (i===0 ? 'background:linear-gradient(135deg,#d4af37,#a17f14);color:#1a1a1a' : 'background:rgba(255,255,255,.08);color:#ccc')
     + '">'+a.label+'</button>').join('');
 
-  const cardHTML = (p.season === 'bar') ? buildBarcaCardHTML(p, lvl, card.trainLevel||0) : (p.season === 'ul') ? buildULCardHTML(p, lvl, card.trainLevel||0) : (p.season === 'tl') ? buildTLCardHTML(p, lvl, card.trainLevel||0) : buildRevealCardHTML(p, ovrB, lvl, card.trainLevel||0);
+  const tcB = (typeof teamColorB === 'function') ? teamColorB(card) : 0;
+  const cardHTML = (p.season === 'bar') ? buildBarcaCardHTML(p, lvl, card.trainLevel||0, tcB)
+    : (p.season === 'ul') ? buildULCardHTML(p, lvl, card.trainLevel||0, tcB)
+    : (p.season === 'tl') ? buildTLCardHTML(p, lvl, card.trainLevel||0, tcB)
+    : buildRevealCardHTML(p, ovrB, lvl, card.trainLevel||0, tcB);
   ov.innerHTML = '<div onclick="event.stopPropagation()" style="display:flex;flex-direction:column;align-items:center;gap:12px">'
     + cardHTML
     + penLine
+    + (tcB ? '<div style="font-size:12px;font-weight:800;color:#4ade80">팀컬러 '
+        + (tcUidClub[card.uid] || '') + ' ' + tcB + '단계 · 전능력 +' + tcB + '</div>' : '')
     + '<div style="font-size:12px;font-weight:800;color:#d4af37">'+(p.basic ? '거래 불가 · 기본 선수' : (getEnhancedPrice(p.price, lvl)||'미정')+' CP')+' · 급여 '+(p.salary||0)+'</div>'
     + '<div style="display:flex;gap:8px;width:100%;max-width:240px">'+btns+'</div>'
     + '<div style="font-size:11px;color:#777">바깥을 누르면 닫힙니다</div></div>';
@@ -6864,6 +6956,104 @@ function personKey(id) { return PKEY[id] || id; }
    레반도프스키는 FWC 바르샤 · TL 돌문 · UL 뮌헨 카드가 있다.
    어느 카드를 쓰든 세 구단 팀컬러에 모두 들어간다.
    라이브 카드는 현역 소속이 분명하니 자기 구단만 센다. */
+/* ===== 커리어 보강 =====
+   카드에 찍힌 구단은 그 카드 시즌의 소속일 뿐이라, 선수가 실제로 뛴 다른 팀은 빠진다.
+   (호나우두 R9 카드는 Inter 뿐이지만 바르셀로나에서도 뛰었다)
+   팀컬러 17개 구단에 한해 실제 커리어를 여기 적어둔다. 카드 구단과 합쳐서 쓴다.
+   키는 personKey — 같은 선수의 카드가 여러 장이면 대표 키 하나로 묶인다. */
+const TC_CAREER = {
+  aguero_tl:['Atlético Madrid','Man City','Barcelona'],
+  andersson_ul:['Barcelona'],
+  asx:['Barcelona','Arsenal','Man United','Inter'],
+  aur:['PSG','Tottenham'],
+  ballack_tl:['Bayern München','Chelsea'],
+  bar_adeyemi:['Borussia Dortmund'],
+  bar_cancelo:['Inter','Juventus','Man City','Bayern München'],
+  bar_christensen:['Chelsea'],
+  bar_ericgarcia:['Man City'],
+  bar_jesus:['Man City','Arsenal'],
+  bar_rodri:['Atlético Madrid'],
+  batistuta_tl:['Inter'],
+  beckham_tl:['Real Madrid','AC Milan','PSG'],
+  bellingham_lv:['Borussia Dortmund'],
+  bergkamp_tl:['Inter'],
+  buffon_tl:['PSG'],
+  calhanoglu_lv:['Bayer Leverkusen','AC Milan'],
+  carv:['Bayer Leverkusen'],
+  cech_ul:['Arsenal'],
+  cole_tl:['Arsenal'],
+  courtois_lv:['Atlético Madrid','Chelsea'],
+  cr7_ul:['Man United','Juventus'],
+  db_lv:['Chelsea'],
+  ddg:['Atlético Madrid','Man United'],
+  deco_ul:['Barcelona','Chelsea'],
+  dembele_lv:['Borussia Dortmund','Barcelona'],
+  dimaria_ul:['Man United','PSG','Juventus'],
+  er:['Tottenham','Inter','Man United'],
+  etoo_ul:['Real Madrid','Inter','Chelsea'],
+  falcao_tl:['Man United','Chelsea'],
+  forlan_tl:['Man United','Inter'],
+  giuly_tl:['Barcelona','PSG'],
+  griezmann_lv:['Barcelona'],
+  gullit_tl:['Chelsea'],
+  gundogan_ul:['Borussia Dortmund','Barcelona'],
+  hakimi_lv:['Real Madrid','Borussia Dortmund','Inter'],
+  hazard_tl:['Real Madrid'],
+  henry_tl:['Juventus','Barcelona'],
+  howedes_tl:['Juventus'],
+  hummels_tl:['Bayern München'],
+  ibrahimovic_tl:['Juventus','Inter','Barcelona','AC Milan','Man United'],
+  inzaghi_ul:['Juventus'],
+  jam:['Real Madrid','Bayern München'],
+  kaka_ul:['Real Madrid'],
+  kou:['Chelsea'],
+  kroos_ul:['Bayern München','Bayer Leverkusen'],
+  kvara_lv:['Napoli'],
+  lampard_tl:['Man City'],
+  maradona_tl:['Barcelona'],
+  mata_ul:['Man United'],
+  matthaus_tl:['Inter'],
+  mbappe_lv:['Real Madrid'],
+  mcmanaman_ul:['Liverpool','Man City'],
+  messi_ul:['PSG'],
+  mn:['Liverpool','Bayern München'],
+  modric_lv:['Tottenham'],
+  mount_ul:['Man United'],
+  nag:['Inter'],
+  navas_tl:['Man City'],
+  ota:['Man City'],
+  papin_tl:['AC Milan','Bayern München'],
+  per:['Bayern München','Tottenham'],
+  pique_ul:['Man United'],
+  pirlo_ul:['Inter','Juventus'],
+  pty:['Atlético Madrid'],
+  r9_tl:['Barcelona','Real Madrid','AC Milan'],
+  ramos_ul:['PSG'],
+  rcarlos_ul:['Inter'],
+  rcarvalho_ul:['Chelsea','Real Madrid'],
+  redondo_ul:['AC Milan'],
+  ronaldinho_ul:['PSG','AC Milan'],
+  rudiger_lv:['Chelsea'],
+  ruicosta_tl:['AC Milan'],
+  salah_lv:['Chelsea'],
+  sammer_tl:['Inter'],
+  schweinsteiger_ul:['Man United'],
+  shevchenko_ul:['Chelsea'],
+  sneijder_ul:['Real Madrid'],
+  son_tl:['Bayer Leverkusen'],
+  suarez_ul:['Liverpool','Atlético Madrid'],
+  torres:['Atlético Madrid','Chelsea','AC Milan'],
+  tsilva_tl:['AC Milan','Chelsea'],
+  vandersar_ul:['Juventus'],
+  vidic_ul:['Inter'],
+  vieira_tl:['AC Milan','Juventus','Inter','Man City'],
+  villa_tl:['Barcelona','Atlético Madrid'],
+  wij:['Liverpool','PSG'],
+  xalonso_ul:['Real Madrid','Bayern München'],
+  xhk:['Arsenal'],
+  zidane_ul:['Juventus']
+};
+
 const PERSON_CLUBS = (function () {
   const m = {};
   PLAYERS.forEach(p => {
@@ -6873,6 +7063,10 @@ const PERSON_CLUBS = (function () {
     const k = personKey(p.id);
     (m[k] = m[k] || {})[cl] = 1;
   });
+  /* 카드에 없는 실제 커리어를 얹는다 */
+  for (const k in TC_CAREER) {
+    TC_CAREER[k].forEach(cl => { if (TC_SET[cl]) (m[k] = m[k] || {})[cl] = 1; });
+  }
   const out = {};
   for (const k in m) out[k] = Object.keys(m[k]);
   return out;
@@ -11026,6 +11220,7 @@ function doFuse() {
       const outPool = fusePool(sk, outTier);
       const got = (outPool.length ? outPool : pool)[Math.floor(Math.random() * (outPool.length || pool.length))];
 
+      collection.forEach(c => { if (ids.has(c.uid)) reclaimTrait(c); });
       collection = collection.filter(c => !ids.has(c.uid));
       cp -= fee;
       const uid = Date.now() + Math.random();
