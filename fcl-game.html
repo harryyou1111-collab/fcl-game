@@ -969,6 +969,44 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
   background:rgba(20,40,80,.04);border:1px solid rgba(20,40,80,.16)}.pi-badge{width:44px;text-align:center;padding:4px 0;border-radius:6px;font-size:12px;font-weight:900;color:#1a2233;flex-shrink:0}.pi-meta{font-size:10px;font-weight:700;color:#64748b;width:70px;flex-shrink:0}.pi-rw{font-size:11px;font-weight:800;color:#3d4a5c;flex:1;text-align:right}.pi-dev{margin-top:12px;padding:10px;border-radius:8px;background:rgba(239,68,68,.08);
   border:1px solid rgba(239,68,68,.2);font-size:10px;font-weight:700;color:#f5a3a3;line-height:1.6}
 
+
+/* ═══ 포메이션 선택 ═══ */
+.fm-cur{display:flex;align-items:center;gap:8px;margin:0 16px 8px;padding:9px 13px;border-radius:11px;
+  border:1.5px solid rgba(212,175,55,.45);background:rgba(212,175,55,.09);cursor:pointer;
+  transition:background .18s}
+.fm-cur:active{background:rgba(212,175,55,.2)}
+.fm-cur .lb{font-size:9px;font-weight:800;letter-spacing:1px;color:#9a8a4e}
+.fm-cur .nm{font-size:15px;font-weight:900;color:#d4af37;letter-spacing:.5px}
+.fm-cur .ar{margin-left:auto;font-size:11px;font-weight:900;color:#9a8a4e}
+.fm-ov{position:fixed;inset:0;z-index:3200;background:rgba(4,6,12,.9);backdrop-filter:blur(5px);
+  display:none;align-items:flex-start;justify-content:center;padding:18px 12px;overflow:auto}
+.fm-ov.on{display:flex}
+.fm-box{width:100%;max-width:460px}
+.fm-h{font-size:16px;font-weight:900;color:#fff;margin-bottom:3px}
+.fm-s{font-size:11px;color:#8b93a1;margin-bottom:13px}
+.fm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.fm-it{border-radius:10px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);
+  padding:7px 6px 6px;cursor:pointer;transition:all .18s}
+.fm-it:active{transform:scale(.96)}
+.fm-it.on{border-color:#d4af37;background:rgba(212,175,55,.14)}
+.fm-pitch{position:relative;width:100%;aspect-ratio:7/9;border-radius:6px;overflow:hidden;
+  background:linear-gradient(180deg,#14301c,#0d2113);
+  border:1px solid rgba(255,255,255,.08)}
+.fm-pitch:before{content:"";position:absolute;left:8%;right:8%;top:50%;height:1px;background:rgba(255,255,255,.14)}
+.fm-pitch:after{content:"";position:absolute;left:33%;right:33%;top:-1px;height:13%;
+  border:1px solid rgba(255,255,255,.14);border-top:none;border-radius:0 0 4px 4px}
+.fm-goal{position:absolute;left:33%;right:33%;bottom:-1px;height:13%;
+  border:1px solid rgba(255,255,255,.14);border-bottom:none;border-radius:4px 4px 0 0}
+.fm-dot{position:absolute;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;
+  background:#e8e8f0;box-shadow:0 0 4px rgba(0,0,0,.5)}
+.fm-dot.gk{background:#ffd43b}
+.fm-dot.cf{background:#ff8c42;width:8px;height:8px;margin:-4px 0 0 -4px}
+.fm-nm{font-size:9.5px;font-weight:900;color:#c9cfdb;text-align:center;margin-top:5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fm-it.on .fm-nm{color:#f5d67b}
+.fm-x{margin-top:13px;padding:13px;text-align:center;border-radius:11px;
+  background:rgba(255,255,255,.05);font-size:13px;font-weight:800;color:#9aa3b2;cursor:pointer}
+
 /* ═══ ECLIPSE 워크아웃 — 일식 링이 돌다가 반으로 갈라지며 선수가 나온다 ═══
    .half 가 좌/우를 잘라 두고, 그 안의 .ring 이 돈다.
    자르기는 바깥에 있으므로 링이 아무리 돌아도 반쪽 모양은 그대로다.
@@ -1666,7 +1704,7 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
           <div style="font-size:11px;font-weight:800;color:#1d6fd6;margin-top:2px">구단가치 <span id="sqValue">0</span></div>
         </div>
       </div>
-      <div id="sqFormBtns" style="display:flex;gap:6px;padding:0 16px 8px;overflow-x:auto"></div>
+      <div id="sqFormBtns"></div>
       <div class="lu-tabs" id="lineupTabs"></div>
       <div id="sqSwapBar">
         <div id="sqSwapName" style="font-size:11px;font-weight:800;color:#f5d67b"></div>
@@ -1874,6 +1912,17 @@ const ECL_PLAYERS = [
   {"id": "salah_ecl", "name": "Salah", "ovr": 122, "pos": "RW", "stats": [122, 121, 118, 121, 66, 116], "foot": "L5·R4", "club": "Liverpool", "nation": "EG", "tier": "122", "season": "ecl", "eclKind": "white", "salary": 32, "price": "9530억 2500만", "trait": "curl"},
   {"id": "vandijk_ecl", "name": "Van Dijk", "ovr": 122, "pos": "CB", "stats": [120, 110, 117, 115, 122, 122], "foot": "L3·R5", "club": "Liverpool", "nation": "NL", "tier": "122", "season": "ecl", "eclKind": "white", "salary": 32, "price": "7180억 9400만", "trait": "tackler"},
   {"id": "pirlo_ecl", "name": "Pirlo", "ovr": 122, "pos": "CM", "stats": [116, 118, 122, 121, 115, 116], "foot": "L5·R5", "club": "AC Milan", "nation": "IT", "tier": "122", "season": "ecl", "eclKind": "white", "salary": 32, "price": "5140억 7100만", "trait": "juggler"}
+,
+  {"id": "balotelli_ecl", "name": "Balotelli", "ovr": 121, "pos": "ST", "stats": [119, 121, 114, 118, 58, 120], "foot": "L4·R5", "club": "Man City", "nation": "IT", "tier": "121", "season": "ecl", "eclKind": "black", "salary": 31, "price": "5730억 7300만"},
+  {"id": "coutinho_ecl", "name": "Coutinho", "ovr": 121, "pos": "CAM", "altPos": ["LW"], "stats": [118, 120, 118, 121, 69, 113], "foot": "L4·R5", "club": "Liverpool", "nation": "BR", "tier": "121", "season": "ecl", "eclKind": "black", "salary": 31, "price": "4980억 9800만", "trait": "fkmaster"},
+  {"id": "gotze_ecl", "name": "Götze", "ovr": 121, "pos": "CAM", "stats": [117, 117, 120, 121, 65, 113], "foot": "L4·R5", "club": "Borussia Dortmund", "nation": "DE", "tier": "121", "season": "ecl", "eclKind": "black", "salary": 31, "price": "4050억 7400만"},
+  {"id": "falcao_ecl", "name": "Falcao", "ovr": 121, "pos": "ST", "stats": [118, 121, 112, 118, 51, 117], "foot": "L5·R5", "club": "Atlético Madrid", "nation": "CO", "tier": "121", "season": "ecl", "eclKind": "black", "salary": 31, "price": "7270억 8400만", "trait": "coolhead"},
+  {"id": "jamesr_ecl", "name": "James R.", "ovr": 121, "pos": "CAM", "stats": [116, 120, 121, 119, 68, 114], "foot": "L5·R3", "club": "Real Madrid", "nation": "CO", "tier": "121", "season": "ecl", "eclKind": "black", "salary": 31, "price": "3690억 5100만", "trait": "vision"},
+  {"id": "robinho_ecl", "name": "Robinho", "ovr": 121, "pos": "LW", "altPos": ["CF"], "stats": [120, 117, 117, 121, 48, 111], "foot": "L4·R5", "club": "AC Milan", "nation": "BR", "tier": "121", "season": "ecl", "eclKind": "black", "salary": 31, "price": "3650억 7500만"},
+  {"id": "quaresma_ecl", "name": "Quaresma", "ovr": 121, "pos": "RW", "stats": [119, 118, 119, 121, 61, 114], "foot": "L4·R5", "club": "Porto", "nation": "PT", "tier": "121", "season": "ecl", "eclKind": "black", "salary": 31, "price": "5820억 7300만", "trait": "curl"},
+  {"id": "cassano_ecl", "name": "Cassano", "ovr": 121, "pos": "CF", "stats": [116, 118, 121, 120, 49, 113], "foot": "L4·R5", "club": "Sampdoria", "nation": "IT", "tier": "121", "season": "ecl", "eclKind": "black", "salary": 31, "price": "4310억 5300만", "trait": "poacher"},
+  {"id": "asanchez_ecl", "name": "A. Sánchez", "ovr": 121, "pos": "LW", "altPos": ["CF"], "stats": [121, 120, 118, 121, 71, 115], "foot": "L4·R5", "club": "Arsenal", "nation": "CL", "tier": "121", "season": "ecl", "eclKind": "black", "salary": 31, "price": "6890억 7500만"},
+  {"id": "owen_ecl", "name": "Owen", "ovr": 121, "pos": "ST", "stats": [122, 121, 113, 120, 41, 113], "foot": "L4·R5", "club": "Liverpool", "nation": "EN", "tier": "121", "season": "ecl", "eclKind": "black", "salary": 32, "price": "8240억 6500만"}
 ];
 PLAYERS.push(...ECL_PLAYERS);
 /* [밸런스 가드] 스탯 ≤ OVR+1 검사. 어떤 경우에도 게임을 멈추지 않도록 try/catch 로 감싼다 */
@@ -6794,6 +6843,37 @@ const FORMATIONS = {
     {x:50,y:90,label:'GK'},{x:15,y:72,label:'LB'},{x:38,y:74,label:'CB'},{x:62,y:74,label:'CB'},{x:85,y:72,label:'RB'},
     {x:12,y:48,label:'LM'},{x:34,y:52,label:'CM'},{x:50,y:50,label:'CM'},{x:66,y:52,label:'CM'},{x:88,y:48,label:'RM'},
     {x:50,y:20,label:'ST'}
+  ],
+  /* ── 아래 5종은 나중에 추가. 폴스9 는 CF 자리가 있는 유일한 포메이션이다
+     (CF 선수는 그동안 ST 칸에서 −1 을 달고 뛰어야 했다). */
+  '4-3-3 폴스9': [
+    {x:50,y:90,label:'GK'},{x:15,y:72,label:'LB'},{x:38,y:74,label:'CB'},{x:62,y:74,label:'CB'},{x:85,y:72,label:'RB'},
+    {x:25,y:50,label:'CM'},{x:50,y:47,label:'CM'},{x:75,y:50,label:'CM'},
+    {x:15,y:24,label:'LW'},{x:50,y:28,label:'CF'},{x:85,y:24,label:'RW'}
+  ],
+  '4-4-1-1': [
+    {x:50,y:90,label:'GK'},{x:15,y:72,label:'LB'},{x:38,y:74,label:'CB'},{x:62,y:74,label:'CB'},{x:85,y:72,label:'RB'},
+    {x:14,y:53,label:'LM'},{x:38,y:55,label:'CM'},{x:62,y:55,label:'CM'},{x:86,y:53,label:'RM'},
+    {x:50,y:33,label:'CAM'},
+    {x:50,y:16,label:'ST'}
+  ],
+  '3-4-2-1': [
+    {x:50,y:90,label:'GK'},{x:28,y:74,label:'CB'},{x:50,y:76,label:'CB'},{x:72,y:74,label:'CB'},
+    {x:12,y:52,label:'LM'},{x:38,y:54,label:'CM'},{x:62,y:54,label:'CM'},{x:88,y:52,label:'RM'},
+    {x:33,y:31,label:'CAM'},{x:67,y:31,label:'CAM'},
+    {x:50,y:15,label:'ST'}
+  ],
+  '4-3-1-2': [
+    {x:50,y:90,label:'GK'},{x:15,y:72,label:'LB'},{x:38,y:74,label:'CB'},{x:62,y:74,label:'CB'},{x:85,y:72,label:'RB'},
+    {x:50,y:58,label:'CDM'},{x:27,y:50,label:'CM'},{x:73,y:50,label:'CM'},
+    {x:50,y:34,label:'CAM'},
+    {x:37,y:17,label:'ST'},{x:63,y:17,label:'ST'}
+  ],
+  '4-2-2-2': [
+    {x:50,y:90,label:'GK'},{x:15,y:72,label:'LB'},{x:38,y:74,label:'CB'},{x:62,y:74,label:'CB'},{x:85,y:72,label:'RB'},
+    {x:35,y:57,label:'CDM'},{x:65,y:57,label:'CDM'},
+    {x:27,y:36,label:'CAM'},{x:73,y:36,label:'CAM'},
+    {x:37,y:17,label:'ST'},{x:63,y:17,label:'ST'}
   ]
 };
 
@@ -6855,12 +6935,54 @@ function initSquad() {
   renderSquad();
 }
 
+/* ─── 포메이션 선택 ───────────────────────────────────────────
+   포메이션이 14종이라 버튼을 한 줄에 늘어놓으면 가로로 넘친다.
+   현재 포메이션만 보여주고, 누르면 미니 피치가 깔린 창에서 고른다. */
+function fmPitchHTML(f) {
+  const slots = FORMATIONS[f] || [];
+  return '<div class="fm-pitch"><div class="fm-goal"></div>' + slots.map(function (s) {
+    const cls = s.label === 'GK' ? ' gk' : s.label === 'CF' ? ' cf' : '';
+    return '<div class="fm-dot' + cls + '" style="left:' + s.x + '%;top:' + s.y + '%"></div>';
+  }).join('') + '</div>';
+}
 function renderFormationBtns() {
   const c = document.getElementById('sqFormBtns');
   if (!c) return;
-  c.innerHTML = Object.keys(FORMATIONS).map(f =>
-    '<button class="sq-form-btn '+(f===currentFormation?'active':'')+'" onclick="setFormation(\''+f+'\')">'+f+'</button>'
-  ).join('');
+  c.innerHTML = '<div class="fm-cur" onclick="openFormationPicker()">'
+    + '<div><div class="lb">FORMATION</div><div class="nm">' + currentFormation + '</div></div>'
+    + '<div class="ar">변경 ▾</div></div>';
+}
+function openFormationPicker() {
+  let ov = document.getElementById('fmOv');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'fmOv'; ov.className = 'fm-ov';
+    ov.onclick = function (e) { if (e.target === ov) closeFormationPicker(); };
+    document.body.appendChild(ov);
+  }
+  const keys = Object.keys(FORMATIONS);
+  ov.innerHTML = '<div class="fm-box" onclick="event.stopPropagation()">'
+    + '<div class="fm-h">포메이션</div>'
+    + '<div class="fm-s">바꿔도 선수는 가장 잘 맞는 자리로 자동 재배치됩니다'
+    + ' · <span style="color:#ff8c42">주황 점</span>은 CF 자리</div>'
+    + '<div class="fm-grid">'
+    + keys.map(function (f) {
+        return '<div class="fm-it' + (f === currentFormation ? ' on' : '') + '"'
+          + ' onclick="pickFormation(\'' + f + '\')">'
+          + fmPitchHTML(f) + '<div class="fm-nm">' + f + '</div></div>';
+      }).join('')
+    + '</div>'
+    + '<div class="fm-x" onclick="closeFormationPicker()">닫기</div>'
+    + '</div>';
+  ov.classList.add('on');
+}
+function closeFormationPicker() {
+  const ov = document.getElementById('fmOv');
+  if (ov) ov.classList.remove('on');
+}
+function pickFormation(f) {
+  closeFormationPicker();
+  setFormation(f);
 }
 
 function setFormation(f) {
