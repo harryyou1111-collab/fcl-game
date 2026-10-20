@@ -968,6 +968,69 @@ input,textarea{-webkit-user-select:text;user-select:text}html,body{height:100%;o
   animation:prCrackLine .42s ease-out forwards}@keyframes prCrackLine{0%{width:0;opacity:.9}45%{width:200px;opacity:.85}100%{width:280px;opacity:0}}.pach-info{max-width:420px;margin:0 auto}.pi-row{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;margin-bottom:6px;
   background:rgba(20,40,80,.04);border:1px solid rgba(20,40,80,.16)}.pi-badge{width:44px;text-align:center;padding:4px 0;border-radius:6px;font-size:12px;font-weight:900;color:#1a2233;flex-shrink:0}.pi-meta{font-size:10px;font-weight:700;color:#64748b;width:70px;flex-shrink:0}.pi-rw{font-size:11px;font-weight:800;color:#3d4a5c;flex:1;text-align:right}.pi-dev{margin-top:12px;padding:10px;border-radius:8px;background:rgba(239,68,68,.08);
   border:1px solid rgba(239,68,68,.2);font-size:10px;font-weight:700;color:#f5a3a3;line-height:1.6}
+
+/* ═══ ECLIPSE 워크아웃 — 일식 링이 돌다가 반으로 갈라지며 선수가 나온다 ═══
+   .half 가 좌/우를 잘라 두고, 그 안의 .ring 이 돈다.
+   자르기는 바깥에 있으므로 링이 아무리 돌아도 반쪽 모양은 그대로다.
+   두 반쪽이 겹쳐 있으면 하나의 완전한 고리로 보인다.                      */
+.pk-ecl{position:fixed;left:0;right:0;top:0;bottom:0;z-index:232;pointer-events:none;opacity:0}
+.pk-ecl.go{opacity:1}
+.pk-ecl .half{position:absolute;left:50%;top:44%;width:340px;height:340px;
+  margin:-170px 0 0 -170px;will-change:transform,opacity}
+.pk-ecl .hl{clip-path:inset(0 50% 0 0)}
+.pk-ecl .hr{clip-path:inset(0 0 0 50%)}
+.pk-ecl .ring{position:absolute;inset:0;border-radius:50%;
+  border:2.5px solid rgba(255,255,255,.92);
+  background:conic-gradient(from 0deg,
+     rgba(255,255,255,0) 0deg, rgba(255,255,255,.62) 38deg, rgba(255,255,255,0) 112deg,
+     rgba(255,255,255,.34) 196deg, rgba(255,255,255,0) 286deg, rgba(255,255,255,.5) 340deg,
+     rgba(255,255,255,0) 360deg);
+  -webkit-mask:radial-gradient(circle, transparent 0 45%, #000 47%);
+          mask:radial-gradient(circle, transparent 0 45%, #000 47%);
+  box-shadow:0 0 24px rgba(255,255,255,.55), inset 0 0 26px rgba(255,255,255,.3);
+  will-change:transform}
+.pk-ecl.go .ring{animation:eclSpin 1.25s cubic-bezier(.3,0,.25,1) forwards}
+@keyframes eclSpin{0%{transform:rotate(0deg) scale(.42);opacity:0}
+  14%{opacity:1}
+  72%{transform:rotate(760deg) scale(1);opacity:1}
+  100%{transform:rotate(900deg) scale(1.04);opacity:1}}
+/* 멈춘 뒤 좌우로 갈라진다 */
+.pk-ecl.split .hl{animation:eclSplitL .72s cubic-bezier(.5,0,.2,1) forwards}
+.pk-ecl.split .hr{animation:eclSplitR .72s cubic-bezier(.5,0,.2,1) forwards}
+@keyframes eclSplitL{0%{transform:translateX(0);opacity:1}
+  100%{transform:translateX(-52vw);opacity:0}}
+@keyframes eclSplitR{0%{transform:translateX(0);opacity:1}
+  100%{transform:translateX(52vw);opacity:0}}
+/* 갈라지는 틈의 빛 */
+.pk-ecl .seam{position:absolute;left:50%;top:44%;width:3px;height:0;margin:-170px 0 0 -1.5px;
+  background:linear-gradient(180deg,transparent,#fff,transparent);opacity:0;
+  box-shadow:0 0 22px 6px rgba(255,255,255,.75)}
+.pk-ecl.split .seam{animation:eclSeam .72s ease-out forwards}
+@keyframes eclSeam{0%{height:0;opacity:0}
+  26%{height:340px;opacity:1}
+  100%{height:340px;opacity:0}}
+/* 선수 실루엣 — 틈이 벌어진 뒤 떠오른다 */
+.pk-ecl .sil{position:absolute;left:50%;bottom:11%;width:290px;height:52vh;
+  margin-left:-145px;opacity:0;
+  background:linear-gradient(180deg,#ffffff 0%,#dcdce6 42%,#6e6e7c 100%);
+  -webkit-mask-image:var(--src);-webkit-mask-size:contain;
+  -webkit-mask-repeat:no-repeat;-webkit-mask-position:center bottom;
+  mask-image:var(--src);mask-size:contain;mask-repeat:no-repeat;mask-position:center bottom;
+  filter:drop-shadow(0 0 26px rgba(255,255,255,.75)) drop-shadow(0 0 58px var(--pkc,#e6e6ef))}
+.pk-ecl img{position:absolute;left:50%;bottom:11%;width:290px;max-height:52vh;margin-left:-145px;
+  opacity:0;object-fit:contain;object-position:center bottom;
+  filter:brightness(0) invert(1) drop-shadow(0 0 26px rgba(255,255,255,.75))
+         drop-shadow(0 0 58px var(--pkc,#e6e6ef))}
+.pk-ecl.split .sil,.pk-ecl.split img{animation:eclRise 1.65s cubic-bezier(.22,.7,.3,1) forwards}
+@keyframes eclRise{0%{opacity:0;transform:scale(.5) translateY(70px)}
+  20%{opacity:1}
+  46%{opacity:1;transform:scale(1.05) translateY(0)}
+  78%{opacity:1;transform:scale(1.02) translateY(0)}
+  100%{opacity:0;transform:scale(.62) translateY(-110px)}}
+/* 저사양 — 회전·마스크를 빼고 고리만 간단히 */
+.pk-ecl.lite .ring{background:none;box-shadow:0 0 14px rgba(255,255,255,.5)}
+.pk-ecl.lite.go .ring{animation-duration:.8s}
+
 /* ═══ ECLIPSE (ECL) 카드 ═══ */
 
   /* ══════════════════════════════════════════════════════════
@@ -2955,6 +3018,46 @@ async function pkEnvelope(look) {
 }
 
 /* 고티어 — 선수 실루엣이 빛 속에서 걸어나왔다가 카드로 수렴 */
+/* ECLIPSE 전용 워크아웃 — UL 의 트로피 자리에 일식 링이 들어간다.
+   링이 한 바퀴 반 돌고 멈춘 뒤 좌우로 갈라지며 그 틈에서 선수가 떠오른다. */
+async function pkEclipseWalkout(player, color) {
+  const src = (typeof IMGS !== 'undefined' && IMGS[player.id]) ? IMGS[player.id] : '';
+  if (!src) return;
+  const ok = await (pkImgReady || Promise.resolve(false));
+  if (!ok) { await pkWait(420); return; }
+
+  const dim = pkEl(pkLite ? 'pk-dim lite' : 'pk-dim');
+  setTimeout(() => dim.classList.add('on'), 20);
+  document.querySelectorAll('.pk-skiphint').forEach(e => e.classList.remove('on'));
+  const hid = [...document.querySelectorAll('.pk-rays.on')];
+  hid.forEach(e => e.classList.remove('on'));
+
+  const w = pkEl('pk-ecl' + (pkLite ? ' lite' : ''),
+      '<div class="half hl"><div class="ring"></div></div>'
+    + '<div class="half hr"><div class="ring"></div></div>'
+    + '<div class="seam"></div>'
+    + (pkCanMask() ? '<div class="sil"></div>' : '<img alt="">'));
+  w.style.setProperty('--pkc', color || '#e6e6ef');
+  if (pkCanMask()) {
+    w.querySelector('.sil').style.setProperty('--src', 'url("' + src + '")');
+  } else {
+    const im = w.querySelector('img');
+    im.src = src;
+    try { if (im.decode) await im.decode(); } catch (e) {}
+  }
+
+  void w.offsetWidth; w.classList.add('go');      // ① 링 회전
+  await pkWait(pkLite ? 820 : 1270);
+  w.classList.add('split');                        // ② 반으로 갈라지며 선수 등장
+  await pkWait(760); pkFlash(2); pkShake(true);   // 다 벌어진 뒤에 친다 (갈라짐을 가리지 않게)
+  await pkWait(1040);
+
+  try { w.remove(); } catch (e) {}
+  dim.classList.remove('on');
+  hid.forEach(e => e.classList.add('on'));
+  setTimeout(() => { try { dim.remove(); } catch (e) {} }, 500);
+}
+
 async function pkWalkout(player, color) {
   const src = (typeof IMGS !== 'undefined' && IMGS[player.id]) ? IMGS[player.id] : '';
   if (!src) return;
@@ -5666,7 +5769,7 @@ async function openPackType(packType) {
     await pkWait(160); pkFlash(3); pkShake(true); await pkWait(560);
   } else if (pkLv >= 3) {
     area.innerHTML = '';
-    await pkWalkout(player, pkCol);
+    await (player.season === 'ecl' ? pkEclipseWalkout(player, pkCol) : pkWalkout(player, pkCol));
   } else { await pkWait(pkLv === 2 ? 420 : 240); }
 
   /* ⑤ 값어치별 불꽃 — 카드 직전 */
@@ -5838,7 +5941,8 @@ async function bulkOpenPacksType(packType, qty) {
   }
 
   // ④ 워크아웃
-  if (pkLv >= 3) { area.innerHTML = ''; await pkWalkout(bestPlayer, pkCol); }
+  if (pkLv >= 3) { area.innerHTML = '';
+    await (bestPlayer.season === 'ecl' ? pkEclipseWalkout(bestPlayer, pkCol) : pkWalkout(bestPlayer, pkCol)); }
   else { await pkWait(pkLv === 2 ? 420 : 240); }
 
   // ⑤ 값어치별 불꽃
