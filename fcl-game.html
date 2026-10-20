@@ -2092,6 +2092,19 @@ const TRAITS = {
               desc:'직접 프리킥을 제대로 감는다.\n스윗스팟 58~82% → 50~90% · 선방률 추가 −6%p' },
   pkmaster: { tier:3, name:'페널티 전문가',  cat:'세트피스', color:'#f783ac',
               desc:'박스 안에서 수비를 끌어들여 넘어진다.\n박스 안 태클 유도 ×2.8 · 파울 판정 ×2.4 · PK 선방률 −12%p' },
+  /* ── 아래 4종은 ST·공격수 보강용. 3티어(흔한 등급)에 공격 특성이 해결사 하나뿐이라 채웠다. ── */
+  killpass: { tier:1, name:'킬 패스',        cat:'패스', color:'#5c7cfa',
+              desc:'수비 사이로 찔러 넣는 길이 남보다 넓게 보인다.\n스루패스 길목 위험 −55% · 스루패스 속도 +10%' },
+  intercept:{ tier:1, name:'차단',          cat:'수비', color:'#38d9a9',
+              desc:'날아가는 패스를 길목에서 끊어낸다.\n이동 중인 공 차단 범위 +36%' },
+  poacher:  { tier:3, name:'문전 쇄도',      cat:'공격', color:'#ff7849',
+              desc:'키퍼가 쳐낸 공, 흘러나온 공을 남보다 먼저 덮친다.\n상대 진영 루즈볼 선점 범위 +32%' },
+  aim:      { tier:2, name:'조준',          cat:'공격', color:'#ffa94d',
+              desc:'슛이 골대를 벗어나는 일이 드물다.\n슛 조준 흔들림 −30% (유효슛이 늘어난다)' },
+  coolhead: { tier:3, name:'침착한 마무리',   cat:'공격', color:'#f783ac',
+              desc:'키퍼와 맞섰을 때 서두르지 않는다.\n박스 안에서 붙은 수비가 없을 때 선방률 −9%p' },
+  bodyduel: { tier:2, name:'능숙한 몸싸움',   cat:'체력', color:'#8ce99a',
+              desc:'어깨를 맞대도 밀리지 않는다.\n공 뺏길 확률 −21% · 슬라이딩 저항 +12% · 공중 경합 +5' },
   gkgod:    { tier:2, name:'선방의 신',      cat:'골키퍼', color:'#4c6ef5', gk:true,
               desc:'골키퍼 전용. 어떻게든 막아낸다.\n선방률 +8%p' },
 };
@@ -2144,6 +2157,34 @@ const TRAIT_SVG = {
   // 페널티 마크 + 골문
   pkmaster:'<path d="M3 4h18v8H3z" stroke-width="1.8"/><path d="M7 4v8M11 4v8M15 4v8M19 4v8M3 8h18" stroke-width="1" opacity=".45"/><circle cx="12" cy="18.5" r="2.6" stroke-width="1.8"/><path d="M12 15.9v-1.6" stroke-width="1.5" opacity=".6"/>',
   // 골키퍼 장갑
+  // 킬 패스 — 두 수비 사이를 꿰뚫는 패스
+  killpass:'<circle cx="4" cy="12" r="2.2" fill="currentColor" stroke="none"/>'
+    + '<path d="M8 12h11" stroke-width="2.2" stroke-linecap="round"/>'
+    + '<path d="M15.5 8.2L19.4 12l-3.9 3.8" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>'
+    + '<path d="M11 3.4v4.2M11 16.4v4.2" stroke-width="2" opacity=".5" stroke-linecap="round"/>',
+  // 차단 — 날아오는 공을 막아서는 벽
+  intercept:'<path d="M2.6 10.5h7" stroke-width="2" stroke-linecap="round" stroke-dasharray="3.2 2.6" opacity=".6"/>'
+    + '<path d="M13.5 2.8v18.4" stroke-width="2.4" stroke-linecap="round"/>'
+    + '<path d="M17.4 7.6l3.8 3.8-3.8 3.8" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity=".55"/>'
+    + '<circle cx="9.6" cy="10.5" r="2" fill="currentColor" stroke="none"/>',
+  // 문전 쇄도 — 골문 앞으로 파고드는 선수
+  poacher:'<path d="M3 4v9M3 4h7" stroke-width="1.7" opacity=".5"/><path d="M21 4v9M21 4h-7" stroke-width="1.7" opacity=".5"/>'
+    + '<path d="M6.5 20.5L15 12" stroke-width="2.3" stroke-linecap="round"/>'
+    + '<path d="M10 11.5h5.5V17" stroke-width="2.1" stroke-linejoin="round"/>'
+    + '<circle cx="5" cy="21.5" r="1.9" fill="currentColor" stroke="none"/>',
+  // 조준 — 크로스헤어
+  aim:'<circle cx="12" cy="12" r="6.6" stroke-width="1.8"/><path d="M12 1.6v4.2M12 18.2v4.2M1.6 12h4.2M18.2 12h4.2" stroke-width="2"/>'
+    + '<circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>',
+  // 침착한 마무리 — 키퍼와 마주한 공 하나
+  coolhead:'<path d="M4.5 3.5v6.5M4.5 3.5h5" stroke-width="1.7" opacity=".45"/>'
+    + '<path d="M19.5 3.5v6.5M19.5 3.5h-5" stroke-width="1.7" opacity=".45"/>'
+    + '<circle cx="12" cy="16" r="4.6" stroke-width="2"/>'
+    + '<path d="M12 11.4v9.2M7.4 16h9.2" stroke-width="1.3" opacity=".6"/>',
+  // 능숙한 몸싸움 — 어깨를 맞댄 두 사람
+  bodyduel:'<circle cx="7" cy="5.6" r="2.8" stroke-width="1.8"/><circle cx="17" cy="5.6" r="2.8" stroke-width="1.8"/>'
+    + '<path d="M3.2 21v-5.2c0-2.6 1.7-4.5 3.8-4.5 1.5 0 2.7.9 3.4 2.3" stroke-width="2" stroke-linecap="round"/>'
+    + '<path d="M20.8 21v-5.2c0-2.6-1.7-4.5-3.8-4.5-1.5 0-2.7.9-3.4 2.3" stroke-width="2" stroke-linecap="round"/>'
+    + '<path d="M12 12.5v8" stroke-width="2.2" stroke-linecap="round"/>',
   gkgod:'<path d="M6 21v-7.5C6 12 5 11 5 9.5 5 8.2 6 7.5 7 7.5s1.8.8 1.8 2V11V4.6c0-1.2.9-2.1 2-2.1s2 .9 2 2.1V11V5.4c0-1.2.9-2 2-2s2 .8 2 2V11v-.8c0-1.1.8-1.9 1.8-1.9s1.9.8 1.9 2V15c0 3.4-2.3 6-5.7 6z" stroke-width="1.7" stroke-linejoin="round"/>',
 };
 
@@ -7176,11 +7217,12 @@ function showSquadDetail(uid, actions, slotLabel) {
     + '">'+a.label+'</button>').join('');
 
   const tcB = (typeof teamColorB === 'function') ? teamColorB(card) : 0;
-  const cardHTML = (p.season === 'bar') ? buildBarcaCardHTML(p, lvl, card.trainLevel||0, tcB)
-    : (p.season === 'ecl') ? buildEclCardHTML(p, lvl, card.trainLevel||0, tcB)
-    : (p.season === 'ul') ? buildULCardHTML(p, lvl, card.trainLevel||0, tcB)
-    : (p.season === 'tl') ? buildTLCardHTML(p, lvl, card.trainLevel||0, tcB)
-    : buildRevealCardHTML(p, ovrB, lvl, card.trainLevel||0, tcB);
+  const pT  = withTrait(p, card);        // 장착 특성을 입혀서 넘긴다 (안 그러면 특성 칸이 비어 보인다)
+  const cardHTML = (p.season === 'bar') ? buildBarcaCardHTML(pT, lvl, card.trainLevel||0, tcB)
+    : (p.season === 'ecl') ? buildEclCardHTML(pT, lvl, card.trainLevel||0, tcB)
+    : (p.season === 'ul') ? buildULCardHTML(pT, lvl, card.trainLevel||0, tcB)
+    : (p.season === 'tl') ? buildTLCardHTML(pT, lvl, card.trainLevel||0, tcB)
+    : buildRevealCardHTML(pT, ovrB, lvl, card.trainLevel||0, tcB);
   ov.innerHTML = '<div onclick="event.stopPropagation()" style="display:flex;flex-direction:column;align-items:center;gap:12px">'
     + cardHTML
     + penLine
@@ -8907,7 +8949,8 @@ function lvDoThrough(lob, pw) {
        (땅볼 스루패스는 10번 중 9번 끊겼다) 로빙은 떠서 넘어가니 덜 본다. */
     const lead0 = lvMx(5);
     let risk = lvLaneRisk(p.cx, p.cy, Math.min(96, q.cx + lead0), q.cy, mtThem);
-    if (hasTrait(p, 'vision')) { risk *= 0.65; _visionHit = true; }   // 안개 속의 눈 — 길이 보인다
+    if (hasTrait(p, 'vision'))   { risk *= 0.65; _visionHit = true; }   // 안개 속의 눈 — 길이 보인다
+    if (hasTrait(p, 'killpass')) { risk *= 0.45; _visionHit = true; }   // 킬 패스 — 더 좁은 길도 뚫는다
     if (!lob && risk > 0.62) return;
     sc -= risk * (lob ? 8 : 26);
     // 최종 수비수 어깨에 걸친 동료를 가장 선호 (뒷공간으로 달려 들어갈 수 있는 위치)
@@ -8931,7 +8974,8 @@ function lvDoThrough(lob, pw) {
   // 로빙 스루패스 — 수비 뒤 공간으로 띄워 넘긴다 (떠 있는 동안 아무도 못 건드린다)
   const tpw = 0.90 + 0.34 * (pw === undefined ? 0.65 : pw);
   const airT = lob ? Math.max(14, Math.min(36, Math.round(dist * 0.85 / tpw))) : 0;
-  const sp = lob ? dist / airT : lvPassSp(dist, tpw);
+  let sp = lob ? dist / airT : lvPassSp(dist, tpw);
+  if (hasTrait(p, 'killpass')) { sp *= 1.10; lvPopFor(p, 'killpass'); }   // 킬 패스 — 찔러준 공이 빠르다
   lvBall.from = { side:'us', idx: own.idx }; lvBall.cool = 12; lvBall.last = 'us';
   lvBall.own = null; lvBall.curl = 0; lvBall.arc = null; lvBall.shot = false;
   lvBall.air = airT;
@@ -9475,7 +9519,8 @@ const LV_GHALF = lvMy(7.32) / 2;             // 골대 반폭 5.38
 const LV_SHOT_JIT = 2.7;
 function lvShotJit(p, k) {
   const acc = 1 - Math.min(0.5, (125 - ((p && p.ovr) || 100)) * 0.012);
-  return (1 - acc) * (Math.random() - 0.5) * LV_SHOT_JIT * (k === undefined ? 1 : k);
+  const tr  = hasTrait(p, 'aim') ? 0.70 : 1;        // 조준 — 흔들림 −30%
+  return (1 - acc) * (Math.random() - 0.5) * LV_SHOT_JIT * (k === undefined ? 1 : k) * tr;
 }
 
 /* ══ 키퍼 쳐내기 ══
@@ -10085,8 +10130,16 @@ function lvTick() {
         /* 가로채기 반경 — 전엔 1.9 였다. 패스는 4틱이면 '느린 공'이 되므로 그 뒤 20여 틱 동안
            근처 수비수가 그냥 주워갔다(실측: 상대 공격 실패 132/144 가 패스 차단).
            발을 뻗어 닿는 거리 정도로 줄인다. */
-        const _sw = hasTrait(p, 'sweeper') ? 1.9 : 1.4;        // 스위퍼 — 먼저 줍는다
-        const reach = isRecv ? 2.8 : (fast && !p.gk ? 1.1 : p.gk ? (p._dived ? 3.3 : 2.4) : _sw);
+        let _sw = hasTrait(p, 'sweeper') ? 1.9 : 1.4;          // 스위퍼 — 먼저 줍는다
+        /* 문전 쇄도 — 상대 진영에서만. 공격 방향은 우리 팀이 오른쪽(x 큼), 상대가 왼쪽이다. */
+        if (hasTrait(p, 'poacher') && !p.gk) {
+          const inFinal = (sd === 'us') ? (lvBall.x > 62) : (lvBall.x < 38);
+          if (inFinal) _sw = Math.max(_sw, 1.85);
+        }
+        /* 차단(1티어) — 날아가는 공에 발을 뻗는 범위. 1.1 은 과거에 패스가 너무 끊겨서 낮춘 값이라
+           되돌리지 않고 1.5 까지만 올린다. */
+        const _fastReach = hasTrait(p, 'intercept') ? 1.5 : 1.1;
+        const reach = isRecv ? 2.8 : (fast && !p.gk ? _fastReach : p.gk ? (p._dived ? 3.3 : 2.4) : _sw);
         if (d > reach) return;
         if (d >= bd) return;
         /* 빠른 슛은 골키퍼가 무조건 잡지 않는다.
@@ -10176,8 +10229,11 @@ function lvTick() {
       if (Math.hypot(q.cx - holder.cx, q.cy - holder.cy) > 1.8) continue;      // 태클 닿는 거리
       let win = lvTkl(q) / (lvTkl(q) + lvTkl(holder));
       if (hasTrait(holder, 'juggler')) { win *= 0.75; lvPopFor(holder, 'juggler'); }   // 저글러 — 잘 안 뺏긴다
+      if (hasTrait(holder, 'bodyduel')) { win *= 0.90; lvPopFor(holder, 'bodyduel'); } // 능숙한 몸싸움 — 밀려도 버틴다
       let boost = q.slide ? 6 : q.lunge > 0 ? 3.5 : 1;     // 슬라이딩 > 태클 > 그냥 붙어 있기
       if (hasTrait(q, 'tackler')) boost *= 1.35;           // 태클 마스터
+      if (hasTrait(holder, 'bodyduel')) boost *= 0.88;     // 능숙한 몸싸움 — 몸으로 들어와도 덜 통한다
+      /* win·boost 가 곱해지므로 0.90×0.88 = 0.79배. 2티어 저글러(0.75배)보다는 약하게 둔다. */
       /* 등 뒤에서 들어오는 태클 — 이미 제친 선수를 뒤에서 뺏는 건 거의 안 된다(실제론 반칙).
          전엔 수비를 뚫고 지나가자마자 뒤에서 바로 뺏겨서 돌파가 성립하지 않았다. */
       const hv = Math.hypot(holder.vx || 0, holder.vy || 0);
@@ -10813,7 +10869,8 @@ function lvAirBase(p) {
        : /LB|RB|LWB|RWB|LW|RW|LM|RM|CAM/.test(lb) ? -6 : 0;
 }
 function lvAirPow(p) {
-  return (p.ovr || 100) + lvAirBase(p) + (hasTrait(p, 'header') ? LV_HEAD_BONUS : 0);
+  return (p.ovr || 100) + lvAirBase(p) + (hasTrait(p, 'header') ? LV_HEAD_BONUS : 0)
+       + (hasTrait(p, 'bodyduel') ? 5 : 0);
 }
 
 /* 뜬 공이 떨어지는 순간 호출. 헤딩으로 처리했으면 true. */
@@ -11161,6 +11218,14 @@ function lvResolveShot(shooter, side) {
   if (hasTrait(shooter, 'onetouch') && shooter.gotT !== undefined && (lvFrame - shooter.gotT) <= 24) save -= 0.10;
   // 해결사 — 75분 이후 지거나 비기는 중
   if (hasTrait(shooter, 'clutch') && lvClutchOn(shooter)) save -= 0.10;
+  /* 침착한 마무리 — 박스 안에서 몸에 붙은 수비수가 없을 때.
+     타겟(1티어)은 거리만 보지만 이쪽은 '혼자 떨어진 상태'라야 터진다. */
+  if (hasTrait(shooter, 'coolhead') && dist < 16) {
+    const foes = (side === 'us' ? mtThem : mtUs);
+    const marked = foes.some(q => q && !q.gk
+      && Math.hypot(q.cx - shooter.cx, q.cy - shooter.cy) < 2.2);
+    if (!marked) save -= 0.09;
+  }
   // 프리킥 마스터 / 페널티 전문가
   if (hasTrait(shooter, 'fkmaster') && lvBall.fkSweet) save -= 0.06;
   if (hasTrait(shooter, 'pkmaster') && lvBall.isPk) save -= 0.12;
