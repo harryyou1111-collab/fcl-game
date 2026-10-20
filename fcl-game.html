@@ -2085,6 +2085,42 @@ const TRAIT_SVG = {
 };
 
 /* 특성 아이콘 HTML. size = 픽셀. col 을 주면 그 색, 아니면 특성 고유색. */
+/* ─────────────────────────────────────────────────────────────
+   카드 바깥 오른쪽 위에 붙는 특성 칸.
+     · 패시브(선수 고유)가 있으면  위 칸 = 패시브, 아래 칸 = 장착
+     · 패시브가 없으면            칸 하나 = 장착
+   장착 칸이 비어 있으면 점선 빈칸으로 둔다 (여기 끼울 수 있다는 뜻).
+   카드 폭(220px) 바깥에 absolute 로 띄우므로 레이아웃 폭은 그대로다.
+   칸은 카드 바깥(앱 배경) 위에 떠 있으므로 카드가 흑이든 백이든 톤은 하나로 쓴다.
+   ───────────────────────────────────────────────────────────── */
+const TSLOT = { size: 34, gap: 5, off: 7 };
+function traitSlotsHTML(player) {
+  if (!player) return '';
+  const pv = (player.trait && TRAITS[player.trait]) ? player.trait : null;
+  const eq = (player.equipTrait && TRAITS[player.equipTrait] && player.equipTrait !== pv)
+             ? player.equipTrait : null;
+  const cells = [];
+  if (pv) cells.push(pv);
+  cells.push(eq);                      // 장착 칸은 비어 있어도 그린다
+  if (!pv && !eq) { /* 패시브 없고 장착도 없음 → 빈 칸 하나 */ }
+
+  const S = TSLOT.size;
+  const box = cells.map(function (id) {
+    const t = id ? TRAITS[id] : null;
+    const bg = t ? 'rgba(10,12,20,.88)' : 'rgba(255,255,255,.045)';
+    const bd = t ? t.color + 'cc' : 'rgba(255,255,255,.3)';
+    const dash = t ? 'solid' : 'dashed';
+    const glow = t ? ';box-shadow:0 0 9px ' + t.color + '40' : '';
+    return '<div title="' + (t ? t.name : '특성 없음') + '" style="width:' + S + 'px;height:' + S + 'px;'
+      + 'border-radius:7px;display:flex;align-items:center;justify-content:center;'
+      + 'background:' + bg + ';border:1.5px ' + dash + ' ' + bd + glow + '">'
+      + (t ? traitIconHTML(id, 19) : '') + '</div>';
+  }).join('<div style="height:' + TSLOT.gap + 'px"></div>');
+
+  return '<div class="trait-slots" style="position:absolute;left:100%;top:0;margin-left:' + TSLOT.off + 'px;'
+    + 'z-index:14;display:flex;flex-direction:column;pointer-events:none">' + box + '</div>';
+}
+
 function traitIconHTML(id, size, col) {
   const t = TRAITS[id]; if (!t) return '';
   const body = TRAIT_SVG[id] || '<circle cx="12" cy="12" r="7" stroke-width="2"/>';
@@ -2093,26 +2129,61 @@ function traitIconHTML(id, size, col) {
     + 'style="display:block;flex:0 0 auto;color:' + (col || t.color) + '">' + body + '</svg>';
 }
 
-// 선수(또는 경기 중 선수 객체)의 특성 정보. 없으면 null.
-function traitOf(x) {
-  if (!x) return null;
-  const id = x.trait || null;
-  return id && TRAITS[id] ? TRAITS[id] : null;
-}
-function hasTrait(x, id) { return !!(x && x.trait === id); }
+/* ─────────────────────────────────────────────────────────────
+   특성은 선수당 최대 2개다.
+     · 패시브(고유) — PLAYERS 의 trait. 선수가 타고난 것. 뗄 수 없다.
+     · 장착        — card.trait. 상점에서 사서 붙인 것. 뗄 수 있다.
+   둘은 서로 덮어쓰지 않고 동시에 발동한다.
+   경기 중 선수 객체는 traits(배열)를 들고 다니고, hasTrait 가 그걸 본다.
+   ───────────────────────────────────────────────────────────── */
 
-/* 카드에 실제로 적용되는 특성 id — 장착한 게 우선, 없으면 선수 고유 특성 */
-function cardTraitId(card) {
+/* 특성 id 배열 — 선수 객체(PLAYERS·경기 객체) 어느 쪽이든 받는다 */
+function traitIdsOf(x) {
+  if (!x) return [];
+  if (Array.isArray(x.traits)) return x.traits.filter(id => TRAITS[id]);
+  const out = [];
+  if (x.trait && TRAITS[x.trait]) out.push(x.trait);
+  if (x.equipTrait && TRAITS[x.equipTrait] && out.indexOf(x.equipTrait) < 0) out.push(x.equipTrait);
+  return out;
+}
+/* 특성 정보 배열 */
+function traitsOf(x) { return traitIdsOf(x).map(id => TRAITS[id]); }
+/* 대표 특성 하나 (좁은 자리 표시용) — 장착이 있으면 장착, 없으면 패시브 */
+function traitOf(x) {
+  const ids = traitIdsOf(x);
+  return ids.length ? TRAITS[ids[ids.length - 1]] : null;
+}
+/* 이 선수가 해당 특성을 가졌나 — 패시브든 장착이든 */
+function hasTrait(x, id) { return traitIdsOf(x).indexOf(id) >= 0; }
+
+/* 카드의 패시브 특성 id (선수 고유) */
+function cardPassiveTraitId(card) {
   if (!card) return null;
-  if (card.trait && TRAITS[card.trait]) return card.trait;
   const p = PLAYERS.find(x => x.id === card.id);
   return (p && p.trait && TRAITS[p.trait]) ? p.trait : null;
 }
-/* 카드 빌더에 넘길 선수 객체 — 장착 특성을 입혀서 넘긴다 (빌더 인자는 그대로) */
+/* 카드의 장착 특성 id */
+function cardEquipTraitId(card) {
+  return (card && card.trait && TRAITS[card.trait]) ? card.trait : null;
+}
+/* 카드에 적용되는 특성 id 전부 — 패시브 먼저, 그다음 장착. 같으면 하나로 */
+function cardTraitIds(card) {
+  const out = [];
+  const pv = cardPassiveTraitId(card); if (pv) out.push(pv);
+  const eq = cardEquipTraitId(card);   if (eq && out.indexOf(eq) < 0) out.push(eq);
+  return out;
+}
+/* 대표 특성 하나 — 좁은 자리용. 장착 우선 */
+function cardTraitId(card) {
+  const ids = cardTraitIds(card);
+  return ids.length ? ids[ids.length - 1] : null;
+}
+/* 카드 빌더에 넘길 선수 객체 — 패시브는 p.trait 그대로, 장착은 equipTrait 로 얹는다 */
 function withTrait(p, card) {
-  const id = cardTraitId(card);
-  if (!p || !id || p.trait === id) return p;
-  const q = Object.assign({}, p); q.trait = id; return q;
+  if (!p) return p;
+  const q = Object.assign({}, p);
+  q.equipTrait = cardEquipTraitId(card);
+  return q;
 }
 
 // 보유 특성 (상점에서 산 것). { laser: 2, ... }
@@ -2320,8 +2391,8 @@ function dismantlePlayer(uid) {
 function openTraitPicker(uid) {
   const card = collection.find(c => c.uid === uid); if (!card) return;
   const p = PLAYERS.find(x => x.id === card.id); if (!p) return;
-  const cur = cardTraitId(card);
-  const innate = p.trait && TRAITS[p.trait] ? p.trait : null;
+  const innate = cardPassiveTraitId(card);   // 패시브 — 뗄 수 없다
+  const cur    = cardEquipTraitId(card);     // 장착 — 뗄 수 있다
 
   let ov = document.getElementById('traitPickOv');
   if (!ov) { ov = document.createElement('div'); ov.id = 'traitPickOv'; ov.className = 'pach-reveal'; document.body.appendChild(ov); }
@@ -2334,34 +2405,45 @@ function openTraitPicker(uid) {
   } else {
     owned.forEach(id => {
       const t = TRAITS[id];
-      const bad = t.gk && !p.gk;                       // 골키퍼 전용은 필드 선수에게 못 단다
+      const dup = (id === innate);                     // 이미 패시브로 갖고 있다
+      const bad = (t.gk && !p.gk) || dup;              // 골키퍼 전용은 필드 선수에게 못 단다
       rows += '<div class="tr-pick' + (bad ? ' no' : '') + '"'
         + (bad ? '' : ' onclick="equipTrait(' + uid + ',\'' + id + '\')"') + '>'
         + traitIconHTML(id, 22)
         + '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:900;color:' + t.color + '">'
         + t.name + '</div><div style="font-size:9px;color:#8b93a1;margin-top:2px">'
-        + (bad ? '골키퍼 전용 특성입니다' : t.desc.split('\n')[1] || t.desc) + '</div></div>'
+        + (dup ? '이미 이 선수의 패시브 특성입니다'
+               : bad ? '골키퍼 전용 특성입니다'
+               : t.desc.split('\n')[1] || t.desc) + '</div></div>'
         + '<div style="font-size:10px;font-weight:900;color:#d4af37">' + traitOwned(id) + '개</div></div>';
     });
   }
 
-  const curBox = cur
-    ? '<div style="display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:10px;margin-bottom:10px;'
-      + 'background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.4)">'
-      + traitIconHTML(cur, 22)
-      + '<div style="flex:1"><div style="font-size:11px;font-weight:900;color:' + TRAITS[cur].color + '">'
-      + TRAITS[cur].name + '</div><div style="font-size:9px;color:#8b93a1">'
-      + (card.trait ? '장착 중' : '이 선수의 고유 특성') + '</div></div>'
-      + (card.trait ? '<div onclick="unequipTrait(' + uid + ')" style="padding:5px 10px;border-radius:8px;'
-          + 'background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.5);font-size:10px;'
-          + 'font-weight:900;color:#ff9b9b;cursor:pointer">떼어내기 ' + fmtEok(TRAIT_UNEQUIP_CP) + '</div>' : '')
-      + '</div>'
-    : '';
+  const slotRow = (id, label, removable) => {
+    const t = id ? TRAITS[id] : null;
+    return '<div style="display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:10px;'
+      + 'margin-bottom:8px;background:' + (t ? 'rgba(212,175,55,.12)' : 'rgba(255,255,255,.035)')
+      + ';border:1px ' + (t ? 'solid rgba(212,175,55,.4)' : 'dashed rgba(255,255,255,.22)') + '">'
+      + (t ? traitIconHTML(id, 22)
+           : '<div style="width:22px;height:22px;border-radius:6px;border:1px dashed rgba(255,255,255,.25)"></div>')
+      + '<div style="flex:1"><div style="font-size:11px;font-weight:900;color:'
+      + (t ? t.color : '#6f7682') + '">' + (t ? t.name : '비어 있음') + '</div>'
+      + '<div style="font-size:9px;color:#8b93a1">' + label + '</div></div>'
+      + (t && removable
+          ? '<div onclick="unequipTrait(' + uid + ')" style="padding:5px 10px;border-radius:8px;'
+            + 'background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.5);font-size:10px;'
+            + 'font-weight:900;color:#ff9b9b;cursor:pointer">떼어내기 ' + fmtEok(TRAIT_UNEQUIP_CP) + '</div>'
+          : '')
+      + '</div>';
+  };
+  const curBox = (innate ? slotRow(innate, '패시브 — 이 선수가 타고난 특성', false) : '')
+               + slotRow(cur, '장착 칸', true);
 
   ov.innerHTML = '<div style="width:100%;max-width:360px;max-height:80vh;overflow:auto">'
     + '<div style="font-size:15px;font-weight:900;color:#fff;margin-bottom:3px">' + p.name + ' — 특성</div>'
-    + '<div style="font-size:10px;color:#777;margin-bottom:11px">선수당 하나만 장착됩니다'
-    + (innate && !card.trait ? ' · 고유 특성 위에 덮어쓸 수 있습니다' : '') + '</div>'
+    + '<div style="font-size:10px;color:#777;margin-bottom:11px">'
+    + (innate ? '패시브와 장착 특성은 동시에 발동합니다 · 장착은 하나까지'
+              : '선수당 하나까지 장착할 수 있습니다') + '</div>'
     + curBox + rows
     + '<div onclick="closeTraitPicker()" style="margin-top:10px;padding:12px;text-align:center;'
     + 'border-radius:10px;background:rgba(255,255,255,.04);font-size:12px;font-weight:800;'
@@ -2621,6 +2703,7 @@ function buildTLCardHTML(player, enhLvl, trainLvl, extraB) {
       '<div style="position:absolute;top:calc(60% + 64px);left:0;right:0;display:flex;justify-content:center;align-items:center;gap:20px;z-index:10;font-size:10px;font-weight:800;color:#aaa;letter-spacing:.5px"><span>'+player.foot+'</span><span>'+player.club+'</span></div>'+
       '<div style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);z-index:15"><svg width="28" height="24" viewBox="0 0 28 24" fill="none"><path d="M5 1h18l5 8-14 14L0 9l5-8z" fill="#d4af37" opacity=".15"/><path d="M5 1h18l5 8-14 14L0 9l5-8z" stroke="#d4af37" stroke-width="1.2"/>'+trainMarkDiamond(trainLvl)+'</svg></div>'+
     '</div>'+
+    traitSlotsHTML(player)+
   '</div>';
 }
 let boxInv = 0;
@@ -3135,6 +3218,7 @@ function buildBarcaCardHTML(player, enhLvl, trainLvl, extraB) {
     + '<div style="position:absolute;top:28px;right:12px;z-index:10;padding:3px 8px;background:rgba(15,15,25,.88);'
     + 'border:.5px solid rgba(237,187,0,.5);border-radius:3px;font-size:11px;font-weight:900;color:#edbb00;'
     + 'letter-spacing:.5px">'+(player.salary||0)+'</div>'
+    + traitSlotsHTML(player)
     + '</div>';
 }
 
@@ -3167,24 +3251,15 @@ function buildEclCardHTML(player, enhLvl, trainLvl, extraB) {
   const flag = FLAGS[player.nation]
     ? '<img class="ecl-flag" src="' + FLAGS[player.nation] + '">' : '';
 
-  const _trPre = (typeof traitOf === 'function') ? traitOf(player) : null;
   const enhBadge = enhLvl > 1
-    ? '<div style="position:absolute;top:' + (_trPre ? 114 : 92) + 'px;left:12px;z-index:13;'
+    ? '<div style="position:absolute;top:92px;left:12px;z-index:13;'
       + 'background:' + (isW ? 'rgba(255,255,255,.82)' : 'rgba(6,6,10,.88)') + ';'
       + 'border:1.5px solid ' + (ENH_BADGE_COLORS[enhLvl] || '#fff') + ';border-radius:4px;'
       + 'padding:2px 7px;font-size:11px;font-weight:900;color:'
       + (ENH_BADGE_COLORS[enhLvl] || '#fff') + '">' + enhLvl + '강</div>'
     : '';
 
-  const _tr = (typeof traitOf === 'function') ? traitOf(player) : null;
-  const traitPill = _tr
-    ? '<div style="position:absolute;top:92px;left:12px;z-index:13;padding:1.5px 7px;'
-      + 'border-radius:8px;white-space:nowrap;'
-      + 'background:' + (isW ? 'rgba(255,255,255,.72)' : 'rgba(8,8,12,.78)') + ';'
-      + 'border:1px solid ' + _tr.color + '99;box-shadow:0 0 8px ' + _tr.color + '33">'
-      + '<span style="font-size:8.5px;font-weight:900;letter-spacing:.4px;color:' + _tr.color + '">'
-      + _tr.name + '</span></div>'
-    : '';
+  const traitPill = '';   // 특성은 카드 바깥 칸(traitSlotsHTML)으로 옮겼다
 
   const tl = trainLvl || 0;
   const mark = '<div class="ecl-mark"><svg width="28" height="24" viewBox="0 0 28 24" fill="none">'
@@ -3215,7 +3290,9 @@ function buildEclCardHTML(player, enhLvl, trainLvl, extraB) {
     +   '<div class="ecl-stats">' + sH + '</div>'
     +   '<div class="ecl-meta"><span>' + (player.foot || '') + '</span><span>' + (player.club || '') + '</span></div>'
     +   enhBadge + traitPill + mark
-    + '</div></div>';
+    + '</div>'
+    + traitSlotsHTML(player)
+    + '</div>';
 }
 
 function buildULCardHTML(player, enhLvl, trainLvl, extraB) {
@@ -3286,16 +3363,7 @@ function buildULCardHTML(player, enhLvl, trainLvl, extraB) {
     : '';
 
   // 특성 배지 — 선수당 하나. 없으면 아예 안 그린다.
-  const _tr = (typeof traitOf === 'function') ? traitOf(player) : null;
-  const traitPill = _tr
-    ? '<div style="position:absolute;top:calc(58% + 79px);left:50%;transform:translateX(-50%);z-index:12;'
-      + 'display:flex;align-items:center;gap:3px;padding:1.5px 8px;border-radius:8px;white-space:nowrap;'
-      + 'background:linear-gradient(135deg,rgba(255,107,87,.22),rgba(255,107,87,.06));'
-      + 'border:1px solid ' + _tr.color + '99;box-shadow:0 0 8px ' + _tr.color + '33">'
-      + '<span style="font-size:8px;line-height:1">' + _tr.icon + '</span>'
-      + '<span style="font-size:8.5px;font-weight:900;letter-spacing:.4px;color:' + _tr.color + '">'
-      + _tr.name + '</span></div>'
-    : '';
+  const traitPill = '';   // 특성은 카드 바깥 칸(traitSlotsHTML)으로 옮겼다
 
   const photo = '<img src="'+(IMGS[player.id]||'')+'" style="position:absolute;bottom:42%;left:52%;'
     + 'transform:translateX(-50%);height:50%;object-fit:contain;z-index:3" draggable="false">';
@@ -3353,6 +3421,7 @@ function buildULCardHTML(player, enhLvl, trainLvl, extraB) {
     + '<div style="position:absolute;top:28px;right:12px;z-index:10;padding:3px 8px;background:rgba(6,11,28,.9);'
     + 'border:.5px solid rgba(212,175,55,.5);border-radius:3px;font-size:11px;font-weight:900;color:#d4af37;'
     + 'letter-spacing:.5px">'+(player.salary||0)+'</div>'
+    + traitSlotsHTML(player)
     + '</div>';
 }
 
@@ -3441,7 +3510,9 @@ function buildRevealCardHTML(p, ovrB, enhLvl, trainLvl, extraB){
     + '<path d="M5 1h18l5 8-14 14L0 9l5-8z" fill="#d4af37" opacity=".15"/>'
     + '<path d="M5 1h18l5 8-14 14L0 9l5-8z" stroke="#d4af37" stroke-width="1.2"/>'
     + trainMarkDiamond(trainLvl) + '</svg></div>'
-    + '</div></div>';
+    + '</div>'
+    + traitSlotsHTML(p)
+    + '</div>';
 }
 
 // 팩 결과에서 카드를 눌렀을 때 뜨는 읽기 전용 뷰
@@ -3530,10 +3601,12 @@ function renderCollection(){
       ? (locked ? '' : 'onclick="toggleSellPick('+c.uid+')"')
       : 'onclick="showPlayerDetailByUid('+c.uid+')"';
     return '<div class="'+cls+'" '+act+'><div class="coll-season '+(p.season==='ul'?'ul':p.season==='tl'?'tl':p.season==='live'?'live':p.season==='ecl'?'ecl':'fwc')+'">'+(p.season==='ul'?'UL':p.season==='tl'?'TL':p.season==='live'?'LIVE':p.season==='ecl'?'ECL':'FWC')+'</div><img src="'+IMGS[c.id]+'"><div class="covr">'+(p.ovr+ovrB)+'</div><div class="cname">'+p.name+'</div><div class="cextra">급여 '+(p.salary||0)+'</div><div class="coll-enh">'+getEnhBadgeHTML(lvl)+'</div>'
-      +(function(){ const ti = cardTraitId(c); return ti
-          ? '<div style="position:absolute;top:4px;right:4px;z-index:6;width:19px;height:19px;border-radius:50%;'
-            + 'display:flex;align-items:center;justify-content:center;background:rgba(8,12,22,.82);'
-            + 'border:1px solid ' + TRAITS[ti].color + 'cc">' + traitIconHTML(ti, 12) + '</div>' : ''; })()
+      +(function(){ const ids = cardTraitIds(c); if (!ids.length) return '';
+          return '<div style="position:absolute;top:4px;right:4px;z-index:6;display:flex;flex-direction:column;gap:3px">'
+            + ids.map(ti => '<div style="width:19px;height:19px;border-radius:50%;'
+                + 'display:flex;align-items:center;justify-content:center;background:rgba(8,12,22,.82);'
+                + 'border:1px solid ' + TRAITS[ti].color + 'cc">' + traitIconHTML(ti, 12) + '</div>').join('')
+            + '</div>'; })()
       +useTag+lockTag+'</div>';
   }).join('');
 }
@@ -4236,15 +4309,18 @@ function showPlayerDetail(idx) {
       ${enhInfoHtml}
       ${trainInfoHtml}
       ${(function(){
-        const tid = cardTraitId(card);
-        if (!tid) return '<div class="pd-trait" style="opacity:.6">'
+        const pv = cardPassiveTraitId(card), eq = cardEquipTraitId(card);
+        if (!pv && !eq) return '<div class="pd-trait" style="opacity:.6">'
           + '<div class="nm" style="color:#8b93a1">특성 없음</div>'
           + '<div class="sub">상점에서 사서 장착</div></div>';
-        const t = TRAITS[tid];
-        return '<div class="pd-trait" style="border-color:' + t.color + '66">'
-          + traitIconHTML(tid, 20)
-          + '<div style="text-align:left"><div class="nm" style="color:' + t.color + '">' + t.name + '</div>'
-          + '<div class="sub">' + (card.trait ? '장착 중' : '고유 특성') + '</div></div></div>';
+        const one = (id, sub) => {
+          const t = TRAITS[id];
+          return '<div class="pd-trait" style="border-color:' + t.color + '66">'
+            + traitIconHTML(id, 20)
+            + '<div style="text-align:left"><div class="nm" style="color:' + t.color + '">' + t.name + '</div>'
+            + '<div class="sub">' + sub + '</div></div></div>';
+        };
+        return (pv ? one(pv, '패시브') : '') + (eq && eq !== pv ? one(eq, '장착 중') : '');
       })()}
       <div class="pd-btns">
         <button class="pd-btn" onclick="openTraitPicker(${card.uid})" style="background:linear-gradient(135deg,#5b2b8a,#b47cf5);color:#fff">특성</button>
@@ -9021,6 +9097,7 @@ function lvSubIn(uid) {
   const slot = (FORMATIONS[currentFormation] || [])[lvSubPick] || { label: 'CM' };
   lvSubUsed.add(uid);
   p.pid = c.id; p.nm = ply ? ply.name : c.id;
+  p.traits = cardTraitIds(c);          // 교체 투입 선수의 특성으로 교체
   p.ovr = effectiveOvr(c, slot.label).eff;
   p.stam = 100; p.vx = 0; p.vy = 0; p.slide = null; p.lunge = 0; p.skill = null; p.fooled = null;
   lvSubs++;
@@ -9661,8 +9738,9 @@ function lvHintPaint() {
   if (lvMsg) { h.textContent = lvMsg; return; }
   const mine = !!(lvBall.own && lvBall.own.side === 'us');
   const p = mtUs[lvCtrlIdx()];
-  const tr = traitOf(p);
-  h.textContent = (p ? (p.nm || '') + (tr ? ' ' + tr.icon : '') + ' · ' : '')
+  const trs = traitsOf(p);
+  h.textContent = (p ? (p.nm || '')
+                 + (trs.length ? ' (' + trs.map(t => t.name).join('·') + ')' : '') + ' · ' : '')
                 + (mine ? '공격 중' : '수비 중');
 }
 
@@ -12628,8 +12706,8 @@ function mtInitPitch() {
     ovr: (function(){ const c = cardByUid(squadSlots[i]); return c ? effectiveOvr(c, sl.label).eff : 100; })(),
     nm:  (function(){ const c = cardByUid(squadSlots[i]); const p = c && PLAYERS.find(x=>x.id===c.id); return p ? p.name : sl.label; })(),
     pid: (function(){ const c = cardByUid(squadSlots[i]); return c ? c.id : null; })(),
-    // 특성 — 장착한 게 우선, 없으면 선수 고유 특성 (강화·훈련과 무관)
-    trait: (function(){ const c = cardByUid(squadSlots[i]); return cardTraitId(c); })(),
+    // 특성 — 패시브 + 장착, 둘 다 동시에 적용된다 (강화·훈련과 무관)
+    traits: (function(){ const c = cardByUid(squadSlots[i]); return cardTraitIds(c); })(),
     hx: 6 + (100 - sl.y) * 0.52, hy: 14 + sl.x * 0.72,
     line: mtLineOf(sl.label), gk: sl.label === 'GK',
     wide: /LB|RB|LWB|RWB|LM|RM|LW|RW/.test(sl.label),   // 측면 자원
